@@ -1,7 +1,7 @@
 system
     name StudyHelper
     title StudyHelper
-    description StudyHelper helper is a small box that helps you optimize your study conditions
+    description "StudyHelper helper is a small box that helps you optimize your study conditions"
 
 artifacts
     activity Analysis/activity.puml [svg]
@@ -10,45 +10,99 @@ artifacts
     state Analysis/states/ [svg]
 
 obj Student [actor]
-    studying [state, initial(false)] : boolean
+    studying: boolean [state, initial(false)]
 
-uc MeasureEnvironmentCondition
-    description "Measure student's room environment condition in order to receive a feedback"
-    actor Student
-    pre !Student.studying
-    pre sys.data_collection
-    
-    step @start Turn on data collection
-    step Study
-    
-    post Student.studying
-    post DataIsGathered
-
-uc FindOutStudyConditions
-    description "Find out the optimal study conditions for the student"
+uc CheckNoiseLevel
+    description "The student wants to check the noise level to ensure a quiet environment for concentration."
     actor Student
     pre Student.studying
-
-    step @start Get the machine
-    step Turn it on
-
-    post Student.knowsTheStudyConditions
     
-uc FindOutStudyConditions
-    description "Find out the optimal study conditions for the student"
+    step @start Student requests current noise level
+    step requestNoiseData :> @sys
+    step System returns noise level in decibels
+    
+    post Student.knowsNoiseLevel
+
+uc CheckLightLevel
+    description "The student wants to check light levels to avoid eye strain during study."
     actor Student
     pre Student.studying
+    
+    step @start Student requests current light level
+    step requestLightData :> @sys
+    step System returns light intensity in lux
+    
+    post Student.knowsLightLevel
 
-    step @start Get the machine
-    step Turn it on
-
-    post Student.knowsTheStudyConditions
-
-uc GetSuggestionForImprovement
-    description "Get suggestions for improving study conditions"
+uc CheckCO2Level
+    description "The student wants to monitor CO2 levels to ensure proper ventilation and prevent drowsiness."
     actor Student
-    pre Student.knowsTheStudyConditions
+    pre Student.studying
+    
+    step @start Student requests current CO2 level
+    step requestCO2Data :> @sys
+    step System returns CO2 concentration in ppm
+    
+    post Student.knowsCO2Level
 
-    step Ask for suggestion
+uc CheckTemperature
+    description "The student wants to see the current temperature to stay within a comfortable range."
+    actor Student
+    pre Student.studying
+    
+    step @start Student requests current temperature
+    step requestTemperatureData :> @sys
+    step System returns temperature in Celsius
+    
+    post Student.knowsTemperature
 
-    post Student Student.knowsHowToImprove
+uc CheckHumidity
+    description "The student wants to check humidity levels to maintain a healthy study environment."
+    actor Student
+    pre Student.studying
+    
+    step @start Student requests current humidity level
+    step requestHumidityData :> @sys
+    step System returns relative humidity percentage
+    
+    post Student.knowsHumidity
+
+uc SetDataCollectionInterval
+    description "The student wants to configure how frequently the device records sensor data."
+    actor Student
+    pre Student.authorized
+    
+    step @start Student specifies a new interval in minutes
+    step configureInterval :> @sys
+        - intervalMinutes
+    step System updates the polling frequency
+    
+    post sys.intervalUpdated
+
+uc CheckDustLevel
+    description "The student wants to check the dust level (PM2.5/PM10) to monitor air quality."
+    actor Student
+    pre Student.studying
+    
+    step @start Student requests current dust level
+    step requestDustData :> @sys
+    step System returns particulate matter concentration
+    
+    post Student.knowsDustLevel
+
+uc ReceiveEnvironmentNotification
+    description "Be notified if study environment parameters are not optimal, so that I can take action"
+    actor Student
+    pre Student.studying
+    
+    step monitorEnvironment :> @sys
+    alt [Parameters not optimal]
+        step sendNotification :> Student
+
+uc RateStudySessionFocus
+    description "Rate my study session focus in specific study environment"
+    actor Student
+    pre Student.studying
+    
+    step submitFocusRating :> @sys
+        - ratingValue
