@@ -1,0 +1,8 @@
+@startuml StudyHelper_SetDataCollectionInterval_SSD
+title System Sequence Diagram: SetDataCollectionInterval
+actor "Student" as Actor
+participant "@sys" as System
+Actor -> System : Student specifies a new interval in minutes
+Actor -> System : configureInterval(intervalMinutes)
+Actor -> System : System updates the polling frequency
+@enduml

@@ -1,7 +1,10 @@
 @startuml Student_StateMachine
 ' State Machine for Student
 [*] --> Not_studying
-Not_studying --> studying : GatherData
-studying --> knowsTheStudyConditions : FindOutStudyConditions
-knowsTheStudyConditions --> knowsHowToImprove : GetSuggestionForImprovement
+studying --> knowsNoiseLevel : CheckNoiseLevel
+studying --> knowsLightLevel : CheckLightLevel
+studying --> knowsCO2Level : CheckCO2Level
+studying --> knowsTemperature : CheckTemperature
+studying --> knowsHumidity : CheckHumidity
+studying --> knowsDustLevel : CheckDustLevel
 @enduml

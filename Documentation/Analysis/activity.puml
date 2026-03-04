@@ -4,23 +4,76 @@ skinparam MessageAlign center
 title Activity: StudyHelper
 start
 split
-partition "GatherData" {
-    label GatherData_start
-    :Turn on data collection;
-    :Study;
-    label GatherData_end
+partition "CheckNoiseLevel" {
+    label CheckNoiseLevel_start
+    :Student requests current noise level;
+    :requestNoiseData;
+    :System returns noise level in decibels;
+    label CheckNoiseLevel_end
 }
 split again
-partition "FindOutStudyConditions" {
-    label FindOutStudyConditions_start
-    :Get the machine;
-    :Turn it on;
-    label FindOutStudyConditions_end
+partition "CheckLightLevel" {
+    label CheckLightLevel_start
+    :Student requests current light level;
+    :requestLightData;
+    :System returns light intensity in lux;
+    label CheckLightLevel_end
 }
 split again
-partition "GetSuggestionForImprovement" {
-    :Ask for suggestion;
-    label GetSuggestionForImprovement_end
+partition "CheckCO2Level" {
+    label CheckCO2Level_start
+    :Student requests current CO2 level;
+    :requestCO2Data;
+    :System returns CO2 concentration in ppm;
+    label CheckCO2Level_end
+}
+split again
+partition "CheckTemperature" {
+    label CheckTemperature_start
+    :Student requests current temperature;
+    :requestTemperatureData;
+    :System returns temperature in Celsius;
+    label CheckTemperature_end
+}
+split again
+partition "CheckHumidity" {
+    label CheckHumidity_start
+    :Student requests current humidity level;
+    :requestHumidityData;
+    :System returns relative humidity percentage;
+    label CheckHumidity_end
+}
+split again
+partition "SetDataCollectionInterval" {
+    label SetDataCollectionInterval_start
+    :Student specifies a new interval in minutes;
+    :configureInterval;
+    :System updates the polling frequency;
+    label SetDataCollectionInterval_end
+}
+split again
+partition "CheckDustLevel" {
+    label CheckDustLevel_start
+    :Student requests current dust level;
+    :requestDustData;
+    :System returns particulate matter concentration;
+    label CheckDustLevel_end
+}
+split again
+partition "ReceiveEnvironmentNotification" {
+    :monitorEnvironment;
+    label ReceiveEnvironmentNotification_
+    if (Parameters not optimal) then (yes)
+      :;
+    else (no)
+    endif
+    :sendNotification;
+    label ReceiveEnvironmentNotification_end
+}
+split again
+partition "RateStudySessionFocus" {
+    :submitFocusRating;
+    label RateStudySessionFocus_end
 }
 endsplit
 stop

@@ -1,0 +1,6 @@
+@startuml StudyHelper_RateStudySessionFocus_SSD
+title System Sequence Diagram: RateStudySessionFocus
+actor "Student" as Actor
+participant "@sys" as System
+Actor -> System : submitFocusRating(ratingValue)
+@enduml
