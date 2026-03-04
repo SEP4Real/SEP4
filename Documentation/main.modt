@@ -1,0 +1,54 @@
+system
+    name StudyHelper
+    title StudyHelper
+    description StudyHelper helper is a small box that helps you optimize your study conditions
+
+artifacts
+    activity Analysis/activity.puml [svg]
+    docs Analysis/studyhelper.md
+    ssd Analysis/ssds/ [svg]
+    state Analysis/states/ [svg]
+
+obj Student [actor]
+    studying [state, initial(false)] : boolean
+
+uc MeasureEnvironmentCondition
+    description "Measure student's room environment condition in order to receive a feedback"
+    actor Student
+    pre !Student.studying
+    pre sys.data_collection
+    
+    step @start Turn on data collection
+    step Study
+    
+    post Student.studying
+    post DataIsGathered
+
+uc FindOutStudyConditions
+    description "Find out the optimal study conditions for the student"
+    actor Student
+    pre Student.studying
+
+    step @start Get the machine
+    step Turn it on
+
+    post Student.knowsTheStudyConditions
+    
+uc FindOutStudyConditions
+    description "Find out the optimal study conditions for the student"
+    actor Student
+    pre Student.studying
+
+    step @start Get the machine
+    step Turn it on
+
+    post Student.knowsTheStudyConditions
+
+uc GetSuggestionForImprovement
+    description "Get suggestions for improving study conditions"
+    actor Student
+    pre Student.knowsTheStudyConditions
+
+    step Ask for suggestion
+
+    post Student Student.knowsHowToImprove

@@ -1,0 +1,7 @@
+@startuml StudyHelper_FindOutStudyConditions_SSD
+title System Sequence Diagram: FindOutStudyConditions
+actor "Student" as Actor
+participant "@sys" as System
+Actor -> System : Get the machine
+Actor -> System : Turn it on
+@enduml

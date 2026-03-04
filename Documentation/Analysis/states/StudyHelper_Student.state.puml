@@ -1,0 +1,7 @@
+@startuml Student_StateMachine
+' State Machine for Student
+[*] --> Not_studying
+Not_studying --> studying : GatherData
+studying --> knowsTheStudyConditions : FindOutStudyConditions
+knowsTheStudyConditions --> knowsHowToImprove : GetSuggestionForImprovement
+@enduml

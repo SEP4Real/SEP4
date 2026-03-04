@@ -1,0 +1,7 @@
+@startuml StudyHelper_GatherData_SSD
+title System Sequence Diagram: GatherData
+actor "Student" as Actor
+participant "@sys" as System
+Actor -> System : Turn on data collection
+Actor -> System : Study
+@enduml

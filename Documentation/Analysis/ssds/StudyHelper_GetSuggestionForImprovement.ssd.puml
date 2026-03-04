@@ -1,0 +1,6 @@
+@startuml StudyHelper_GetSuggestionForImprovement_SSD
+title System Sequence Diagram: GetSuggestionForImprovement
+actor "Student" as Actor
+participant "@sys" as System
+Actor -> System : Ask for suggestion
+@enduml
