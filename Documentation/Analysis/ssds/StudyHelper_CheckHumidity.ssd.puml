@@ -1,8 +1,9 @@
-@startuml StudyHelper_CheckHumidity_SSD
-title System Sequence Diagram: CheckHumidity
+@startuml
+title Sequence Diagram: CheckHumidity
 actor "Student" as Actor
-participant "@sys" as System
-Actor -> System : Student requests current humidity level
+participant "system" as System
+participant "returns relative humidity percentage" as returns_relative_humidity_percentage
+
 Actor -> System : requestHumidityData
-Actor -> System : System returns relative humidity percentage
+System -> returns_relative_humidity_percentage : 
 @enduml

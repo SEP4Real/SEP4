@@ -1,8 +1,9 @@
-@startuml StudyHelper_CheckLightLevel_SSD
-title System Sequence Diagram: CheckLightLevel
+@startuml
+title Sequence Diagram: CheckLightLevel
 actor "Student" as Actor
-participant "@sys" as System
-Actor -> System : Student requests current light level
+participant "system" as System
+participant "returns light intensity in lux" as returns_light_intensity_in_lux
+
 Actor -> System : requestLightData
-Actor -> System : System returns light intensity in lux
+System -> returns_light_intensity_in_lux : 
 @enduml

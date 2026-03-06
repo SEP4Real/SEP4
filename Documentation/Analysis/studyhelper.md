@@ -14,9 +14,8 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. <@start > Student requests current noise level 
-2. requestNoiseData (Target: @sys)
-3. System returns noise level in decibels 
+1. requestNoiseData 
+2.  (Target: returns noise level in decibels)
 
 **Postconditions:**
 - `Student.knowsNoiseLevel`
@@ -30,9 +29,8 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. <@start > Student requests current light level 
-2. requestLightData (Target: @sys)
-3. System returns light intensity in lux 
+1. requestLightData 
+2.  (Target: returns light intensity in lux)
 
 **Postconditions:**
 - `Student.knowsLightLevel`
@@ -46,9 +44,8 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. <@start > Student requests current CO2 level 
-2. requestCO2Data (Target: @sys)
-3. System returns CO2 concentration in ppm 
+1. requestCO2Data 
+2.  (Target: returns CO2 concentration in ppm)
 
 **Postconditions:**
 - `Student.knowsCO2Level`
@@ -62,9 +59,8 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. <@start > Student requests current temperature 
-2. requestTemperatureData (Target: @sys)
-3. System returns temperature in Celsius 
+1. requestTemperatureData 
+2.  (Target: returns temperature in Celsius)
 
 **Postconditions:**
 - `Student.knowsTemperature`
@@ -78,9 +74,8 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. <@start > Student requests current humidity level 
-2. requestHumidityData (Target: @sys)
-3. System returns relative humidity percentage 
+1. requestHumidityData 
+2.  (Target: returns relative humidity percentage)
 
 **Postconditions:**
 - `Student.knowsHumidity`
@@ -94,10 +89,9 @@
 - `Student.authorized`
 
 **Flow of Events:**
-1. <@start > Student specifies a new interval in minutes 
-2. configureInterval (Target: @sys)
-    - intervalMinutes
-3. System updates the polling frequency 
+1. configureInterval 
+    - intervalMinutes: int
+2.  (Target: updates the polling frequency)
 
 **Postconditions:**
 - `sys.intervalUpdated`
@@ -111,9 +105,8 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. <@start > Student requests current dust level 
-2. requestDustData (Target: @sys)
-3. System returns particulate matter concentration 
+1. requestDustData 
+2.  (Target: returns particulate matter concentration)
 
 **Postconditions:**
 - `Student.knowsDustLevel`
@@ -127,7 +120,7 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. monitorEnvironment (Target: @sys)
+1. monitorEnvironment 
 2. [Alt: Parameters not optimal]  
 3. sendNotification (Target: Student)
 
@@ -140,17 +133,37 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. submitFocusRating (Target: @sys)
-    - ratingValue
+1. submitFocusRating 
+    - ratingValue: int
+
+**Postconditions:**
+- `sys.focusRated`
 
 ## Domain Model
 
 ### Class: Student
-**Stereotypes:** `<<actor>>` 
-
 #### Attributes
 
 | Attribute | Type | Visibility | Metadata |
 | --- | --- | --- | --- |
-| studying | boolean | unspecified | `initial(false)`, `state` |
+| studying | bool | unspecified | `initial(false)`, `state` |
+| authorized | bool | unspecified | `initial(false)` |
+
+### Class: StudyEnvironment
+#### Attributes
+
+| Attribute | Type | Visibility | Metadata |
+| --- | --- | --- | --- |
+| temperature | long | unspecified | - |
+| humidity | long | unspecified | - |
+| co2Level | long | unspecified | - |
+| lightLevel | long | unspecified | - |
+| noiseLevel | long | unspecified | - |
+| dustLevel | long | unspecified | - |
+
+## Relationships
+
+| From | Type | To | Label |
+| --- | --- | --- | --- |
+| Student "1" | -- | "*" StudyEnvironment | monitors |
 

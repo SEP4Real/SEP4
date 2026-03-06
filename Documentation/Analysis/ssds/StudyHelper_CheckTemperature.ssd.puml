@@ -1,8 +1,9 @@
-@startuml StudyHelper_CheckTemperature_SSD
-title System Sequence Diagram: CheckTemperature
+@startuml
+title Sequence Diagram: CheckTemperature
 actor "Student" as Actor
-participant "@sys" as System
-Actor -> System : Student requests current temperature
+participant "system" as System
+participant "returns temperature in Celsius" as returns_temperature_in_Celsius
+
 Actor -> System : requestTemperatureData
-Actor -> System : System returns temperature in Celsius
+System -> returns_temperature_in_Celsius : 
 @enduml

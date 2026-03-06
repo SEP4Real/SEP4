@@ -1,8 +1,9 @@
-@startuml StudyHelper_CheckNoiseLevel_SSD
-title System Sequence Diagram: CheckNoiseLevel
+@startuml
+title Sequence Diagram: CheckNoiseLevel
 actor "Student" as Actor
-participant "@sys" as System
-Actor -> System : Student requests current noise level
+participant "system" as System
+participant "returns noise level in decibels" as returns_noise_level_in_decibels
+
 Actor -> System : requestNoiseData
-Actor -> System : System returns noise level in decibels
+System -> returns_noise_level_in_decibels : 
 @enduml

@@ -4,22 +4,34 @@ system
     description "StudyHelper helper is a small box that helps you optimize your study conditions"
 
 artifacts
+    domain Analysis/domain.puml [svg]
+    design Analysis/design.puml [svg]
     activity Analysis/activity.puml [svg]
     docs Analysis/studyhelper.md
     ssd Analysis/ssds/ [svg]
     state Analysis/states/ [svg]
 
-obj Student [actor]
-    studying: boolean [state, initial(false)]
+obj Student
+    studying: bool [state, initial(false)]
+    authorized: bool [initial(false)]
+
+obj StudyEnvironment
+    temperature : long [a, d]
+    humidity : long [a, d]
+    co2Level : long [a, d]
+    lightLevel : long [a, d]
+    noiseLevel : long [a, d]
+    dustLevel : long [a, d]
+
+rel Student "1" -- "*" StudyEnvironment : monitors
 
 uc CheckNoiseLevel
     description "The student wants to check the noise level to ensure a quiet environment for concentration."
     actor Student
     pre Student.studying
     
-    step @start Student requests current noise level
-    step requestNoiseData :> @sys
-    step System returns noise level in decibels
+    step @start requestNoiseData :> @sys
+    step @sys :> returns noise level in decibels
     
     post Student.knowsNoiseLevel
 
@@ -28,9 +40,8 @@ uc CheckLightLevel
     actor Student
     pre Student.studying
     
-    step @start Student requests current light level
-    step requestLightData :> @sys
-    step System returns light intensity in lux
+    step @start requestLightData :> @sys
+    step @sys :> returns light intensity in lux
     
     post Student.knowsLightLevel
 
@@ -39,9 +50,8 @@ uc CheckCO2Level
     actor Student
     pre Student.studying
     
-    step @start Student requests current CO2 level
-    step requestCO2Data :> @sys
-    step System returns CO2 concentration in ppm
+    step @start requestCO2Data :> @sys
+    step @sys :> returns CO2 concentration in ppm
     
     post Student.knowsCO2Level
 
@@ -50,9 +60,8 @@ uc CheckTemperature
     actor Student
     pre Student.studying
     
-    step @start Student requests current temperature
-    step requestTemperatureData :> @sys
-    step System returns temperature in Celsius
+    step @start requestTemperatureData :> @sys
+    step @sys :> returns temperature in Celsius
     
     post Student.knowsTemperature
 
@@ -61,9 +70,8 @@ uc CheckHumidity
     actor Student
     pre Student.studying
     
-    step @start Student requests current humidity level
-    step requestHumidityData :> @sys
-    step System returns relative humidity percentage
+    step @start requestHumidityData :> @sys
+    step @sys :> returns relative humidity percentage
     
     post Student.knowsHumidity
 
@@ -72,10 +80,9 @@ uc SetDataCollectionInterval
     actor Student
     pre Student.authorized
     
-    step @start Student specifies a new interval in minutes
-    step configureInterval :> @sys
-        - intervalMinutes
-    step System updates the polling frequency
+    step @start configureInterval :> @sys
+        - intervalMinutes : int
+    step @sys :> updates the polling frequency
     
     post sys.intervalUpdated
 
@@ -84,9 +91,8 @@ uc CheckDustLevel
     actor Student
     pre Student.studying
     
-    step @start Student requests current dust level
-    step requestDustData :> @sys
-    step System returns particulate matter concentration
+    step @start requestDustData :> @sys
+    step @sys :> returns particulate matter concentration
     
     post Student.knowsDustLevel
 
@@ -105,4 +111,6 @@ uc RateStudySessionFocus
     pre Student.studying
     
     step submitFocusRating :> @sys
-        - ratingValue
+        - ratingValue : int
+    
+    post sys.focusRated

@@ -1,6 +1,14 @@
-@startuml Student_StateMachine
-' State Machine for Student
-[*] --> Not_studying
+@startuml
+title State Machine: Student
+state knowsCO2Level
+state knowsDustLevel
+state knowsHumidity
+state knowsLightLevel
+state knowsNoiseLevel
+state knowsTemperature
+state studying
+
+[*] --> Not_authorized
 studying --> knowsNoiseLevel : CheckNoiseLevel
 studying --> knowsLightLevel : CheckLightLevel
 studying --> knowsCO2Level : CheckCO2Level

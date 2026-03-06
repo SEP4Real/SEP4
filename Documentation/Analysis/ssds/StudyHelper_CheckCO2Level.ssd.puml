@@ -1,8 +1,9 @@
-@startuml StudyHelper_CheckCO2Level_SSD
-title System Sequence Diagram: CheckCO2Level
+@startuml
+title Sequence Diagram: CheckCO2Level
 actor "Student" as Actor
-participant "@sys" as System
-Actor -> System : Student requests current CO2 level
+participant "system" as System
+participant "returns CO2 concentration in ppm" as returns_CO2_concentration_in_ppm
+
 Actor -> System : requestCO2Data
-Actor -> System : System returns CO2 concentration in ppm
+System -> returns_CO2_concentration_in_ppm : 
 @enduml

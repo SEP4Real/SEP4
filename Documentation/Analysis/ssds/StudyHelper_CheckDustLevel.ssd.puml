@@ -1,8 +1,9 @@
-@startuml StudyHelper_CheckDustLevel_SSD
-title System Sequence Diagram: CheckDustLevel
+@startuml
+title Sequence Diagram: CheckDustLevel
 actor "Student" as Actor
-participant "@sys" as System
-Actor -> System : Student requests current dust level
+participant "system" as System
+participant "returns particulate matter concentration" as returns_particulate_matter_concentration
+
 Actor -> System : requestDustData
-Actor -> System : System returns particulate matter concentration
+System -> returns_particulate_matter_concentration : 
 @enduml

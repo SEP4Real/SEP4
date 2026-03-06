@@ -1,10 +1,11 @@
-@startuml StudyHelper_ReceiveEnvironmentNotification_SSD
-title System Sequence Diagram: ReceiveEnvironmentNotification
+@startuml
+title Sequence Diagram: ReceiveEnvironmentNotification
 actor "Student" as Actor
-participant "@sys" as System
+participant "system" as System
+participant "Student" as Student
+
 Actor -> System : monitorEnvironment
 alt Parameters not optimal
-Actor -> System : 
+System -> Student : sendNotification
 end
-System -> Actor : sendNotification
 @enduml
