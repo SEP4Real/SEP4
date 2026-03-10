@@ -2,8 +2,7 @@
 title Sequence Diagram: CheckDustLevel
 actor "Student" as Actor
 participant "system" as System
-participant "returns particulate matter concentration" as returns_particulate_matter_concentration
 
 Actor -> System : requestDustData
-System -> returns_particulate_matter_concentration : 
+System -> Actor : sendDustLevel(dustLevel)
 @enduml

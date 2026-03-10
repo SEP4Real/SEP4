@@ -4,16 +4,24 @@ system
     description "StudyHelper helper is a small box that helps you optimize your study conditions"
 
 artifacts
-    domain Analysis/domain.puml [svg]
-    design Analysis/design.puml [svg]
-    activity Analysis/activity.puml [svg]
-    docs Analysis/studyhelper.md
+    domain Analysis/ [svg]
+    design Analysis/ [svg]
+    activity Analysis/ [svg]
+    docs Analysis/
     ssd Analysis/ssds/ [svg]
     state Analysis/states/ [svg]
 
 obj Student
     studying: bool [state, initial(false)]
     authorized: bool [initial(false)]
+    
+    method startStudying() [set(studying, true)]
+        pre !studying
+        post studying
+
+    method stopStudying() [set(studying, false)]
+        pre studying
+        post !studying
 
 obj StudyEnvironment
     temperature : long [a, d]
@@ -31,7 +39,8 @@ uc CheckNoiseLevel
     pre Student.studying
     
     step @start requestNoiseData :> @sys
-    step @sys :> returns noise level in decibels
+    step sendNoiseLevel :> @actor
+        - noiseLevel : decimal
     
     post Student.knowsNoiseLevel
 
@@ -41,7 +50,8 @@ uc CheckLightLevel
     pre Student.studying
     
     step @start requestLightData :> @sys
-    step @sys :> returns light intensity in lux
+    step sendLightLevel :> @actor
+        - lightLevel : long
     
     post Student.knowsLightLevel
 
@@ -51,7 +61,8 @@ uc CheckCO2Level
     pre Student.studying
     
     step @start requestCO2Data :> @sys
-    step @sys :> returns CO2 concentration in ppm
+    step sendCO2Level :> @actor
+        - co2Level : long
     
     post Student.knowsCO2Level
 
@@ -61,7 +72,8 @@ uc CheckTemperature
     pre Student.studying
     
     step @start requestTemperatureData :> @sys
-    step @sys :> returns temperature in Celsius
+    step sendTemperature :> @actor
+        - temperature : long
     
     post Student.knowsTemperature
 
@@ -71,7 +83,8 @@ uc CheckHumidity
     pre Student.studying
     
     step @start requestHumidityData :> @sys
-    step @sys :> returns relative humidity percentage
+    step sendHumidity :> @actor
+        - humidity : long
     
     post Student.knowsHumidity
 
@@ -82,7 +95,7 @@ uc SetDataCollectionInterval
     
     step @start configureInterval :> @sys
         - intervalMinutes : int
-    step @sys :> updates the polling frequency
+    step notifyUpdate :> @actor
     
     post sys.intervalUpdated
 
@@ -92,7 +105,8 @@ uc CheckDustLevel
     pre Student.studying
     
     step @start requestDustData :> @sys
-    step @sys :> returns particulate matter concentration
+    step sendDustLevel :> @actor
+        - dustLevel : long
     
     post Student.knowsDustLevel
 
@@ -103,7 +117,9 @@ uc ReceiveEnvironmentNotification
     
     step monitorEnvironment :> @sys
     alt [Parameters not optimal]
-        step sendNotification :> Student
+        step sendNotification :> @actor
+    
+    post @sys.notified
 
 uc RateStudySessionFocus
     description "Rate my study session focus in specific study environment"
@@ -112,5 +128,6 @@ uc RateStudySessionFocus
     
     step submitFocusRating :> @sys
         - ratingValue : int
+    step confirmRating :> @actor
     
     post sys.focusRated

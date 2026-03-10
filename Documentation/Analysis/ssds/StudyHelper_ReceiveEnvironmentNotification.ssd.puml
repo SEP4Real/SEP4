@@ -2,10 +2,9 @@
 title Sequence Diagram: ReceiveEnvironmentNotification
 actor "Student" as Actor
 participant "system" as System
-participant "Student" as Student
 
 Actor -> System : monitorEnvironment
 alt Parameters not optimal
-System -> Student : sendNotification
+System -> Actor : sendNotification
 end
 @enduml

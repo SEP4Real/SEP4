@@ -2,8 +2,7 @@
 title Sequence Diagram: CheckTemperature
 actor "Student" as Actor
 participant "system" as System
-participant "returns temperature in Celsius" as returns_temperature_in_Celsius
 
 Actor -> System : requestTemperatureData
-System -> returns_temperature_in_Celsius : 
+System -> Actor : sendTemperature(temperature)
 @enduml

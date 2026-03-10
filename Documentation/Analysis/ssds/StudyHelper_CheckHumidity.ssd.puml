@@ -2,8 +2,7 @@
 title Sequence Diagram: CheckHumidity
 actor "Student" as Actor
 participant "system" as System
-participant "returns relative humidity percentage" as returns_relative_humidity_percentage
 
 Actor -> System : requestHumidityData
-System -> returns_relative_humidity_percentage : 
+System -> Actor : sendHumidity(humidity)
 @enduml

@@ -7,56 +7,49 @@ split
 partition "CheckNoiseLevel" {
     label CheckNoiseLevel_start
     :requestNoiseData;
-    label CheckNoiseLevel_sys
-    :skip;
+    :sendNoiseLevel;
     label CheckNoiseLevel_end
 }
 split again
 partition "CheckLightLevel" {
     label CheckLightLevel_start
     :requestLightData;
-    label CheckLightLevel_sys
-    :skip;
+    :sendLightLevel;
     label CheckLightLevel_end
 }
 split again
 partition "CheckCO2Level" {
     label CheckCO2Level_start
     :requestCO2Data;
-    label CheckCO2Level_sys
-    :skip;
+    :sendCO2Level;
     label CheckCO2Level_end
 }
 split again
 partition "CheckTemperature" {
     label CheckTemperature_start
     :requestTemperatureData;
-    label CheckTemperature_sys
-    :skip;
+    :sendTemperature;
     label CheckTemperature_end
 }
 split again
 partition "CheckHumidity" {
     label CheckHumidity_start
     :requestHumidityData;
-    label CheckHumidity_sys
-    :skip;
+    :sendHumidity;
     label CheckHumidity_end
 }
 split again
 partition "SetDataCollectionInterval" {
     label SetDataCollectionInterval_start
     :configureInterval;
-    label SetDataCollectionInterval_sys
-    :skip;
+    :notifyUpdate;
     label SetDataCollectionInterval_end
 }
 split again
 partition "CheckDustLevel" {
     label CheckDustLevel_start
     :requestDustData;
-    label CheckDustLevel_sys
-    :skip;
+    :sendDustLevel;
     label CheckDustLevel_end
 }
 split again
@@ -73,6 +66,7 @@ partition "ReceiveEnvironmentNotification" {
 split again
 partition "RateStudySessionFocus" {
     :submitFocusRating;
+    :confirmRating;
     label RateStudySessionFocus_end
 }
 endsplit

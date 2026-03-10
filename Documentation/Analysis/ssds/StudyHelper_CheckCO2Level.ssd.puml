@@ -2,8 +2,7 @@
 title Sequence Diagram: CheckCO2Level
 actor "Student" as Actor
 participant "system" as System
-participant "returns CO2 concentration in ppm" as returns_CO2_concentration_in_ppm
 
 Actor -> System : requestCO2Data
-System -> returns_CO2_concentration_in_ppm : 
+System -> Actor : sendCO2Level(co2Level)
 @enduml

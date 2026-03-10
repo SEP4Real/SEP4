@@ -2,8 +2,7 @@
 title Sequence Diagram: CheckLightLevel
 actor "Student" as Actor
 participant "system" as System
-participant "returns light intensity in lux" as returns_light_intensity_in_lux
 
 Actor -> System : requestLightData
-System -> returns_light_intensity_in_lux : 
+System -> Actor : sendLightLevel(lightLevel)
 @enduml

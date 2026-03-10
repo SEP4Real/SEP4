@@ -15,7 +15,8 @@
 
 **Flow of Events:**
 1. requestNoiseData 
-2.  (Target: returns noise level in decibels)
+2. sendNoiseLevel (Target: actor)
+    - noiseLevel: decimal
 
 **Postconditions:**
 - `Student.knowsNoiseLevel`
@@ -30,7 +31,8 @@
 
 **Flow of Events:**
 1. requestLightData 
-2.  (Target: returns light intensity in lux)
+2. sendLightLevel (Target: actor)
+    - lightLevel: long
 
 **Postconditions:**
 - `Student.knowsLightLevel`
@@ -45,7 +47,8 @@
 
 **Flow of Events:**
 1. requestCO2Data 
-2.  (Target: returns CO2 concentration in ppm)
+2. sendCO2Level (Target: actor)
+    - co2Level: long
 
 **Postconditions:**
 - `Student.knowsCO2Level`
@@ -60,7 +63,8 @@
 
 **Flow of Events:**
 1. requestTemperatureData 
-2.  (Target: returns temperature in Celsius)
+2. sendTemperature (Target: actor)
+    - temperature: long
 
 **Postconditions:**
 - `Student.knowsTemperature`
@@ -75,7 +79,8 @@
 
 **Flow of Events:**
 1. requestHumidityData 
-2.  (Target: returns relative humidity percentage)
+2. sendHumidity (Target: actor)
+    - humidity: long
 
 **Postconditions:**
 - `Student.knowsHumidity`
@@ -91,7 +96,7 @@
 **Flow of Events:**
 1. configureInterval 
     - intervalMinutes: int
-2.  (Target: updates the polling frequency)
+2. notifyUpdate (Target: actor)
 
 **Postconditions:**
 - `sys.intervalUpdated`
@@ -106,7 +111,8 @@
 
 **Flow of Events:**
 1. requestDustData 
-2.  (Target: returns particulate matter concentration)
+2. sendDustLevel (Target: actor)
+    - dustLevel: long
 
 **Postconditions:**
 - `Student.knowsDustLevel`
@@ -122,7 +128,10 @@
 **Flow of Events:**
 1. monitorEnvironment 
 2. [Alt: Parameters not optimal]  
-3. sendNotification (Target: Student)
+3. sendNotification (Target: actor)
+
+**Postconditions:**
+- `@sys.notified`
 
 ### RateStudySessionFocus
 **Description:** "Rate my study session focus in specific study environment"
@@ -135,6 +144,7 @@
 **Flow of Events:**
 1. submitFocusRating 
     - ratingValue: int
+2. confirmRating (Target: actor)
 
 **Postconditions:**
 - `sys.focusRated`
@@ -148,6 +158,13 @@
 | --- | --- | --- | --- |
 | studying | bool | unspecified | `initial(false)`, `state` |
 | authorized | bool | unspecified | `initial(false)` |
+
+#### Methods
+
+| Method | Visibility | Effects | Pre/Post Conditions |
+| --- | --- | --- | --- |
+| startStudying() | unspecified | `Always`: studying -> true | **pre** !studying<br>**post** studying<br> |
+| stopStudying() | unspecified | `Always`: studying -> false | **pre** studying<br>**post** !studying<br> |
 
 ### Class: StudyEnvironment
 #### Attributes

@@ -2,8 +2,7 @@
 title Sequence Diagram: SetDataCollectionInterval
 actor "Student" as Actor
 participant "system" as System
-participant "updates the polling frequency" as updates_the_polling_frequency
 
 Actor -> System : configureInterval(intervalMinutes)
-System -> updates_the_polling_frequency : 
+System -> Actor : notifyUpdate
 @enduml

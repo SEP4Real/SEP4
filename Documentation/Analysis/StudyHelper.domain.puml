@@ -4,6 +4,8 @@ title Domain Model: StudyHelper
 class Student {
   studying : bool
   authorized : bool
+  startStudying()
+  stopStudying()
 }
 class StudyEnvironment {
 }

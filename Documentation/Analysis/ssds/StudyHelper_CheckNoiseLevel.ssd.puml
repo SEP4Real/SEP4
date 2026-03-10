@@ -2,8 +2,7 @@
 title Sequence Diagram: CheckNoiseLevel
 actor "Student" as Actor
 participant "system" as System
-participant "returns noise level in decibels" as returns_noise_level_in_decibels
 
 Actor -> System : requestNoiseData
-System -> returns_noise_level_in_decibels : 
+System -> Actor : sendNoiseLevel(noiseLevel)
 @enduml
