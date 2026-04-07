@@ -256,11 +256,12 @@ display: block;
 
 
 <h1 id="iot-interfacing-contract">IOT Interfacing contract</h1>
-<ul>
-<li>How should we split the responsibilities between the teams? - We
-take care of IOT and parts of the backend that interact with IOT
-directly</li>
-<li>What data is sent between the various parts of the system?
+<h3 id="how-should-we-split-the-responsibilities-between-the-teams">How
+should we split the responsibilities between the teams?</h3>
+<p>We take care of IOT and parts of the backend that interact with IOT
+directly.</p>
+<h3 id="what-data-is-sent-between-the-various-parts-of-the-system">What
+data is sent between the various parts of the system?</h3>
 <ul>
 <li>IOT sends session key, light, humidity and temperature to
 backend.</li>
@@ -271,64 +272,78 @@ the session key as well if we want to show session status on the
 frontend.</li>
 <li>Maybe backend sends back some info about turning on a fan or a sound
 after it gets fresh information as well.</li>
-</ul></li>
-<li>What is the format of the data? How is it sent? - JSON data
-converted to standard units(i.e. °C) over REST API.</li>
-<li>How frequently is the data updated? - Fresh room parameters are sent
-every 1 minute.</li>
-<li>Do you need to mock parts of the system early on or will real data
-be available? - If we want to have a fan or a sound that’s triggered by
-backend, we will have to mock it until backend works.</li>
 </ul>
+<h3 id="what-is-the-format-of-the-data-how-is-it-sent">What is the
+format of the data? How is it sent?</h3>
+<p>JSON data converted to standard units (i.e. °C) over REST API.</p>
+<h3 id="how-frequently-is-the-data-updated">How frequently is the data
+updated?</h3>
+<p>Fresh room parameters are sent every <strong>1 minute</strong>.</p>
+<h3 id="do-you-need-to-mock-parts-of-the-system-early-on-or-will-real-data-be-available">Do
+you need to mock parts of the system early on or will real data be
+available?</h3>
+<p>If we want to have a fan or a sound that’s triggered by backend, we
+will have to mock it until backend works.</p>
 <div style="break-before: page;"></div>
 <h1 id="mal-interfacing-contract">MAL Interfacing contract</h1>
-<ul>
-<li>How should we split the responsibilities between the teams? - We
-handle the backend, the database, and the ML model. We provide the API
-that connects the IOT hardware to the frontend.</li>
-<li>What data is send between the various parts of the system? - We
-receive temperature, humidity, and light from IOT. We send session keys
-to IOT and the frontend. We send ML insights and historical data to the
-frontend. We also send “action” commands (like turning on a fan or
-sound) back to IOT based on the sensor data we receive.</li>
-<li>What is the format of the data? How is it sent? - JSON data
-converted to standard units(i.e. °C) over REST API</li>
-<li>How frequently is the data updated? - Every 1 minute to match the
-IOT transmission.</li>
-<li>Do you need to mock parts of the system early on or will real data
-be available? - We need to mock the IOT sensor data immediately so we
-can train our ML model and test the API. This will also allow the
-frontend team to see data on their side before the IOT hardware is fully
-connected.</li>
-</ul>
+<h3 id="how-should-we-split-the-responsibilities-between-the-teams-1">How
+should we split the responsibilities between the teams?</h3>
+<p>We handle the ML model and parts of backend related to retrieving
+data from the DB, giving predictions (giving access to the model via an
+API).</p>
+<h3 id="what-data-is-send-between-the-various-parts-of-the-system">What
+data is send between the various parts of the system?</h3>
+<p>We receive temperature, humidity, and light from IOT (subject to
+change based on what is available). We send back predictions/suggestions
+to the frontend (e.g. “turn on the fan”, “open the window”), and IoT
+(e.g. “turn on the fan”).</p>
+<h3 id="what-is-the-format-of-the-data-how-is-it-sent-1">What is the
+format of the data? How is it sent?</h3>
+<p>JSON data converted to standard units (i.e. °C) over REST API.</p>
+<h3 id="how-frequently-is-the-data-updated-1">How frequently is the data
+updated?</h3>
+<p>Every <strong>1 minute</strong> to match the IOT transmission.</p>
+<h3 id="do-you-need-to-mock-parts-of-the-system-early-on-or-will-real-data-be-available-1">Do
+you need to mock parts of the system early on or will real data be
+available?</h3>
+<p>We need to mock the IOT sensor data immediately so we can train our
+ML model and test the API. This will also allow the frontend team to see
+data on their side before the IOT hardware is fully connected. We will
+also have to fill in gaps in case we want to use early data when not all
+sensors are available yet (e.g. if we only have temperature and
+humidity, we can fill in light based on MAL theory).</p>
 <div style="break-before: page;"></div>
 <h1 id="frontend-interfacing-contract">FrontEnd Interfacing
 contract</h1>
-<ul>
-<li>How should we split the responsibilities between the teams? -
-FrontEnd is responsible for data visualization and user input collection
-- we will use JavaScript + React</li>
-<li>What data is send between the various parts of the system? - We
-receive ML predictions/suggestions, current sensor values (CO₂,
+<h3 id="how-should-we-split-the-responsibilities-between-the-teams-2">How
+should we split the responsibilities between the teams?</h3>
+<p>FrontEnd is responsible for data visualization and user input
+collection — we will use <strong>JavaScript + React</strong>. FronEnd
+will also be responsible for baackend in case something is needed
+outside the mentioned scope of IOT and MAL teams (e.g. user
+authentication, user preferences, etc.).</p>
+<h3 id="what-data-is-send-between-the-various-parts-of-the-system-1">What
+data is send between the various parts of the system?</h3>
+<p>We receive ML predictions/suggestions, current sensor values (CO₂,
 temperature, humidity, noise, light) and historical data from ML/IoT and
 showing current values, history, and predictions in the web app. We send
-data to backend : user commands- change LED color and user interactions
-(select room, preferences)</li>
-<li>What is the format of the data? How is it sent? - JSON data
-converted to standard units(i.e. °C) over REST API; standard http
-methods (GET requests)</li>
-<li>How frequently is the data updated? - Every 1 minute, dynamically
-updated UI based on IOT transmission:
-<ol type="1">
-<li>new data is received</li>
-<li>state updates</li>
-<li>React re-renders the relevant components</li>
-</ol></li>
-<li>Do you need to mock parts of the system early on or will real data
-be available? - yes, frontend will do mock API to build the UI component
-while the hardware and ML models are still in development stage. the
-mock will be based on the agreed JSON structure..</li>
-</ul>
+data to backend: user commands (change LED color) and user interactions
+(select room, preferences).</p>
+<h3 id="what-is-the-format-of-the-data-how-is-it-sent-2">What is the
+format of the data? How is it sent?</h3>
+<p>JSON data converted to standard units (i.e. °C) over REST API;
+standard HTTP methods (GET requests).</p>
+<h3 id="how-frequently-is-the-data-updated-2">How frequently is the data
+updated?</h3>
+<p>Every <strong>1 minute</strong>, dynamically updated UI based on IOT
+transmission: 1. New data is received. 2. State updates. 3. React
+re-renders the relevant components.</p>
+<h3 id="do-you-need-to-mock-parts-of-the-system-early-on-or-will-real-data-be-available-2">Do
+you need to mock parts of the system early on or will real data be
+available?</h3>
+<p>Yes, frontend will do mock API to build the UI component while the
+hardware and ML models are still in development stage. The mock will be
+based on the agreed JSON structure.</p>
 
 </body>
 </html>
