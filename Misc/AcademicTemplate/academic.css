@@ -34,7 +34,7 @@ body {
     padding-bottom: 10mm;
   }
   @bottom-left {
-    content: "VIA University College - Semester Project";
+    content: var(--doc-footer, "VIA University College");
     font-family: var(--heading-font);
     font-size: 8pt;
     color: #888;
@@ -79,11 +79,12 @@ h3 {
 }
 
 /* Front Page Styling */
+/* A4 body height = 29.7cm - 3cm top - 3cm bottom = 23.7cm. Stay safely under. */
 .front-page {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 90vh; /* Controlled height */
+  min-height: 21cm;
   page-break-after: always;
   padding: 2em 0;
 }
@@ -109,67 +110,63 @@ h3 {
   font-size: 11pt;
   font-family: var(--heading-font);
   margin-top: auto;
-  border-top: 1px solid #ccc;
-  padding-top: 2em;
+  border-top: 2px solid var(--accent-color);
+  padding-top: 1.5em;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1em;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8em 1.5em;
 }
 
-/* Table of Contents Styling */
+/* Table of Contents Auto-Generation */
 .toc-section {
   page-break-after: always;
-  margin-top: 2em;
+  padding-top: 2em;
 }
 
-.toc-section h1 {
-  border-bottom: none;
-  font-size: 22pt;
-  margin-bottom: 1.5em;
-}
-
-.toc-list {
-  list-style-type: none;
+#TOC ul {
+  list-style: none;
   padding-left: 0;
 }
 
-.toc-item {
-  margin-bottom: 0.8em;
-  display: flex;
-  align-items: baseline;
+#TOC li {
+  margin-bottom: 0.6em;
 }
 
-.toc-item.level-1 {
+#TOC li a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: baseline;
   font-family: var(--heading-font);
+}
+
+/* Dotted leader between title and page number.
+   ::before is a flex item that defaults to DOM order (before text),
+   so push it after the text with order: 2, leaving text at default order: 0. */
+#TOC li a::before {
+  content: leader(dotted);
+  flex: 1;
+  order: 2;
+  margin: 0 0.5em;
+  color: #aaa;
+}
+
+#TOC li a::after {
+  content: target-counter(attr(href), page);
+  font-weight: bold;
+  order: 3;
+  white-space: nowrap;
+}
+
+.level-1 {
   font-weight: 700;
-  font-size: 12pt;
   text-transform: uppercase;
   margin-top: 1.2em;
 }
 
-.toc-item.level-2 {
+.level-2 {
   padding-left: 2em;
-  font-size: 11pt;
   font-weight: 400;
-}
-
-.toc-item a {
-  text-decoration: none;
-  color: inherit;
-  flex-shrink: 0;
-}
-
-.toc-item .leader {
-  flex-grow: 1;
-  border-bottom: 1px dotted #aaa;
-  margin: 0 0.5em;
-}
-
-.toc-item .page-num {
-  font-family: var(--heading-font);
-  font-size: 10pt;
-  min-width: 1.5em;
-  text-align: right;
 }
 
 /* Blockquotes, Code, and Lists */
@@ -186,7 +183,7 @@ pre {
   background-color: #f4f4f4;
   color: #1a1a1a;
   padding: 1.2em;
-  overflow-x: auto;
+
   border-radius: 4px;
   font-size: 9pt;
   border: 1px solid #ddd;

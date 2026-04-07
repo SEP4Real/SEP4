@@ -10,6 +10,7 @@ ABS_TEMPLATE_DIR := $(abspath $(TEMPLATE_DIR))/
 
 CSS := $(ABS_TEMPLATE_DIR)academic.css
 BIB := $(ABS_TEMPLATE_DIR)bibliography.bib
+TEMPLATE := $(ABS_TEMPLATE_DIR)template.html
 
 # Output is in the same directory as the source file
 OUT := $(basename $(ABS_SRC))
@@ -19,25 +20,29 @@ OUT := $(basename $(ABS_SRC))
 all: html
 
 # Enhanced Pandoc Flags for Academic Reports:
-# --standalone: Full document with header
-# --embed-resources: Bundle all images into the HTML
+# --template: Use our custom layout for cover and TOC
+# --toc: Automatically generate TOC from headers
+# --toc-depth: Include up to level 3 headers in TOC
+# --embed-resources: Bundle all images and CSS into the HTML
 # --mathjax: Best for HTML rendering of LaTeX
 # --citeproc: Citations
 # --highlight-style=tango: Clean, high-contrast academic theme for code
-# --metadata title=" ": Avoids duplicate title from pandoc-header
-html: $(CSS)
+html: $(ABS_SRC) $(CSS) $(TEMPLATE)
 	pandoc "$(ABS_SRC)" \
+		--template="$(TEMPLATE)" \
+		--toc \
+		--toc-depth=3 \
 		--standalone \
 		--embed-resources \
-		--mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" \
+		--mathml \
 		--citeproc \
 		--bibliography="$(BIB)" \
 		-c "$(CSS)" \
+		--lua-filter="$(ABS_TEMPLATE_DIR)pagebreak.lua" \
 		--highlight-style=tango \
 		-f markdown+task_lists+tex_math_dollars+raw_attribute \
-		--include-in-header=<(echo '<script src="https://unpkg.com/pagedjs/dist/paged.polyfill.js"></script>') \
 		-o "$(OUT).html"
-	@echo "Generated $(OUT).html"
+	@echo "Generated $(OUT).html using centralized template"
 
 pdf: html
 	@if command -v weasyprint > /dev/null; then \

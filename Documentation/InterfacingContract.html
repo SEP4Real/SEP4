@@ -5,8 +5,8 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="SEP4 Group 3" />
-  <meta name="dcterms.date" content="X Y, Z" />
-  <title>Title</title>
+  <meta name="dcterms.date" content="April 7, 2026" />
+  <title>Interfacing Contract</title>
   <style type="text/css">
 
 @font-face {
@@ -238,80 +238,15 @@ display: block;
   <style>
 :root { --doc-footer: "VIA University College"; }
 </style>
-<style>
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-{ counter-reset: source-line 0; }
-pre.numberSource code > span
-{ position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-{ content: counter(source-line);
-position: relative; left: -1em; text-align: right; vertical-align: baseline;
-border: none; display: inline-block;
--webkit-touch-callout: none; -webkit-user-select: none;
--khtml-user-select: none; -moz-user-select: none;
--ms-user-select: none; user-select: none;
-padding: 0 4px; width: 4em;
-color: #aaaaaa;
-}
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
-div.sourceCode
-{ background-color: #f8f8f8; }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ef2929; } 
-code span.an { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.at { color: #204a87; } 
-code span.bn { color: #0000cf; } 
-code span.cf { color: #204a87; font-weight: bold; } 
-code span.ch { color: #4e9a06; } 
-code span.cn { color: #8f5902; } 
-code span.co { color: #8f5902; font-style: italic; } 
-code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.do { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.dt { color: #204a87; } 
-code span.dv { color: #0000cf; } 
-code span.er { color: #a40000; font-weight: bold; } 
-code span.ex { } 
-code span.fl { color: #0000cf; } 
-code span.fu { color: #204a87; font-weight: bold; } 
-code span.im { } 
-code span.in { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.kw { color: #204a87; font-weight: bold; } 
-code span.op { color: #ce5c00; font-weight: bold; } 
-code span.ot { color: #8f5902; } 
-code span.pp { color: #8f5902; font-style: italic; } 
-code span.sc { color: #ce5c00; font-weight: bold; } 
-code span.ss { color: #4e9a06; } 
-code span.st { color: #4e9a06; } 
-code span.va { color: #000000; } 
-code span.vs { color: #4e9a06; } 
-code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } 
-</style>
 </head>
 <body>
 
 <div class="front-page">
-  <h1>Title</h1>
+  <h1>Interfacing Contract</h1>
   
   <div class="meta">
     <div><strong>Authors:</strong> SEP4 Group 3</div>
-    <div><strong>Date:</strong> X Y, Z</div>
+    <div><strong>Date:</strong> April 7, 2026</div>
     
     <div><strong>Course:</strong> SEP4</div>
     <div><strong>Institution:</strong> VIA University College</div>
@@ -319,146 +254,81 @@ code span.wa { color: #8f5902; font-weight: bold; font-style: italic; }
   </div>
 </div>
 
-<nav id="TOC" role="doc-toc" class="toc-section">
-  <h1>Table of Contents</h1>
-  <ul>
-  <li><a href="#introduction" id="toc-introduction">Introduction</a></li>
-  <li><a href="#analysis-artifacts" id="toc-analysis-artifacts">Analysis
-  Artifacts</a>
-  <ul>
-  <li><a href="#domain-model" id="toc-domain-model">Domain
-  Model</a></li>
-  <li><a href="#system-sequence-diagram" id="toc-system-sequence-diagram">System Sequence Diagram</a></li>
-  </ul></li>
-  <li><a href="#technical-specification" id="toc-technical-specification">Technical Specification</a>
-  <ul>
-  <li><a href="#code-implementation" id="toc-code-implementation">Code
-  Implementation</a></li>
-  <li><a href="#mathematical-modeling" id="toc-mathematical-modeling">Mathematical Modeling</a></li>
-  </ul></li>
-  <li><a href="#academic-standards" id="toc-academic-standards">Academic
-  Standards</a>
-  <ul>
-  <li><a href="#requirements-mapping" id="toc-requirements-mapping">Requirements Mapping</a></li>
-  <li><a href="#citations" id="toc-citations">Citations</a></li>
-  </ul></li>
-  <li><a href="#references" id="toc-references">References</a></li>
-  </ul>
-</nav>
 
-<h1 id="introduction">Introduction</h1>
-<p>This document demonstrates the streamlined reporting capabilities for
-the <strong>StudyHelper</strong> project. It combines clean Markdown
-with automated academic formatting.</p>
-<h1 id="analysis-artifacts">Analysis Artifacts</h1>
-<p>All diagrams in this section are automatically integrated into the
-document from the MDD generation pipeline.</p>
-<h2 id="domain-model">Domain Model</h2>
-<p>The structural foundation of the system.</p>
-<figure>
-<img role="img" aria-label="StudyHelper Domain Model" src="../../Documentation/Analysis/StudyHelper.domain.svg" alt="StudyHelper Domain Model" />
-<figcaption aria-hidden="true">StudyHelper Domain Model</figcaption>
-</figure>
-<h2 id="system-sequence-diagram">System Sequence Diagram</h2>
-<p>A behavioral view of the noise monitoring use case.</p>
-<figure>
-<img role="img" aria-label="Check Noise Level SSD" src="../../Documentation/Analysis/ssds/StudyHelper_CheckNoiseLevel.ssd.svg" alt="Check Noise Level SSD" />
-<figcaption aria-hidden="true">Check Noise Level SSD</figcaption>
-</figure>
-<h1 id="technical-specification">Technical Specification</h1>
-<h2 id="code-implementation">Code Implementation</h2>
-<p>Below is a demonstration of the system’s core logic with
-academic-style syntax highlighting.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * Processes environmental data and checks thresholds.</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { SensorData<span class="op">,</span> <span class="bu">Notification</span> } <span class="im">from</span> <span class="st">&#39;./types&#39;</span><span class="op">;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">class</span> EnvironmentAnalyzer {</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">private</span> <span class="kw">readonly</span> CO2_THRESHOLD <span class="op">=</span> <span class="dv">1000</span><span class="op">;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span> <span class="fu">analyze</span>(data<span class="op">:</span> SensorData)<span class="op">:</span> <span class="bu">Notification</span> <span class="op">|</span> <span class="dt">null</span> {</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (data<span class="op">.</span><span class="at">co2Level</span> <span class="op">&gt;</span> <span class="kw">this</span><span class="op">.</span><span class="at">CO2_THRESHOLD</span>) {</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> {</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        type<span class="op">:</span> <span class="st">&#39;AIR_QUALITY&#39;</span><span class="op">,</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        priority<span class="op">:</span> <span class="st">&#39;HIGH&#39;</span><span class="op">,</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        message<span class="op">:</span> <span class="st">&#39;CO2 level high. Please ventilate the room.&#39;</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>      }<span class="op">;</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">null</span><span class="op">;</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<h2 id="mathematical-modeling">Mathematical Modeling</h2>
-<p>Professional LaTeX typesetting is fully supported for all technical
-documentation.</p>
-<p><strong>CO2 Parts Per Million Calculation:</strong></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mi>R</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>o</mi></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mfrac><msub><mi>V</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msub><msub><mi>V</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mi>C</mi><mi>O</mi><msub><mn>2</mn><mrow><mi>p</mi><mi>p</mi><mi>m</mi></mrow></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><mi>R</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>o</mi><mo>×</mo><mtext mathvariant="normal">ScaleFactor</mtext><mo>+</mo><mtext mathvariant="normal">Offset</mtext></mtd></mtr></mtable><annotation encoding="application/x-tex">
-\begin{aligned}
-  Ratio &amp;= \frac{V_{out}}{V_{ref}} \\
-  CO2_{ppm} &amp;= Ratio \times \text{ScaleFactor} + \text{Offset}
-\end{aligned}
-</annotation></semantics></math></p>
-<h1 id="academic-standards">Academic Standards</h1>
-<h2 id="requirements-mapping">Requirements Mapping</h2>
-<p>Semantic status indicators help in tracking the project’s functional
-completeness.</p>
-<table>
-<colgroup>
-<col style="width: 2%" />
-<col style="width: 18%" />
-<col style="width: 54%" />
-<col style="width: 24%" />
-</colgroup>
-<thead>
-<tr>
-<th style="text-align: left;">ID</th>
-<th style="text-align: left;">Requirement</th>
-<th style="text-align: center;">Status</th>
-<th style="text-align: left;">Artifact</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;">R1</td>
-<td style="text-align: left;">Monitor CO2 Levels</td>
-<td style="text-align: center;"><span class="status-done">✔
-Done</span></td>
-<td style="text-align: left;">CheckCO2Level.ssd.svg</td>
-</tr>
-<tr>
-<td style="text-align: left;">R2</td>
-<td style="text-align: left;">Notify Student</td>
-<td style="text-align: center;"><span class="status-progress">⟳ In
-Progress</span></td>
-<td style="text-align: left;">NotificationService.ts</td>
-</tr>
-<tr>
-<td style="text-align: left;">R3</td>
-<td style="text-align: left;">Data Persistence</td>
-<td style="text-align: center;"><span class="status-todo">☐
-Todo</span></td>
-<td style="text-align: left;">PostgreSQL Schema</td>
-</tr>
-</tbody>
-</table>
-<h2 id="citations">Citations</h2>
+<h1 id="iot-interfacing-contract">IOT Interfacing contract</h1>
 <ul>
-<li><strong>Parenthetical:</strong> Complex systems require continuous
-refactoring to maintain quality <span class="citation" data-cites="fowler2018">(Fowler 2018)</span>.</li>
-<li><strong>Narrative:</strong> According to <span class="citation" data-cites="via2024">College (2024)</span>, software projects must
-follow a structured lifecycle.</li>
+<li>How should we split the responsibilities between the teams? - We
+take care of IOT and parts of the backend that interact with IOT
+directly</li>
+<li>What data is sent between the various parts of the system?
+<ul>
+<li>IOT sends session key, light, humidity and temperature to
+backend.</li>
+<li>IOT will also request session key from backend at the beginning of
+the session.</li>
+<li>We should maybe add an endpoint for ending the session that sends
+the session key as well if we want to show session status on the
+frontend.</li>
+<li>Maybe backend sends back some info about turning on a fan or a sound
+after it gets fresh information as well.</li>
+</ul></li>
+<li>What is the format of the data? How is it sent? - JSON data
+converted to standard units(i.e. °C) over REST API.</li>
+<li>How frequently is the data updated? - Fresh room parameters are sent
+every 1 minute.</li>
+<li>Do you need to mock parts of the system early on or will real data
+be available? - If we want to have a fan or a sound that’s triggered by
+backend, we will have to mock it until backend works.</li>
 </ul>
-<h1 id="references">References</h1>
-<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
-<div id="ref-via2024" class="csl-entry" role="listitem">
-College, VIA University. 2024. <span>“Project Guidelines for Software
-Engineering.”</span> 2024. <a href="https://en.via.dk/">https://en.via.dk/</a>.
-</div>
-<div id="ref-fowler2018" class="csl-entry" role="listitem">
-Fowler, Martin. 2018. <em>Refactoring: Improving the Design of Existing
-Code</em>. 2nd ed. Addison-Wesley Professional.
-</div>
-</div>
+<div style="break-before: page;"></div>
+<h1 id="mal-interfacing-contract">MAL Interfacing contract</h1>
+<ul>
+<li>How should we split the responsibilities between the teams? - We
+handle the backend, the database, and the ML model. We provide the API
+that connects the IOT hardware to the frontend.</li>
+<li>What data is send between the various parts of the system? - We
+receive temperature, humidity, and light from IOT. We send session keys
+to IOT and the frontend. We send ML insights and historical data to the
+frontend. We also send “action” commands (like turning on a fan or
+sound) back to IOT based on the sensor data we receive.</li>
+<li>What is the format of the data? How is it sent? - JSON data
+converted to standard units(i.e. °C) over REST API</li>
+<li>How frequently is the data updated? - Every 1 minute to match the
+IOT transmission.</li>
+<li>Do you need to mock parts of the system early on or will real data
+be available? - We need to mock the IOT sensor data immediately so we
+can train our ML model and test the API. This will also allow the
+frontend team to see data on their side before the IOT hardware is fully
+connected.</li>
+</ul>
+<div style="break-before: page;"></div>
+<h1 id="frontend-interfacing-contract">FrontEnd Interfacing
+contract</h1>
+<ul>
+<li>How should we split the responsibilities between the teams? -
+FrontEnd is responsible for data visualization and user input collection
+- we will use JavaScript + React</li>
+<li>What data is send between the various parts of the system? - We
+receive ML predictions/suggestions, current sensor values (CO₂,
+temperature, humidity, noise, light) and historical data from ML/IoT and
+showing current values, history, and predictions in the web app. We send
+data to backend : user commands- change LED color and user interactions
+(select room, preferences)</li>
+<li>What is the format of the data? How is it sent? - JSON data
+converted to standard units(i.e. °C) over REST API; standard http
+methods (GET requests)</li>
+<li>How frequently is the data updated? - Every 1 minute, dynamically
+updated UI based on IOT transmission:
+<ol type="1">
+<li>new data is received</li>
+<li>state updates</li>
+<li>React re-renders the relevant components</li>
+</ol></li>
+<li>Do you need to mock parts of the system early on or will real data
+be available? - yes, frontend will do mock API to build the UI component
+while the hardware and ML models are still in development stage. the
+mock will be based on the agreed JSON structure..</li>
+</ul>
 
 </body>
 </html>
