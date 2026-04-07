@@ -1,5 +1,5 @@
 @startuml
-title Sequence Diagram: CheckCO2Level
+title System Sequence Diagram: CheckCO2Level
 actor "Student" as Actor
 participant "system" as System
 

@@ -1,5 +1,5 @@
 @startuml
-title Sequence Diagram: CheckNoiseLevel
+title System Sequence Diagram: CheckNoiseLevel
 actor "Student" as Actor
 participant "system" as System
 

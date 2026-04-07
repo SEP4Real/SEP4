@@ -1,5 +1,5 @@
 @startuml
-title Sequence Diagram: CheckTemperature
+title System Sequence Diagram: CheckTemperature
 actor "Student" as Actor
 participant "system" as System
 

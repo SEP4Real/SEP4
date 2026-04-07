@@ -1,5 +1,5 @@
 @startuml
-title Sequence Diagram: SetDataCollectionInterval
+title System Sequence Diagram: SetDataCollectionInterval
 actor "Student" as Actor
 participant "system" as System
 

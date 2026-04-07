@@ -14,7 +14,7 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. requestNoiseData 
+1. @start requestNoiseData 
 2. sendNoiseLevel (Target: actor)
     - noiseLevel: decimal
 
@@ -30,7 +30,7 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. requestLightData 
+1. @start requestLightData 
 2. sendLightLevel (Target: actor)
     - lightLevel: long
 
@@ -46,7 +46,7 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. requestCO2Data 
+1. @start requestCO2Data 
 2. sendCO2Level (Target: actor)
     - co2Level: long
 
@@ -62,7 +62,7 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. requestTemperatureData 
+1. @start requestTemperatureData 
 2. sendTemperature (Target: actor)
     - temperature: long
 
@@ -78,7 +78,7 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. requestHumidityData 
+1. @start requestHumidityData 
 2. sendHumidity (Target: actor)
     - humidity: long
 
@@ -94,7 +94,7 @@
 - `Student.authorized`
 
 **Flow of Events:**
-1. configureInterval 
+1. @start configureInterval 
     - intervalMinutes: int
 2. notifyUpdate (Target: actor)
 
@@ -110,7 +110,7 @@
 - `Student.studying`
 
 **Flow of Events:**
-1. requestDustData 
+1. @start requestDustData 
 2. sendDustLevel (Target: actor)
     - dustLevel: long
 
@@ -127,7 +127,7 @@
 
 **Flow of Events:**
 1. monitorEnvironment 
-2. [Alt: Parameters not optimal]  
+2. Alt: Parameters not optimal  
 3. sendNotification (Target: actor)
 
 **Postconditions:**
@@ -161,10 +161,10 @@
 
 #### Methods
 
-| Method | Visibility | Effects | Pre/Post Conditions |
-| --- | --- | --- | --- |
-| startStudying() | unspecified | `Always`: studying -> true | **pre** !studying<br>**post** studying<br> |
-| stopStudying() | unspecified | `Always`: studying -> false | **pre** studying<br>**post** !studying<br> |
+| Method | Visibility | Effects | Metadata | Pre/Post Conditions |
+| --- | --- | --- | --- | --- |
+| startStudying() | unspecified | `Always`: studying -> true | - | **pre** !studying<br>**post** studying<br> |
+| stopStudying() | unspecified | `Always`: studying -> false | - | **pre** studying<br>**post** !studying<br> |
 
 ### Class: StudyEnvironment
 #### Attributes
@@ -182,5 +182,5 @@
 
 | From | Type | To | Label |
 | --- | --- | --- | --- |
-| Student "1" | -- | "*" StudyEnvironment | monitors |
+| Student "1" | -- | StudyEnvironment "*" | monitors |
 

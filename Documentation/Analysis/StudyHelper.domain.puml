@@ -8,6 +8,12 @@ class Student {
   stopStudying()
 }
 class StudyEnvironment {
+  temperature : long
+  humidity : long
+  co2Level : long
+  lightLevel : long
+  noiseLevel : long
+  dustLevel : long
 }
 Student "1" -- "*" StudyEnvironment : monitors
 @enduml

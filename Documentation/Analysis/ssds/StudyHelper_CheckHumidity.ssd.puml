@@ -1,5 +1,5 @@
 @startuml
-title Sequence Diagram: CheckHumidity
+title System Sequence Diagram: CheckHumidity
 actor "Student" as Actor
 participant "system" as System
 

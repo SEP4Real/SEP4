@@ -4,56 +4,56 @@ skinparam MessageAlign center
 title Activity Diagram: StudyHelper
 start
 split
-partition "CheckNoiseLevel" {
+partition "Student" {
     label CheckNoiseLevel_start
     :requestNoiseData;
     :sendNoiseLevel;
     label CheckNoiseLevel_end
 }
 split again
-partition "CheckLightLevel" {
+partition "Student" {
     label CheckLightLevel_start
     :requestLightData;
     :sendLightLevel;
     label CheckLightLevel_end
 }
 split again
-partition "CheckCO2Level" {
+partition "Student" {
     label CheckCO2Level_start
     :requestCO2Data;
     :sendCO2Level;
     label CheckCO2Level_end
 }
 split again
-partition "CheckTemperature" {
+partition "Student" {
     label CheckTemperature_start
     :requestTemperatureData;
     :sendTemperature;
     label CheckTemperature_end
 }
 split again
-partition "CheckHumidity" {
+partition "Student" {
     label CheckHumidity_start
     :requestHumidityData;
     :sendHumidity;
     label CheckHumidity_end
 }
 split again
-partition "SetDataCollectionInterval" {
+partition "Student" {
     label SetDataCollectionInterval_start
     :configureInterval;
     :notifyUpdate;
     label SetDataCollectionInterval_end
 }
 split again
-partition "CheckDustLevel" {
+partition "Student" {
     label CheckDustLevel_start
     :requestDustData;
     :sendDustLevel;
     label CheckDustLevel_end
 }
 split again
-partition "ReceiveEnvironmentNotification" {
+partition "Student" {
     :monitorEnvironment;
     label ReceiveEnvironmentNotification_
     if (Parameters not optimal) then (yes)
@@ -64,7 +64,7 @@ partition "ReceiveEnvironmentNotification" {
     label ReceiveEnvironmentNotification_end
 }
 split again
-partition "RateStudySessionFocus" {
+partition "Student" {
     :submitFocusRating;
     :confirmRating;
     label RateStudySessionFocus_end

@@ -1,21 +1,9 @@
 @startuml
 title State Machine: Student
 state Not_studying
-state knowsCO2Level
-state knowsDustLevel
-state knowsHumidity
-state knowsLightLevel
-state knowsNoiseLevel
-state knowsTemperature
 state studying
 
-[*] --> Not_authorized
-studying --> knowsNoiseLevel : CheckNoiseLevel
-studying --> knowsLightLevel : CheckLightLevel
-studying --> knowsCO2Level : CheckCO2Level
-studying --> knowsTemperature : CheckTemperature
-studying --> knowsHumidity : CheckHumidity
-studying --> knowsDustLevel : CheckDustLevel
+[*] --> Not_studying
 Not_studying --> studying : startStudying
 studying --> Not_studying : stopStudying
 @enduml

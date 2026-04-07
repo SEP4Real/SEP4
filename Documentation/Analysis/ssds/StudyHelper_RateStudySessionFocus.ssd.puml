@@ -1,5 +1,5 @@
 @startuml
-title Sequence Diagram: RateStudySessionFocus
+title System Sequence Diagram: RateStudySessionFocus
 actor "Student" as Actor
 participant "system" as System
 

@@ -1,5 +1,5 @@
 @startuml
-title Sequence Diagram: CheckDustLevel
+title System Sequence Diagram: CheckDustLevel
 actor "Student" as Actor
 participant "system" as System
 

@@ -1,5 +1,5 @@
 @startuml
-title Sequence Diagram: CheckLightLevel
+title System Sequence Diagram: CheckLightLevel
 actor "Student" as Actor
 participant "system" as System
 
