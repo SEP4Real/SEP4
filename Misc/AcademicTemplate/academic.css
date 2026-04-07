@@ -1,0 +1,236 @@
+/* academic.css - VIA University College Style for PDF Export */
+
+/* Use a standard academic font family */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Montserrat:wght@400;700&display=swap');
+
+:root {
+  --primary-color: #000;
+  --secondary-color: #333;
+  --accent-color: #8B0000; /* Subtle VIA red touch */
+  --body-font: 'Crimson Pro', serif;
+  --heading-font: 'Montserrat', sans-serif;
+  --line-height: 1.6;
+  --page-margin: 30mm 25mm 30mm 25mm;
+}
+
+body {
+  font-family: var(--body-font);
+  font-size: 11pt;
+  line-height: var(--line-height);
+  color: var(--primary-color);
+  margin: 0;
+  padding: 0;
+  text-align: justify;
+}
+
+/* Page Setup for PDF */
+@page {
+  size: A4;
+  margin: var(--page-margin);
+  @bottom-right {
+    content: counter(page);
+    font-family: var(--heading-font);
+    font-size: 9pt;
+    padding-bottom: 10mm;
+  }
+  @bottom-left {
+    content: "VIA University College - Semester Project";
+    font-family: var(--heading-font);
+    font-size: 8pt;
+    color: #888;
+    padding-bottom: 10mm;
+  }
+}
+
+/* Hide Pandoc's default title block */
+#title-block-header {
+  display: none;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+  font-family: var(--heading-font);
+  color: var(--secondary-color);
+  text-align: left;
+  page-break-after: avoid;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 26pt;
+  margin-top: 3em;
+  border-bottom: 3px solid var(--accent-color);
+  padding-bottom: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 18pt;
+  margin-top: 1.5em;
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+h3 {
+  font-size: 14pt;
+  margin-top: 1.2em;
+  font-weight: 600;
+}
+
+/* Front Page Styling */
+.front-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 90vh; /* Controlled height */
+  page-break-after: always;
+  padding: 2em 0;
+}
+
+.front-page h1 {
+  border-bottom: none;
+  font-size: 42pt;
+  line-height: 1.1;
+  margin-top: 1.5em;
+  text-transform: none;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.front-page .subtitle {
+  font-size: 20pt;
+  font-family: var(--heading-font);
+  color: #555;
+  margin-top: 0.5em;
+}
+
+.front-page .meta {
+  font-size: 11pt;
+  font-family: var(--heading-font);
+  margin-top: auto;
+  border-top: 1px solid #ccc;
+  padding-top: 2em;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+}
+
+/* Table of Contents Styling */
+.toc-section {
+  page-break-after: always;
+  margin-top: 2em;
+}
+
+.toc-section h1 {
+  border-bottom: none;
+  font-size: 22pt;
+  margin-bottom: 1.5em;
+}
+
+.toc-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.toc-item {
+  margin-bottom: 0.8em;
+  display: flex;
+  align-items: baseline;
+}
+
+.toc-item.level-1 {
+  font-family: var(--heading-font);
+  font-weight: 700;
+  font-size: 12pt;
+  text-transform: uppercase;
+  margin-top: 1.2em;
+}
+
+.toc-item.level-2 {
+  padding-left: 2em;
+  font-size: 11pt;
+  font-weight: 400;
+}
+
+.toc-item a {
+  text-decoration: none;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.toc-item .leader {
+  flex-grow: 1;
+  border-bottom: 1px dotted #aaa;
+  margin: 0 0.5em;
+}
+
+.toc-item .page-num {
+  font-family: var(--heading-font);
+  font-size: 10pt;
+  min-width: 1.5em;
+  text-align: right;
+}
+
+/* Blockquotes, Code, and Lists */
+blockquote {
+  border-left: 4px solid var(--accent-color);
+  padding: 0.5em 1.5em;
+  margin: 1.5em 0;
+  background-color: #f9f9f9;
+  font-style: italic;
+  color: #333;
+}
+
+pre {
+  background-color: #f4f4f4;
+  color: #1a1a1a;
+  padding: 1.2em;
+  overflow-x: auto;
+  border-radius: 4px;
+  font-size: 9pt;
+  border: 1px solid #ddd;
+}
+
+/* Task Lists (Checkboxes) */
+ul.task-list {
+  list-style-type: none;
+  padding-left: 1em;
+}
+
+ul.task-list li input[type="checkbox"] {
+  margin-right: 0.5em;
+  transform: scale(1.2);
+}
+
+/* Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2em 0;
+  font-size: 10pt;
+}
+
+table th {
+  background-color: #f2f2f2;
+  border-bottom: 2px solid var(--accent-color);
+  padding: 10px;
+  text-align: left;
+}
+
+table td {
+  border-bottom: 1px solid #eee;
+  padding: 10px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  margin: 2em auto;
+  display: block;
+}
+
+/* Status Icons in Table */
+.status-done { color: #2e7d32; font-weight: bold; }
+.status-progress { color: #f57c00; font-weight: bold; }
+.status-todo { color: #c62828; font-weight: bold; }
