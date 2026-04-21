@@ -68,6 +68,26 @@ uc AssessStudyConditionsForStudySession
 
     post Student.knowsCurrentStudyConditions
 
+uc RateStudySessionSuitability
+    description "As a Student I want to submit a Rating after a Study Session, so that the system can improve suitability predictions for my environment."
+    actor Student
+
+    step @start submitStudySessionRating :> @sys
+        - ratingValue : int
+    step confirmRatingReceipt :> @actor
+
+    post @sys.studySessionSuitabilityRated
+
+uc ViewEnvironmentConditionHistory
+    description "As a Student I want to see the history of Conditions in my environment, so that I can understand trends during a Study Session."
+    actor Student
+
+    step @start requestEnvironmentConditionHistory :> @sys
+    step sendEnvironmentConditionHistory :> @actor
+        - historyDataPoints : int
+
+    post Student.knowsEnvironmentHistory
+
 uc ConfigureStudySessionMonitoring
     description "As a Student I want to configure automatic refresh and alerts, so that the box supports active monitoring during my Study Session."
     actor Student
@@ -88,26 +108,6 @@ uc ReceiveStudentEnvironmentAlert
         step sendConditionAlert :> @actor
 
     post @sys.studentAlertSent
-
-uc ViewEnvironmentConditionHistory
-    description "As a Student I want to see the history of Conditions in my environment, so that I can understand trends during a Study Session."
-    actor Student
-
-    step @start requestEnvironmentConditionHistory :> @sys
-    step sendEnvironmentConditionHistory :> @actor
-        - historyDataPoints : int
-
-    post Student.knowsEnvironmentHistory
-
-uc RateStudySessionSuitability
-    description "As a Student I want to submit a Rating after a Study Session, so that the system can improve suitability predictions for my environment."
-    actor Student
-
-    step @start submitStudySessionRating :> @sys
-        - ratingValue : int
-    step confirmRatingReceipt :> @actor
-
-    post @sys.studySessionSuitabilityRated
 
 uc AssessConditionsForTeaching
     description "As a Teacher I want an overview of current and predicted Conditions, so that I can decide if the environment is suitable for teaching."
