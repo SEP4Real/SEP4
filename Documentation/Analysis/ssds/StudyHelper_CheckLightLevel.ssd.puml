@@ -1,8 +1,0 @@
-@startuml
-title System Sequence Diagram: CheckLightLevel
-actor "Student" as Actor
-participant "system" as System
-
-Actor -> System : requestLightData
-System -> Actor : sendLightLevel(lightLevel)
-@enduml

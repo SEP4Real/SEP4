@@ -1,0 +1,11 @@
+@startuml
+title System Sequence Diagram: ReceiveStudentEnvironmentAlert
+!include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
+actor "Student" as Actor
+participant "system" as System
+
+Actor -> System : monitorActiveStudySessionConditions
+alt Conditions not suitable for studying
+System -> Actor : sendConditionAlert
+end
+@enduml

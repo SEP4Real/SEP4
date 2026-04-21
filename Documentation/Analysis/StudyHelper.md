@@ -5,149 +5,98 @@
 
 ## Use Cases
 
-### CheckNoiseLevel
-**Description:** "The student wants to check the noise level to ensure a quiet environment for concentration."
+### AssessStudyConditionsForStudySession
+**Description:** "As a Student I want an overview of current Status, Conditions, and predictions, so that I can decide whether to start or continue a Study Session in my current environment."
 
 **Actor:** Student
 
-**Preconditions:**
-- `Student.studying`
-
 **Flow of Events:**
-1. @start requestNoiseData 
-2. sendNoiseLevel (Target: actor)
-    - noiseLevel: decimal
-
-**Postconditions:**
-- `Student.knowsNoiseLevel`
-
-### CheckLightLevel
-**Description:** "The student wants to check light levels to avoid eye strain during study."
-
-**Actor:** Student
-
-**Preconditions:**
-- `Student.studying`
-
-**Flow of Events:**
-1. @start requestLightData 
-2. sendLightLevel (Target: actor)
-    - lightLevel: long
-
-**Postconditions:**
-- `Student.knowsLightLevel`
-
-### CheckCO2Level
-**Description:** "The student wants to monitor CO2 levels to ensure proper ventilation and prevent drowsiness."
-
-**Actor:** Student
-
-**Preconditions:**
-- `Student.studying`
-
-**Flow of Events:**
-1. @start requestCO2Data 
-2. sendCO2Level (Target: actor)
-    - co2Level: long
-
-**Postconditions:**
-- `Student.knowsCO2Level`
-
-### CheckTemperature
-**Description:** "The student wants to see the current temperature to stay within a comfortable range."
-
-**Actor:** Student
-
-**Preconditions:**
-- `Student.studying`
-
-**Flow of Events:**
-1. @start requestTemperatureData 
-2. sendTemperature (Target: actor)
+1. @start requestStudyConditionOverview 
+2. sendStudyConditionOverview (Target: actor)
+    - environmentStatus: long
     - temperature: long
-
-**Postconditions:**
-- `Student.knowsTemperature`
-
-### CheckHumidity
-**Description:** "The student wants to check humidity levels to maintain a healthy study environment."
-
-**Actor:** Student
-
-**Preconditions:**
-- `Student.studying`
-
-**Flow of Events:**
-1. @start requestHumidityData 
-2. sendHumidity (Target: actor)
     - humidity: long
+    - co2Level: long
+    - lightLevel: long
+    - noiseLevel: long
+    - predictedSuitabilityLevel: decimal
+    - predictedTrend: int
 
 **Postconditions:**
-- `Student.knowsHumidity`
+- `Student.knowsCurrentStudyConditions`
 
-### SetDataCollectionInterval
-**Description:** "The student wants to configure how frequently the device records sensor data."
+### ConfigureStudySessionMonitoring
+**Description:** "As a Student I want to configure automatic refresh and alerts, so that the box supports active monitoring during my Study Session."
 
 **Actor:** Student
 
-**Preconditions:**
-- `Student.authorized`
-
 **Flow of Events:**
-1. @start configureInterval 
+1. @start configureStudySessionMonitoring 
     - intervalMinutes: int
-2. notifyUpdate (Target: actor)
+    - alertEnabled: bool
+2. confirmStudySessionMonitoringConfiguration (Target: actor)
 
 **Postconditions:**
-- `sys.intervalUpdated`
+- `@sys.studySessionMonitoringConfigured`
 
-### CheckDustLevel
-**Description:** "The student wants to check the dust level (PM2.5/PM10) to monitor air quality."
+### ReceiveStudentEnvironmentAlert
+**Description:** "As a Student I want to receive an alert when current Conditions are not suitable, so that I can take action to improve my study environment."
 
 **Actor:** Student
 
-**Preconditions:**
-- `Student.studying`
-
 **Flow of Events:**
-1. @start requestDustData 
-2. sendDustLevel (Target: actor)
-    - dustLevel: long
+1. monitorActiveStudySessionConditions 
+2. Alt: Conditions not suitable for studying  
+3. sendConditionAlert (Target: actor)
 
 **Postconditions:**
-- `Student.knowsDustLevel`
+- `@sys.studentAlertSent`
 
-### ReceiveEnvironmentNotification
-**Description:** "Be notified if study environment parameters are not optimal, so that I can take action"
+### ViewEnvironmentConditionHistory
+**Description:** "As a Student I want to see the history of Conditions in my environment, so that I can understand trends during a Study Session."
 
 **Actor:** Student
 
-**Preconditions:**
-- `Student.studying`
-
 **Flow of Events:**
-1. monitorEnvironment 
-2. Alt: Parameters not optimal  
-3. sendNotification (Target: actor)
+1. @start requestEnvironmentConditionHistory 
+2. sendEnvironmentConditionHistory (Target: actor)
+    - historyDataPoints: int
 
 **Postconditions:**
-- `@sys.notified`
+- `Student.knowsEnvironmentHistory`
 
-### RateStudySessionFocus
-**Description:** "Rate my study session focus in specific study environment"
+### RateStudySessionSuitability
+**Description:** "As a Student I want to submit a Rating after a Study Session, so that the system can improve suitability predictions for my environment."
 
 **Actor:** Student
 
-**Preconditions:**
-- `Student.studying`
-
 **Flow of Events:**
-1. submitFocusRating 
+1. @start submitStudySessionRating 
     - ratingValue: int
-2. confirmRating (Target: actor)
+2. confirmRatingReceipt (Target: actor)
 
 **Postconditions:**
-- `sys.focusRated`
+- `@sys.studySessionSuitabilityRated`
+
+### AssessConditionsForTeaching
+**Description:** "As a Teacher I want an overview of current and predicted Conditions, so that I can decide if the environment is suitable for teaching."
+
+**Actor:** Teacher
+
+**Flow of Events:**
+1. @start requestTeachingConditionOverview 
+2. sendTeachingConditionOverview (Target: actor)
+    - environmentStatus: long
+    - temperature: long
+    - humidity: long
+    - co2Level: long
+    - lightLevel: long
+    - noiseLevel: long
+    - predictedSuitabilityLevel: decimal
+    - predictedTrend: int
+
+**Postconditions:**
+- `Teacher.knowsTeachingConditions`
 
 ## Domain Model
 
@@ -166,21 +115,39 @@
 | startStudying() | unspecified | `Always`: studying -> true | - | **pre** !studying<br>**post** studying<br> |
 | stopStudying() | unspecified | `Always`: studying -> false | - | **pre** studying<br>**post** !studying<br> |
 
+### Class: Teacher
 ### Class: StudyEnvironment
 #### Attributes
 
 | Attribute | Type | Visibility | Metadata |
 | --- | --- | --- | --- |
+| environmentStatus | long | unspecified | - |
 | temperature | long | unspecified | - |
 | humidity | long | unspecified | - |
 | co2Level | long | unspecified | - |
 | lightLevel | long | unspecified | - |
 | noiseLevel | long | unspecified | - |
-| dustLevel | long | unspecified | - |
+| suitabilityLevel | decimal | unspecified | - |
+| predictedSuitabilityLevel | decimal | unspecified | - |
+| predictedTrend | int | unspecified | - |
+
+### Class: EnvironmentConditionHistory
+#### Attributes
+
+| Attribute | Type | Visibility | Metadata |
+| --- | --- | --- | --- |
+| timestamp | long | unspecified | - |
+| temperature | long | unspecified | - |
+| humidity | long | unspecified | - |
+| co2Level | long | unspecified | - |
+| lightLevel | long | unspecified | - |
+| noiseLevel | long | unspecified | - |
 
 ## Relationships
 
 | From | Type | To | Label |
 | --- | --- | --- | --- |
-| Student "1" | -- | StudyEnvironment "*" | monitors |
+| Student "1" | -- | StudyEnvironment "1" | monitors |
+| Teacher "1" | -- | StudyEnvironment "1" | monitors |
+| StudyEnvironment "1" | -- | EnvironmentConditionHistory "*" | stores |
 

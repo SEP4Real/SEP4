@@ -1,8 +1,0 @@
-@startuml
-title System Sequence Diagram: SetDataCollectionInterval
-actor "Student" as Actor
-participant "system" as System
-
-Actor -> System : configureInterval(intervalMinutes)
-System -> Actor : notifyUpdate
-@enduml

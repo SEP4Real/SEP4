@@ -1,0 +1,9 @@
+@startuml
+title System Sequence Diagram: AssessConditionsForTeaching
+!include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
+actor "Teacher" as Actor
+participant "system" as System
+
+Actor -> System : requestTeachingConditionOverview
+System -> Actor : sendTeachingConditionOverview(environmentStatus, temperature, humidity, co2Level, lightLevel, noiseLevel, predictedSuitabilityLevel, predictedTrend)
+@enduml

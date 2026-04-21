@@ -1,8 +1,0 @@
-@startuml
-title System Sequence Diagram: RateStudySessionFocus
-actor "Student" as Actor
-participant "system" as System
-
-Actor -> System : submitFocusRating(ratingValue)
-System -> Actor : confirmRating
-@enduml

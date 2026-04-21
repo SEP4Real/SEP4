@@ -1,5 +1,6 @@
 @startuml
 title State Machine: Student
+!include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
 state Not_studying
 state studying
 

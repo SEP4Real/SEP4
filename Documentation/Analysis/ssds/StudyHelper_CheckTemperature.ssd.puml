@@ -1,8 +1,0 @@
-@startuml
-title System Sequence Diagram: CheckTemperature
-actor "Student" as Actor
-participant "system" as System
-
-Actor -> System : requestTemperatureData
-System -> Actor : sendTemperature(temperature)
-@enduml

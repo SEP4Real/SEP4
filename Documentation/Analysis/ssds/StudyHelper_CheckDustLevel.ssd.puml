@@ -1,8 +1,0 @@
-@startuml
-title System Sequence Diagram: CheckDustLevel
-actor "Student" as Actor
-participant "system" as System
-
-Actor -> System : requestDustData
-System -> Actor : sendDustLevel(dustLevel)
-@enduml

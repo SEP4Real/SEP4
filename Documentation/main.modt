@@ -23,111 +23,105 @@ obj Student
         pre studying
         post !studying
 
+@puml-head !include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
+
+obj Teacher
+
 obj StudyEnvironment
+    environmentStatus : long [a, d]
     temperature : long [a, d]
     humidity : long [a, d]
     co2Level : long [a, d]
     lightLevel : long [a, d]
     noiseLevel : long [a, d]
-    dustLevel : long [a, d]
+    suitabilityLevel : decimal [a, d]
+    predictedSuitabilityLevel : decimal [a, d]
+    predictedTrend : int [a, d]
 
-rel Student "1" -- "*" StudyEnvironment : monitors
+obj EnvironmentConditionHistory
+    timestamp : long [a, d]
+    temperature : long [a, d]
+    humidity : long [a, d]
+    co2Level : long [a, d]
+    lightLevel : long [a, d]
+    noiseLevel : long [a, d]
 
-uc CheckNoiseLevel
-    description "The student wants to check the noise level to ensure a quiet environment for concentration."
+
+rel Student "1" -- "1" StudyEnvironment : monitors
+rel Teacher "1" -- "1" StudyEnvironment : monitors
+rel StudyEnvironment "1" -- "*" EnvironmentConditionHistory : stores
+
+uc AssessStudyConditionsForStudySession
+    description "As a Student I want an overview of current Status, Conditions, and predictions, so that I can decide whether to start or continue a Study Session in my current environment."
     actor Student
-    pre Student.studying
-    
-    step @start requestNoiseData :> @sys
-    step sendNoiseLevel :> @actor
-        - noiseLevel : decimal
-    
-    post Student.knowsNoiseLevel
 
-uc CheckLightLevel
-    description "The student wants to check light levels to avoid eye strain during study."
-    actor Student
-    pre Student.studying
-    
-    step @start requestLightData :> @sys
-    step sendLightLevel :> @actor
-        - lightLevel : long
-    
-    post Student.knowsLightLevel
-
-uc CheckCO2Level
-    description "The student wants to monitor CO2 levels to ensure proper ventilation and prevent drowsiness."
-    actor Student
-    pre Student.studying
-    
-    step @start requestCO2Data :> @sys
-    step sendCO2Level :> @actor
-        - co2Level : long
-    
-    post Student.knowsCO2Level
-
-uc CheckTemperature
-    description "The student wants to see the current temperature to stay within a comfortable range."
-    actor Student
-    pre Student.studying
-    
-    step @start requestTemperatureData :> @sys
-    step sendTemperature :> @actor
+    step @start requestStudyConditionOverview :> @sys
+    step sendStudyConditionOverview :> @actor
+        - environmentStatus : long
         - temperature : long
-    
-    post Student.knowsTemperature
-
-uc CheckHumidity
-    description "The student wants to check humidity levels to maintain a healthy study environment."
-    actor Student
-    pre Student.studying
-    
-    step @start requestHumidityData :> @sys
-    step sendHumidity :> @actor
         - humidity : long
-    
-    post Student.knowsHumidity
+        - co2Level : long
+        - lightLevel : long
+        - noiseLevel : long
+        - predictedSuitabilityLevel : decimal
+        - predictedTrend : int
 
-uc SetDataCollectionInterval
-    description "The student wants to configure how frequently the device records sensor data."
+    post Student.knowsCurrentStudyConditions
+
+uc ConfigureStudySessionMonitoring
+    description "As a Student I want to configure automatic refresh and alerts, so that the box supports active monitoring during my Study Session."
     actor Student
-    pre Student.authorized
-    
-    step @start configureInterval :> @sys
+
+    step @start configureStudySessionMonitoring :> @sys
         - intervalMinutes : int
-    step notifyUpdate :> @actor
-    
-    post sys.intervalUpdated
+        - alertEnabled : bool
+    step confirmStudySessionMonitoringConfiguration :> @actor
 
-uc CheckDustLevel
-    description "The student wants to check the dust level (PM2.5/PM10) to monitor air quality."
-    actor Student
-    pre Student.studying
-    
-    step @start requestDustData :> @sys
-    step sendDustLevel :> @actor
-        - dustLevel : long
-    
-    post Student.knowsDustLevel
+    post @sys.studySessionMonitoringConfigured
 
-uc ReceiveEnvironmentNotification
-    description "Be notified if study environment parameters are not optimal, so that I can take action"
+uc ReceiveStudentEnvironmentAlert
+    description "As a Student I want to receive an alert when current Conditions are not suitable, so that I can take action to improve my study environment."
     actor Student
-    pre Student.studying
-    
-    step monitorEnvironment :> @sys
-    alt [Parameters not optimal]
-        step sendNotification :> @actor
-    
-    post @sys.notified
 
-uc RateStudySessionFocus
-    description "Rate my study session focus in specific study environment"
+    step monitorActiveStudySessionConditions :> @sys
+    alt [Conditions not suitable for studying]
+        step sendConditionAlert :> @actor
+
+    post @sys.studentAlertSent
+
+uc ViewEnvironmentConditionHistory
+    description "As a Student I want to see the history of Conditions in my environment, so that I can understand trends during a Study Session."
     actor Student
-    pre Student.studying
-    
-    step submitFocusRating :> @sys
+
+    step @start requestEnvironmentConditionHistory :> @sys
+    step sendEnvironmentConditionHistory :> @actor
+        - historyDataPoints : int
+
+    post Student.knowsEnvironmentHistory
+
+uc RateStudySessionSuitability
+    description "As a Student I want to submit a Rating after a Study Session, so that the system can improve suitability predictions for my environment."
+    actor Student
+
+    step @start submitStudySessionRating :> @sys
         - ratingValue : int
-    step confirmRating :> @actor
-    
-    post sys.focusRated
+    step confirmRatingReceipt :> @actor
+
+    post @sys.studySessionSuitabilityRated
+
+uc AssessConditionsForTeaching
+    description "As a Teacher I want an overview of current and predicted Conditions, so that I can decide if the environment is suitable for teaching."
+    actor Teacher
+
+    step @start requestTeachingConditionOverview :> @sys
+    step sendTeachingConditionOverview :> @actor
+        - environmentStatus : long
+        - temperature : long
+        - humidity : long
+        - co2Level : long
+        - lightLevel : long
+        - noiseLevel : long
+        - predictedSuitabilityLevel : decimal
+        - predictedTrend : int
+
+    post Teacher.knowsTeachingConditions

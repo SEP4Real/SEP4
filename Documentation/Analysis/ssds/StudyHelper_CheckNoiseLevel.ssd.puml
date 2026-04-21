@@ -1,8 +1,0 @@
-@startuml
-title System Sequence Diagram: CheckNoiseLevel
-actor "Student" as Actor
-participant "system" as System
-
-Actor -> System : requestNoiseData
-System -> Actor : sendNoiseLevel(noiseLevel)
-@enduml

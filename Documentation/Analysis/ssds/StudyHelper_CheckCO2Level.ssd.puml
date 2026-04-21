@@ -1,8 +1,0 @@
-@startuml
-title System Sequence Diagram: CheckCO2Level
-actor "Student" as Actor
-participant "system" as System
-
-Actor -> System : requestCO2Data
-System -> Actor : sendCO2Level(co2Level)
-@enduml
