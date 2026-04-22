@@ -1,0 +1,18 @@
+@localBase = http://localhost:8000
+@deployedBase = https://sep4.edproduction.dev
+
+### Local: hello
+GET {{localBase}}/
+Accept: application/json
+
+### Local: db-check
+GET {{localBase}}/db-check
+Accept: application/json
+
+### Deployed: hello
+GET {{deployedBase}}/
+Accept: application/json
+
+### Deployed: db-check
+GET {{deployedBase}}/db-check
+Accept: application/json

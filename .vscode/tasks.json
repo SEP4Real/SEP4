@@ -30,6 +30,17 @@
             "group": "build",
             "problemMatcher": [],
             "detail": "Builds and starts Postgres and MAL API."
+        },
+        {
+            "label": "Smoke Test API",
+            "type": "shell",
+            "command": "bash scripts/smoke-test.sh",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "test",
+            "problemMatcher": [],
+            "detail": "Runs local and deployed API smoke tests."
         }
     ]
 }
