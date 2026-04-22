@@ -1,0 +1,8 @@
+services:
+  postgres:
+    ports:
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+
+  mal-api:
+    ports:
+      - "${MAL_API_HOST_PORT:-8000}:8000"
