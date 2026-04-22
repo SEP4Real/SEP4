@@ -23,7 +23,7 @@
         {
             "label": "Run Everything (Docker Compose)",
             "type": "shell",
-            "command": "docker compose up -d --build",
+            "command": "docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
