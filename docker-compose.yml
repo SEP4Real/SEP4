@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sep4-postgres
+    environment:
+      POSTGRES_USER: study
+      POSTGRES_PASSWORD: study
+      POSTGRES_DB: sep4
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U study -d sep4"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mal-api:
+    image: sep4-mal-api:local
+    build:
+      context: ./MAL
+    container_name: sep4-mal-api
+    environment:
+      DATABASE_URL: postgresql://study:study@postgres:5432/sep4
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

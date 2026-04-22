@@ -19,6 +19,17 @@
             "group": "build",
             "problemMatcher": [],
             "detail": "Converts current Markdown file to PDF using academic template."
+        },
+        {
+            "label": "Run Everything (Docker Compose)",
+            "type": "shell",
+            "command": "docker compose up -d --build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Builds and starts Postgres and MAL API."
         }
     ]
 }
