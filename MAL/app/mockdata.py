@@ -1,6 +1,7 @@
 import pandas as pd
 import random
 from datetime import datetime, timedelta
+from pathlib import Path
 
 # Configuration
 total_rows = 3000
@@ -82,9 +83,15 @@ while rows_generated < total_rows:
 df_history = pd.DataFrame(history_data)
 df_ratings = pd.DataFrame(ratings_data)
 
-df_history.to_csv("environment_history.csv", index=False)
-df_ratings.to_csv("ratings.csv", index=False)
+BASE_DIR = Path(__file__).resolve().parent
+OUTPUT_DIR = BASE_DIR / "generated_files"
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+df_history.to_csv(OUTPUT_DIR / "environment_history.csv", index=False)
+df_ratings.to_csv(OUTPUT_DIR / "ratings.csv", index=False)
 
 print(f"Generated {len(df_history)} history rows and {len(df_ratings)} focus ratings.")
 print("\nFocus Rating distribution generated:")
 print(df_ratings['rating'].value_counts().sort_index())
+
+print(f"\nFiles saved in: {OUTPUT_DIR}")

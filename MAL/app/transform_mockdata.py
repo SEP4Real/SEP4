@@ -1,15 +1,19 @@
-
+from pathlib import Path
 import pandas as pd
 
 # How many minutes of sensor history to use for each rating
 WINDOW_MINUTES = 30
 
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "generated_files"
+DATA_DIR.mkdir(exist_ok=True)
+
 # Input files from mockdata.py
-HISTORY_FILE = "environment_history.csv"
-RATINGS_FILE = "ratings.csv"
+HISTORY_FILE = DATA_DIR / "environment_history.csv"
+RATINGS_FILE = DATA_DIR / "ratings.csv"
 
 # Output file
-OUTPUT_FILE = "focus_dataset.csv"
+OUTPUT_FILE = DATA_DIR / "focus_dataset.csv"
 
 
 def build_focus_dataset(history_file=HISTORY_FILE, ratings_file=RATINGS_FILE, output_file=OUTPUT_FILE, window_minutes=WINDOW_MINUTES):
