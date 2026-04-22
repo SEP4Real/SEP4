@@ -3,7 +3,7 @@ import random
 from datetime import datetime, timedelta
 
 # Configuration
-total_rows = 3000
+total_rows = 100000
 current_time = datetime(2026, 4, 1, 9, 0, 0) # Start date
 
 history_data = []
@@ -20,7 +20,7 @@ while rows_generated < total_rows:
     base_noise = random.randint(30, 65)
     
     # Decide how long this specific session is (ensuring we don't exceed 3000 total)
-    session_length = min(random.randint(15, 120), total_rows - rows_generated)
+    session_length = min(random.randint(10, 100), total_rows - rows_generated)
     
     # Rating can happen at ANY minute during the session
     rating_minute = random.randint(0, max(0, session_length - 1))
