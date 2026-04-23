@@ -23,11 +23,29 @@ jobs:
           path: ~/.platformio
           key: ${{ runner.os }}-pio
 
-      - name: Install PlatformIO
-        run: pip install platformio
+      - name: Install PlatformIO and lcov
+        run: |
+          pip install platformio
+          sudo apt-get install -y lcov
 
       - name: Run tests
         run: pio test -e native
+
+      - name: Generate coverage report
+        run: |
+          lcov --capture --directory .pio/build/native \
+               --output-file coverage.info \
+               --ignore-errors mismatch
+          lcov --remove coverage.info \
+               '*/fakes/*' '*/unity/*' '*/test/*' '/usr/*' \
+               --output-file coverage.info
+          genhtml coverage.info --output-directory coverage-html
+
+      - name: Upload HTML report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: IOT/coverage-html
 
   build:
     runs-on: ubuntu-latest

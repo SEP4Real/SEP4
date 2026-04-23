@@ -1,9 +1,16 @@
-#include <stdio.h>
+#include "main.h"
 
-int main()
+int add(int a, int b)
 {
-  while (1)
-  {
-    printf("LOL!!!");
-  }
+  return a + b;
+}
+
+int subtract(int a, int b)
+{
+  return a - b;
+}
+
+int multiply(int a, int b)
+{
+  return a * b;
 }
