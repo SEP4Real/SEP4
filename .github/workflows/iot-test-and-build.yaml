@@ -38,7 +38,7 @@ jobs:
                --ignore-errors mismatch,unused
           lcov --remove coverage.info \
                '*/fakes/*' '*/unity/*' '*/test/*' '/usr/*' \
-               --output-file coverage.info
+               --output-file coverage.info \
                --ignore-errors unused
           genhtml coverage.info --output-directory coverage-html
 
