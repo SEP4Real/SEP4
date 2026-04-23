@@ -1,5 +1,13 @@
 #include "main.h"
 
+void setup(void)
+{
+}
+
+void loop(void)
+{
+}
+
 int add(int a, int b)
 {
   return a + b;
