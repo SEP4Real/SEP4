@@ -29,11 +29,11 @@ jobs:
           sudo apt-get install -y lcov
 
       - name: Run tests
-        run: pio test -e native
+        run: pio test -e native-coverage
 
       - name: Generate coverage report
         run: |
-          lcov --capture --directory .pio/build/native \
+          lcov --capture --directory .pio/build/native-coverage \
                --output-file coverage.info \
                --ignore-errors mismatch,unused
           lcov --remove coverage.info \
