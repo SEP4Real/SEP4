@@ -9,7 +9,7 @@ on:
       - 'IOT/**'
 
 jobs:
-  test:
+  iot-test:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -37,7 +37,7 @@ jobs:
                --output-file coverage.info \
                --ignore-errors mismatch,unused
           lcov --remove coverage.info \
-               '*/fakes/*' '*/unity/*' '*/test/*' '/usr/*' \
+               '*/.pio/*' '*/fakes/*' '*/unity/*' '*/test/*' '/usr/*' \
                --output-file coverage.info \
                --ignore-errors unused
           genhtml coverage.info --output-directory coverage-html
@@ -48,9 +48,9 @@ jobs:
           name: coverage-report
           path: IOT/coverage-html
 
-  build:
+  iot-build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: iot-test
     defaults:
       run:
         working-directory: IOT
