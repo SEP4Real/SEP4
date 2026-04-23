@@ -3,6 +3,8 @@
 #include "../src/main.h"
 #include "../src/main.c"
 
+DEFINE_FFF_GLOBALS;
+
 DEFINE_FAKE_VOID_FUNC(pinMode, int, int);
 DEFINE_FAKE_VOID_FUNC(digitalWrite, int, int);
 DEFINE_FAKE_VALUE_FUNC(int, digitalRead, int);
