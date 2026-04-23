@@ -35,7 +35,7 @@ jobs:
         run: |
           lcov --capture --directory .pio/build/native \
                --output-file coverage.info \
-               --ignore-errors mismatch, unused
+               --ignore-errors mismatch,unused
           lcov --remove coverage.info \
                '*/fakes/*' '*/unity/*' '*/test/*' '/usr/*' \
                --output-file coverage.info
