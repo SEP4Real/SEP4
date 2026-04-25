@@ -1,0 +1,6 @@
+@IOT_backend_HostAddress = http://localhost:5190
+
+GET {{IOT_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
