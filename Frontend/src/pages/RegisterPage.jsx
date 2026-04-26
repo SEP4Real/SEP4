@@ -1,6 +1,7 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { register } from "../services/authService";
 import "../index.css";
+import "./RegisterPage.css";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
