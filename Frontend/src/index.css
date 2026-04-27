@@ -1,0 +1,97 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom, rgb(188, 255, 226) 0%, #ffffff 70%);
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 820px;
+  padding-top: 82px;
+  text-align: center;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.card h2 {
+  margin: 10px 0 65px;
+  font-size: 26px;
+  font-weight: 400;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 135px 135px 135px;
+  column-gap: 95px;
+  row-gap: 34px;
+  justify-content: center;
+  align-items: end;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 18px;
+}
+
+.form input {
+  width: 135px;
+  height: 21px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 7px;
+  background: rgb(188, 255, 226);
+  padding: 2px 8px;
+  outline: none;
+}
+
+.student-admin-row {
+  grid-column: 2 / 4;
+
+  display: grid;
+  grid-template-columns: 135px 40px 135px;
+  column-gap: 18px;
+  align-items: end;
+}
+
+.student-admin-row span {
+  align-self: center;
+  font-size: 18px;
+  padding-top: 26px;
+}
+
+button {
+  grid-column: 2;
+  justify-self: center;
+  margin-top: 28px;
+  width: 105px;
+  height: 37px;
+  border: none;
+  border-radius: 7px;
+  background: #8dd9bd;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.error, .success {
+  grid-column: 1 / 4;
+  margin: 0;
+  text-align: center;
+}
+
+.error {
+  color: red;
+}
+
+.success {
+  color: green;
+}

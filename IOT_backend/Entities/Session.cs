@@ -24,6 +24,9 @@ public class Session
     [Column("study_quality")]
     [Range(1, 10)]
     public int? StudyQuality { get; set; }
+    
+    [Column("last_pulse_at")]
+    public DateTimeOffset? LastPulseAt { get; set; }
 
     [JsonIgnore]
     [ForeignKey("DeviceId")]

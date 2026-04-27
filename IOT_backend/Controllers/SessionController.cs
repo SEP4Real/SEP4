@@ -28,6 +28,17 @@ public class SessionController : ControllerBase
     {
         var session = await _db.Sessions.FindAsync(id);
         if (session == null) return NotFound();
+
+        if (session.EndedAt == null && session.LastPulseAt != null)
+        {
+            var elapsed = DateTimeOffset.UtcNow - session.LastPulseAt.Value;
+            if (elapsed.TotalSeconds > 15)
+            {
+                session.EndedAt = session.LastPulseAt.Value;
+                await _db.SaveChangesAsync();
+            }
+        }
+
         return Ok(session);
     }
 
@@ -64,6 +75,18 @@ public class SessionController : ControllerBase
         await _db.SaveChangesAsync();
         return Ok(session);
     }
+    
+    [HttpPatch("{id}/pulse")]
+    public async Task<IActionResult> Pulse(long id)
+    {
+        var session = await _db.Sessions.FindAsync(id);
+        if (session == null) return NotFound();
+        if (session.EndedAt != null) return Ok(new { alive = false });
+
+        session.LastPulseAt = DateTimeOffset.UtcNow;
+        await _db.SaveChangesAsync();
+        return Ok(new { alive = true });
+    }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(long id)
@@ -75,4 +98,5 @@ public class SessionController : ControllerBase
         await _db.SaveChangesAsync();
         return NoContent();
     }
+    
 }

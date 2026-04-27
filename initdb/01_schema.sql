@@ -4,9 +4,10 @@ CREATE TABLE devices (
 
 CREATE TABLE sessions (
     id            BIGSERIAL PRIMARY KEY,
-    device_id VARCHAR(255) NOT NULL REFERENCES devices(public_key) ON DELETE CASCADE,
+    device_id     VARCHAR(255) NOT NULL REFERENCES devices(public_key) ON DELETE CASCADE,
     started_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     ended_at      TIMESTAMPTZ,
+    last_pulse_at TIMESTAMPTZ,
     study_quality INT CHECK (study_quality BETWEEN 1 AND 10)
 );
 
