@@ -1,4 +1,5 @@
 import pandas as pd
+import joblib
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
@@ -51,6 +52,10 @@ print(f"Decision Tree     - Train: {dt_model.score(X_train, y_train):.4f}, Val: 
 print(f"Random Forest     - Train: {rf_model.score(X_train, y_train):.4f}, Val: {rf_model.score(X_val, y_val):.4f}")
 print(f"Gradient Boosting - Train: {gb_model.score(X_train, y_train):.4f}, Val: {gb_model.score(X_val, y_val):.4f}")
 print(f"Neural Network    - Train: {nn_history.history['accuracy'][-1]:.4f}, Val: {nn_history.history['val_accuracy'][-1]:.4f}")
+
+# Save the models
+joblib.dump(rf_model, 'rf_model.pkl')
+nn_model.save('nn_model.h5')
 
 
 def predict(current_noise, max_noise, min_noise, mean_noise):
