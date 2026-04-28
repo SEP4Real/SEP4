@@ -9,13 +9,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
       timeout: 3s
       retries: 10
 
   mal-api:
-    image: sep4-mal-api:local
     build:
       context: ./MAL
     environment:
@@ -26,6 +25,27 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
     expose:
       - "8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  iot-api:
+    build:
+      context: ./IOT_backend
+    volumes:
+      - ./IOT_backend:/app # mounts your local source into the container
+    working_dir: /app
+    command: dotnet watch run
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
