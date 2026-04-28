@@ -1,0 +1,125 @@
+.dashboard {
+  padding: 20px;
+  padding-bottom: 100px; 
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+}
+
+.dashboard h1 {
+  margin-bottom: 20px;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.sensor-card {
+  background: linear-gradient(135deg, #caf7db, #b7e4c7);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sensor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.sensor-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1b4332;
+  letter-spacing: 0.5px;
+}
+
+.sensor-value {
+  margin-top: 10px;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #2d6a4f;
+}
+
+/* ADMIN BUTTONS */
+.admin-actions {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.admin-actions button {
+ padding: 12px 20px; 
+  border: none;
+  background: #40916c;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+}
+
+.admin-actions button:hover {
+  background: #2d6a4f;
+}
+
+
+/*Small screens (≤ 576px)    */
+
+@media (max-width: 576px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sensor-card {
+    padding: 16px;
+  }
+
+  .sensor-value {
+    font-size: 1.4rem;
+  }
+
+  .admin-actions {
+    flex-direction: column;
+  }
+
+  .admin-actions button {
+    width: 100%;
+  }
+}
+
+
+/*Tablets (≤ 768px)          */
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sensor-card {
+    padding: 18px;
+  }
+}
+
+
+/*Large screens (≥ 1200px)   */
+
+@media (min-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.status-good {
+  background: linear-gradient(135deg, #d8f3dc, #b7e4c7);
+}
+
+.status-bad {
+  background: linear-gradient(135deg, #ffe5e5, #ffb3b3);
+}

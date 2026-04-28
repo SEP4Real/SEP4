@@ -30,6 +30,12 @@ const Navbar = () => {
         <li>
           <Link to="/history" onClick={() => setIsMenuOpen(false)}>History</Link>
         </li>
+        <li>
+          <Link to="/student" onClick={() => setIsMenuOpen(false)}>Student Dashboard</Link>
+        </li>
+        <li>
+          <Link to="/admin" onClick={() => setIsMenuOpen(false)}>Admin Dashboard</Link>
+        </li>
       </ul>
     </nav>
   );
