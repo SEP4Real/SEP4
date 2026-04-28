@@ -2,9 +2,18 @@ import os
 
 from fastapi import FastAPI
 import psycopg
+from .model import predict
+from pydantic import BaseModel
 
 
 app = FastAPI(title="MAL API")
+
+
+class PredictionRequest(BaseModel):
+    currentNoise: float
+    maxNoise: float
+    minNoise: float
+    meanNoise: float
 
 
 @app.get("/")
@@ -32,3 +41,14 @@ def db_check() -> dict[str, str | int]:
             result = cur.fetchone()
 
     return {"status": "ok", "result": result[0] if result else 0}
+
+
+@app.post("/predict")
+async def get_prediction(data: PredictionRequest):
+    rating = predict(
+        data.currentNoise,
+        data.maxNoise,
+        data.minNoise,
+        data.meanNoise
+    )
+    return {"rating": rating}
