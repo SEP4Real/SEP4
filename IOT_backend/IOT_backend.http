@@ -1,4 +1,4 @@
-@IOT_backend_HostAddress = https://iot.sep4.eduardfekete.com
+@IOT_backend_HostAddress = http://iot.sep4.eduardfekete.com
 @DevicePublicKey = smoke-device-{{$timestamp}}
 
 ### Smoke: list devices, proves the API can read from the database
