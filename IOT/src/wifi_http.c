@@ -5,41 +5,57 @@
 #include <avr/wdt.h>
 
 static volatile uint8_t data_received = 0;
+static char server_ip[16] = {0};
 
 static void on_receive(void)
 {
     data_received = 1;
 }
 
+WIFI_ERROR_MESSAGE_t http_resolve_host(void)
+{
+    printf("[DNS] Resolving %s...\n", SERVER_HOST);
+    WIFI_ERROR_MESSAGE_t err = wifi_command_get_ip_from_URL((char *)SERVER_HOST, server_ip);
+
+    if (err != WIFI_OK || server_ip[0] == '\0')
+    {
+        printf("[DNS] Resolution failed (%d)\n", err);
+        return err;
+    }
+
+    printf("[DNS] %s -> %s\n", SERVER_HOST, server_ip);
+    return WIFI_OK;
+}
+
 static WIFI_ERROR_MESSAGE_t http_request(const char *method, const char *endpoint, const char *body, char *rx_buf, uint16_t rx_buf_size)
 {
-    printf("[HTTP] %s %s\r\n", method, endpoint);
+    printf("[HTTP] %s %s\n", method, endpoint);
 
     char req[384];
     snprintf(req, sizeof(req),
         "%s %s HTTP/1.0\r\n"
-        "Host: " SERVER_IP ":%d\r\n"
+        "Host: %s:%d\r\n"
         "Content-Type: application/json\r\n"
         "Content-Length: %u\r\n"
         "Connection: close\r\n"
         "\r\n%s",
-        method, endpoint, SERVER_PORT, (uint16_t)strlen(body), body);
+        method, endpoint, SERVER_HOST, SERVER_PORT, (uint16_t)strlen(body), body);
 
     data_received = 0;
     memset(rx_buf, 0, rx_buf_size);
 
-    WIFI_ERROR_MESSAGE_t err = wifi_command_create_TCP_connection(SERVER_IP, SERVER_PORT, on_receive, rx_buf);
+    WIFI_ERROR_MESSAGE_t err = wifi_command_create_TCP_connection((char *)SERVER_HOST, SERVER_PORT, on_receive, rx_buf);
 
     if (err != WIFI_OK)
     {
-        printf("[ERROR] TCP connect failed (%d)\r\n", err);
+        printf("[ERROR] TCP connect failed (%d)\n", err);
         return err;
     }
 
     err = wifi_command_TCP_transmit((uint8_t *)req, (uint16_t)strlen(req));
     if (err != WIFI_OK)
     {
-        printf("[ERROR] TCP transmit failed (%d)\r\n", err);
+        printf("[ERROR] TCP transmit failed (%d)\n", err);
         wifi_command_close_TCP_connection();
         return err;
     }
@@ -51,9 +67,6 @@ static WIFI_ERROR_MESSAGE_t http_request(const char *method, const char *endpoin
         _delay_ms(10);
         waited += 10;
     }
-
-    if (!data_received)
-        printf("[WARN] No response received\r\n");
 
     wifi_command_close_TCP_connection();
     return err;
