@@ -13,7 +13,7 @@ public class Session
 
     [Required]
     [Column("device_id")]
-    public string DeviceId { get; set; }
+    public required string DeviceId { get; set; }
 
     [Column("started_at")]
     public DateTimeOffset StartedAt { get; set; }

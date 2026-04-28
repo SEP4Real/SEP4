@@ -54,10 +54,18 @@ public class SessionController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Session session)
     {
+        if (string.IsNullOrWhiteSpace(session.DeviceId))
+        {
+            return BadRequest("deviceId is required");
+        }
+
+        session.DeviceId = session.DeviceId.Trim();
+
         var deviceExists = await _db.Devices.AnyAsync(d => d.PublicKey == session.DeviceId);
         if (!deviceExists) return NotFound($"Device {session.DeviceId} does not exist");
 
         session.StartedAt = DateTimeOffset.UtcNow;
+        session.LastPulseAt = session.StartedAt;
         _db.Sessions.Add(session);
         await _db.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = session.Id }, session);
@@ -93,6 +101,12 @@ public class SessionController : ControllerBase
     {
         var session = await _db.Sessions.FindAsync(id);
         if (session == null) return NotFound();
+
+        var hasData = await _db.DataPoints.AnyAsync(d => d.SessionId == id);
+        if (hasData)
+        {
+            return Conflict("Session has data points and cannot be deleted without losing IoT history");
+        }
 
         _db.Sessions.Remove(session);
         await _db.SaveChangesAsync();

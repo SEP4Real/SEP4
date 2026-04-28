@@ -34,6 +34,13 @@ public class DeviceController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Device device)
     {
+        if (string.IsNullOrWhiteSpace(device.PublicKey))
+        {
+            return BadRequest("Device publicKey is required");
+        }
+
+        device.PublicKey = device.PublicKey.Trim();
+
         var exists = await _db.Devices.AnyAsync(d => d.PublicKey == device.PublicKey);
         if (exists) return Conflict($"Device {device.PublicKey} already exists");
 
@@ -47,6 +54,12 @@ public class DeviceController : ControllerBase
     {
         var device = await _db.Devices.FindAsync(publicKey);
         if (device == null) return NotFound();
+
+        var hasSessions = await _db.Sessions.AnyAsync(s => s.DeviceId == publicKey);
+        if (hasSessions)
+        {
+            return Conflict("Device has sessions and cannot be deleted without losing IoT history");
+        }
 
         _db.Devices.Remove(device);
         await _db.SaveChangesAsync();

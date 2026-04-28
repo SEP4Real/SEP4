@@ -18,6 +18,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+await DatabaseInitializer.EnsureSchemaCreatedAsync(app.Services);
+
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())

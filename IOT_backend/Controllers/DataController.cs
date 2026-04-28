@@ -43,6 +43,22 @@ public class DataController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Data data)
     {
+        if (data.SessionId <= 0)
+        {
+            return BadRequest("sessionId is required");
+        }
+
+        var session = await _db.Sessions.FindAsync(data.SessionId);
+        if (session == null)
+        {
+            return NotFound($"Session {data.SessionId} does not exist");
+        }
+
+        if (session.EndedAt != null)
+        {
+            return Conflict("Cannot add data to an ended session");
+        }
+
         data.SentAt = DateTimeOffset.UtcNow;
         _db.DataPoints.Add(data);
         await _db.SaveChangesAsync();

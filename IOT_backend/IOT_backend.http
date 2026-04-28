@@ -5,6 +5,10 @@
 GET {{IOT_backend_HostAddress}}/Device
 Accept: application/json
 
+### Smoke: verify the IoT database schema is reachable and complete
+GET {{IOT_backend_HostAddress}}/Health/db
+Accept: application/json
+
 ### Smoke: create a device row
 # @name createDevice
 POST {{IOT_backend_HostAddress}}/Device
