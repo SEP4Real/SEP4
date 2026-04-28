@@ -12,7 +12,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-logo">
-        <span className="logo-icon">🌿</span> Student Monitoring
+        <span className="logo-icon">🌿</span> Student Environment Helper
       </div>
 
       {/*Hamburger  Buton  */}
@@ -36,6 +36,9 @@ const Navbar = () => {
         <li>
           <Link to="/admin" onClick={() => setIsMenuOpen(false)}>Admin Dashboard</Link>
         </li>
+        <list>
+        <Link to="/profile" onClick={() => setIsMenuOpen(false)}> Profile</Link>
+        </list>
       </ul>
     </nav>
   );

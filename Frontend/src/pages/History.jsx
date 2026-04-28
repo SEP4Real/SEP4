@@ -9,9 +9,23 @@ const History = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
 
-  useEffect(() => {
+ useEffect(() => {
+  // mock
+  const loadData = () => {
+    console.log("Refreshing data..."); 
     setData(mockHistory);
-  }, []);
+  };
+
+  loadData();
+
+  // set the update time to 1 minute
+  const interval = setInterval(() => {
+    loadData();
+  }, 60000); 
+
+  // Cleanup - 
+  return () => clearInterval(interval);
+}, []);
 
   const toggleAccordion = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -29,7 +43,7 @@ const History = () => {
       <div className="content-wrapper">
         
         {/*sec1*/}
-        {/* SEC 1:  (Stat Cards) */}
+        {/* (Stat Cards) */}
         <section className="indicators-section">
         <div className="indicators-header">
             <h2 className="title">Real-time Environmental Monitoring</h2>

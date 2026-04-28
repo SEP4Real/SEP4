@@ -34,7 +34,7 @@ export default function LoginPage() {
     try {
       const result = await login(form);
       localStorage.setItem("user", JSON.stringify(result.user));
-      navigate("/dashboard");
+      navigate("/student");
     } catch {
       setError("Login failed");
     }
