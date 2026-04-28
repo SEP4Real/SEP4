@@ -1,5 +1,6 @@
 import pandas as pd
 import joblib
+from pathlib import Path
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
@@ -14,7 +15,8 @@ from tensorflow.keras.layers import Dense, Input, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 
-df = pd.read_csv("../../focus_dataset.csv")
+DATASET_PATH = Path(__file__).with_name("focus_dataset.csv")
+df = pd.read_csv(DATASET_PATH)
 
 X = df[['currentNoise', 'maxNoise', 'minNoise', 'meanNoise']]
 y = df['rating']

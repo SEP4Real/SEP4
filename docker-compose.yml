@@ -32,10 +32,6 @@ services:
   iot-api:
     build:
       context: ./IOT_backend
-    volumes:
-      - ./IOT_backend:/app # mounts your local source into the container
-    working_dir: /app
-    command: dotnet watch run
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
