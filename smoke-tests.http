@@ -9,6 +9,18 @@ Accept: application/json
 GET {{localBase}}/db-check
 Accept: application/json
 
+### Local: focus prediction
+POST {{localBase}}/predict
+Content-Type: application/json
+
+{
+  "temperature": 22,
+  "humidity": 45,
+  "co2Level": 650,
+  "lightLevel": 550,
+  "noiseLevel": 42
+}
+
 ### Deployed: hello
 GET {{deployedBase}}/
 Accept: application/json

@@ -1,0 +1,39 @@
+name: MAL CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - "MAL/**"
+      - ".github/workflows/mal-ci.yml"
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - "MAL/**"
+      - ".github/workflows/mal-ci.yml"
+
+jobs:
+  mal-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: MAL
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: MAL/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest

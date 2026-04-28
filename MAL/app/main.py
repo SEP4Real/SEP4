@@ -1,10 +1,22 @@
 import os
 
 from fastapi import FastAPI
+from pydantic import BaseModel, Field
 import psycopg
+
+#from app.model import predict_focus_level, suggestion_for_focus_level
+from app.model2 import predict_focus_level, suggestion_for_focus_level
 
 
 app = FastAPI(title="MAL API")
+
+
+class EnvironmentReading(BaseModel):
+    temperature: float = Field(..., ge=-20, le=60)
+    humidity: float = Field(..., ge=0, le=100)
+    co2Level: float = Field(..., ge=0)
+    lightLevel: float = Field(..., ge=0)
+    noiseLevel: float = Field(..., ge=0)
 
 
 @app.get("/")
@@ -32,3 +44,19 @@ def db_check() -> dict[str, str | int]:
             result = cur.fetchone()
 
     return {"status": "ok", "result": result[0] if result else 0}
+
+
+@app.post("/predict")
+def predict(reading: EnvironmentReading) -> dict[str, int | str]:
+    focus_level = predict_focus_level(
+        temperature=reading.temperature,
+        humidity=reading.humidity,
+        co2_level=reading.co2Level,
+        light_level=reading.lightLevel,
+        noise_level=reading.noiseLevel,
+    )
+
+    return {
+        "predictedFocusLevel": focus_level,
+        "suggestion": suggestion_for_focus_level(focus_level),
+    }
