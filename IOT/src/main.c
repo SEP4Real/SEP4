@@ -9,8 +9,12 @@
 #include "timer.h"
 #include "server_api.h"
 
-#define WIFI_SSID ""
-#define WIFI_PASSWORD ""
+#ifndef SERVER_IP
+#error "SERVER_IP not defined — set it in secrets.ini build_flags"
+#endif
+#ifndef SERVER_PORT
+#error "SERVER_PORT not defined — set it in secrets.ini build_flags"
+#endif
 
 static int uart0_putchar(char c, FILE *stream)
 {
@@ -71,8 +75,6 @@ int main(void)
 
     if (pulse_timer < 0 || data_timer < 0)
         printf("[ERROR] Timer creation failed\r\n");
-
-    printf("[MAIN] Entering main loop\r\n");
 
     while (1)
     {
