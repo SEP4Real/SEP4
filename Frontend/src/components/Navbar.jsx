@@ -36,9 +36,9 @@ const Navbar = () => {
         <li>
           <Link to="/admin" onClick={() => setIsMenuOpen(false)}>Admin Dashboard</Link>
         </li>
-        <list>
+        <li>
         <Link to="/profile" onClick={() => setIsMenuOpen(false)}> Profile</Link>
-        </list>
+        </li>
       </ul>
     </nav>
   );
