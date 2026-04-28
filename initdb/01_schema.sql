@@ -19,3 +19,13 @@ CREATE TABLE data (
     light_level FLOAT,
     sent_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+create table users (
+
+    id bigserial primary key,
+    role varchar(255),
+    password varchar(255) not null,
+    username varchar(255) unique not null,
+    email varchar(255) unique not null
+
+);
