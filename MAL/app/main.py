@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, model_validator
 
 from .model import FEATURE_COLUMNS, MODEL_PATH, REAL_DATASET_PATH, predict
+from .transform_realdata import transform_real_data
 
 app = FastAPI(title="MAL API")
 
@@ -95,8 +96,11 @@ def collect_data() -> dict[str, object]:
                     writer.writerow(colnames)
                     writer.writerows(rows)
 
+        # Run the transformation script to create session aggregates
+        transform_real_data(input_file=REAL_DATASET_PATH)
+
         return {
-            "message": "Data collection complete",
+            "message": "Data collection complete and transformed to focus dataset",
             "count": len(rows),
             "columns": colnames,
             "saved_to": str(REAL_DATASET_PATH),
