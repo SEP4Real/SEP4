@@ -31,6 +31,7 @@ services:
         condition: service_healthy
 
   iot-api:
+    image: sep4-iot-api:local
     build:
       context: ./IOT_backend
     environment:

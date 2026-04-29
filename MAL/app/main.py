@@ -1,19 +1,37 @@
+import csv
 import os
+from datetime import datetime
 
-from fastapi import FastAPI
 import psycopg
-from .model import predict
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field, model_validator
 
-#comment
+from .model import FEATURE_COLUMNS, MODEL_PATH, REAL_DATASET_PATH, predict
+from .transform_realdata import transform_real_data
+
 app = FastAPI(title="MAL API")
 
+#test/comment
 
 class PredictionRequest(BaseModel):
-    currentNoise: float
-    maxNoise: float
-    minNoise: float
-    meanNoise: float
+    currentTemperature: float = Field(allow_inf_nan=False)
+    maxTemp: float = Field(allow_inf_nan=False)
+    minTemp: float = Field(allow_inf_nan=False)
+    meanTemp: float = Field(allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def validate_temperature_window(self) -> "PredictionRequest":
+        if self.maxTemp < self.minTemp:
+            raise ValueError("maxTemp must be greater than or equal to minTemp")
+        if not self.minTemp <= self.meanTemp <= self.maxTemp:
+            raise ValueError("meanTemp must be between minTemp and maxTemp")
+        if not self.minTemp <= self.currentTemperature <= self.maxTemp:
+            raise ValueError("currentTemperature must be between minTemp and maxTemp")
+        return self
+
+
+class PredictionResponse(BaseModel):
+    rating: int = Field(ge=1, le=5)
 
 
 @app.get("/")
@@ -43,30 +61,73 @@ def db_check() -> dict[str, str | int]:
     return {"status": "ok", "result": result[0] if result else 0}
 
 
-@app.get("/model-info")
-def get_model_info() -> dict[str, list[dict]]:
-    import os
-    from datetime import datetime
-    models = ["dt_model.pkl", "rf_model.pkl", "gb_model.pkl", "nn_model.h5"]
-    info = []
-    for model_path in models:
-        if os.path.exists(model_path):
-            mtime = os.path.getmtime(model_path)
-            info.append({
-                "name": model_path,
-                "status": "available",
-                "last_modified": datetime.fromtimestamp(mtime).isoformat()
-            })
-        else:
-            info.append({"name": model_path, "status": "not_found"})
-    return {"models": info}
+@app.get("/collect-data")
+def collect_data() -> dict[str, object]:
+    db_host = os.environ["DB_HOST"]
+    db_port = os.environ["DB_PORT"]
+    db_name = os.environ["DB_NAME"]
+    db_user = os.environ["DB_USER"]
+    db_password = os.environ["DB_PASSWORD"]
 
-@app.post("/predict")
-async def get_prediction(data: PredictionRequest):
+    try:
+        with psycopg.connect(
+            host=db_host,
+            port=db_port,
+            dbname=db_name,
+            user=db_user,
+            password=db_password,
+        ) as conn:
+            with conn.cursor() as cur:
+                query = """
+                    SELECT *
+                    FROM data
+                    ORDER BY sent_at DESC
+                    LIMIT 2000
+                """
+                cur.execute(query)
+                rows = cur.fetchall()
+                colnames = [desc[0] for desc in cur.description]
+
+                if not rows:
+                    return {"message": "No data found in database"}
+
+                with REAL_DATASET_PATH.open(mode="w", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(colnames)
+                    writer.writerows(rows)
+
+        # Run the transformation script to create session aggregates
+        transform_real_data(input_file=REAL_DATASET_PATH)
+
+        return {
+            "message": "Data collection complete and transformed to focus dataset",
+            "count": len(rows),
+            "columns": colnames,
+            "saved_to": str(REAL_DATASET_PATH),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/model-info")
+def get_model_info() -> dict[str, object]:
+    if MODEL_PATH.exists():
+        last_modified = datetime.fromtimestamp(MODEL_PATH.stat().st_mtime).isoformat()
+        return {
+            "status": "available",
+            "last_modified": last_modified,
+            "model": "RandomForestClassifier",
+            "features": FEATURE_COLUMNS,
+        }
+    return {"status": "not_found", "model": "RandomForestClassifier", "features": FEATURE_COLUMNS}
+
+
+@app.post("/predict", response_model=PredictionResponse)
+async def get_prediction(data: PredictionRequest) -> PredictionResponse:
     rating = predict(
-        data.currentNoise,
-        data.maxNoise,
-        data.minNoise,
-        data.meanNoise
+        data.currentTemperature,
+        data.maxTemp,
+        data.minTemp,
+        data.meanTemp,
     )
-    return {"rating": rating}
+    return PredictionResponse(rating=rating)
