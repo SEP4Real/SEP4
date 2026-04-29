@@ -1,13 +1,12 @@
-import React from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import './Profile.css';
 
 const Profile = () => {
+  const navigate = useNavigate();
   const userData = localStorage.getItem('user');
   // no data - log out
   if (!userData) {
-    // redir  login
-    window.location.href = '/login';
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   // test user
@@ -19,7 +18,7 @@ const Profile = () => {
 
   const handleLogout = () => {
    localStorage.clear(); 
-   window.location.replace('/login');
+   navigate('/login', { replace: true });
   };
 
  return (

@@ -13,8 +13,6 @@ export const getEnvironmentDataa= async () => {
     };
 };
 
-const API_URL = '/Data'; // Endpoint - DataController.cs
-
 export const getEnvironmentData = async () => {
     try {
         const response = await fetch('/api/Data'); // /api for proxy

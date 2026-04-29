@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getEnvironmentData} from "../services/EnvironmentService";
 //import { mockHistory } from "../MockData";
@@ -24,6 +24,7 @@ const History = () => {
         humidity: item.humidity,
         co2: item.co2Level,    
         light: item.lightLevel, 
+        dateValue: new Date(item.sentAt).toISOString().slice(0, 10),
         date: new Date(item.sentAt).toLocaleDateString(),
         time: new Date(item.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }));
@@ -51,11 +52,9 @@ const History = () => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  /*const filteredData = filterDate 
-    ? data.filter(item => item.date === filterDate)
-    : data;*/
-
-  const filteredData = data;
+  const filteredData = filterDate
+    ? data.filter(item => item.dateValue === filterDate)
+    : data;
 
 
   const latest = filteredData.length > 0 ? filteredData[filteredData.length - 1] : {};

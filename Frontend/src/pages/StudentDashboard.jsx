@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getEnvironmentDataa } from "../services/EnvironmentService";
 import SensorCard from "../components/SensorCard";
-import "./dashboard.css";
+import "./Dashboard.css";
 
 export default function StudentDashboard() {
   const [data, setData] = useState(null);
