@@ -15,10 +15,19 @@ from tensorflow.keras.layers import Dense, Input, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 
-DATASET_PATH = Path(__file__).with_name("focus_dataset.csv")
+APP_DIR = Path(__file__).resolve().parent
+DATASET_PATH = APP_DIR / "focus_dataset.csv"
+MODEL_PATHS = {
+    "decision_tree": APP_DIR / "dt_model.pkl",
+    "random_forest": APP_DIR / "rf_model.pkl",
+    "gradient_boosting": APP_DIR / "gb_model.pkl",
+    "neural_network": APP_DIR / "nn_model.h5",
+}
 df = pd.read_csv(DATASET_PATH)
 
-X = df[['currentNoise', 'maxNoise', 'minNoise', 'meanNoise']]
+FEATURE_COLUMNS = ['currentTemperature', 'maxTemp', 'minTemp', 'meanTemp']
+
+X = df[FEATURE_COLUMNS]
 y = df['rating']
 
 X_train_val, X_test, y_train_val, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
@@ -56,14 +65,16 @@ print(f"Gradient Boosting - Train: {gb_model.score(X_train, y_train):.4f}, Val: 
 print(f"Neural Network    - Train: {nn_history.history['accuracy'][-1]:.4f}, Val: {nn_history.history['val_accuracy'][-1]:.4f}")
 
 # Save the models
-joblib.dump(dt_model, 'dt_model.pkl')
-joblib.dump(rf_model, 'rf_model.pkl')
-joblib.dump(gb_model, 'gb_model.pkl')
-nn_model.save('nn_model.h5')
+joblib.dump(dt_model, MODEL_PATHS["decision_tree"])
+joblib.dump(rf_model, MODEL_PATHS["random_forest"])
+joblib.dump(gb_model, MODEL_PATHS["gradient_boosting"])
+nn_model.save(MODEL_PATHS["neural_network"])
 
 
-def predict(current_noise, max_noise, min_noise, mean_noise):
-    input_df = pd.DataFrame([[current_noise, max_noise, min_noise, mean_noise]], 
-                             columns=['currentNoise', 'maxNoise', 'minNoise', 'meanNoise'])
+def predict(current_temperature, max_temperature, min_temperature, mean_temperature):
+    input_df = pd.DataFrame(
+        [[current_temperature, max_temperature, min_temperature, mean_temperature]],
+        columns=FEATURE_COLUMNS
+    )
     prediction = rf_model.predict(input_df)
     return int(prediction[0])

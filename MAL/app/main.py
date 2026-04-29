@@ -2,7 +2,7 @@ import os
 
 from fastapi import FastAPI
 import psycopg
-from .model import predict
+from .model import MODEL_PATHS, predict
 from pydantic import BaseModel
 
 #comment
@@ -10,10 +10,10 @@ app = FastAPI(title="MAL API")
 
 
 class PredictionRequest(BaseModel):
-    currentNoise: float
-    maxNoise: float
-    minNoise: float
-    meanNoise: float
+    currentTemperature: float
+    maxTemp: float
+    minTemp: float
+    meanTemp: float
 
 
 @app.get("/")
@@ -45,28 +45,26 @@ def db_check() -> dict[str, str | int]:
 
 @app.get("/model-info")
 def get_model_info() -> dict[str, list[dict]]:
-    import os
     from datetime import datetime
-    models = ["dt_model.pkl", "rf_model.pkl", "gb_model.pkl", "nn_model.h5"]
     info = []
-    for model_path in models:
-        if os.path.exists(model_path):
-            mtime = os.path.getmtime(model_path)
+    for model_path in MODEL_PATHS.values():
+        if model_path.exists():
+            mtime = model_path.stat().st_mtime
             info.append({
-                "name": model_path,
+                "name": model_path.name,
                 "status": "available",
                 "last_modified": datetime.fromtimestamp(mtime).isoformat()
             })
         else:
-            info.append({"name": model_path, "status": "not_found"})
+            info.append({"name": model_path.name, "status": "not_found"})
     return {"models": info}
 
 @app.post("/predict")
 async def get_prediction(data: PredictionRequest):
     rating = predict(
-        data.currentNoise,
-        data.maxNoise,
-        data.minNoise,
-        data.meanNoise
+        data.currentTemperature,
+        data.maxTemp,
+        data.minTemp,
+        data.meanTemp
     )
     return {"rating": rating}
