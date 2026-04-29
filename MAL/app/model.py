@@ -56,7 +56,9 @@ print(f"Gradient Boosting - Train: {gb_model.score(X_train, y_train):.4f}, Val: 
 print(f"Neural Network    - Train: {nn_history.history['accuracy'][-1]:.4f}, Val: {nn_history.history['val_accuracy'][-1]:.4f}")
 
 # Save the models
+joblib.dump(dt_model, 'dt_model.pkl')
 joblib.dump(rf_model, 'rf_model.pkl')
+joblib.dump(gb_model, 'gb_model.pkl')
 nn_model.save('nn_model.h5')
 
 

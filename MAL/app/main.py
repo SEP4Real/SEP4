@@ -43,6 +43,24 @@ def db_check() -> dict[str, str | int]:
     return {"status": "ok", "result": result[0] if result else 0}
 
 
+@app.get("/model-info")
+def get_model_info() -> dict[str, list[dict]]:
+    import os
+    from datetime import datetime
+    models = ["dt_model.pkl", "rf_model.pkl", "gb_model.pkl", "nn_model.h5"]
+    info = []
+    for model_path in models:
+        if os.path.exists(model_path):
+            mtime = os.path.getmtime(model_path)
+            info.append({
+                "name": model_path,
+                "status": "available",
+                "last_modified": datetime.fromtimestamp(mtime).isoformat()
+            })
+        else:
+            info.append({"name": model_path, "status": "not_found"})
+    return {"models": info}
+
 @app.post("/predict")
 async def get_prediction(data: PredictionRequest):
     rating = predict(
