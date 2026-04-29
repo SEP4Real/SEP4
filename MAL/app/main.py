@@ -5,7 +5,7 @@ import psycopg
 from .model import predict
 from pydantic import BaseModel
 
-
+#comment
 app = FastAPI(title="MAL API")
 
 
