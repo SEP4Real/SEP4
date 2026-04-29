@@ -1,4 +1,6 @@
 import pandas as pd
+import joblib
+from pathlib import Path
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
@@ -13,7 +15,8 @@ from tensorflow.keras.layers import Dense, Input, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 
-df = pd.read_csv("../../focus_dataset.csv")
+DATASET_PATH = Path(__file__).with_name("focus_dataset.csv")
+df = pd.read_csv(DATASET_PATH)
 
 X = df[['currentNoise', 'maxNoise', 'minNoise', 'meanNoise']]
 y = df['rating']
@@ -51,3 +54,14 @@ print(f"Decision Tree     - Train: {dt_model.score(X_train, y_train):.4f}, Val: 
 print(f"Random Forest     - Train: {rf_model.score(X_train, y_train):.4f}, Val: {rf_model.score(X_val, y_val):.4f}")
 print(f"Gradient Boosting - Train: {gb_model.score(X_train, y_train):.4f}, Val: {gb_model.score(X_val, y_val):.4f}")
 print(f"Neural Network    - Train: {nn_history.history['accuracy'][-1]:.4f}, Val: {nn_history.history['val_accuracy'][-1]:.4f}")
+
+# Save the models
+joblib.dump(rf_model, 'rf_model.pkl')
+nn_model.save('nn_model.h5')
+
+
+def predict(current_noise, max_noise, min_noise, mean_noise):
+    input_df = pd.DataFrame([[current_noise, max_noise, min_noise, mean_noise]], 
+                             columns=['currentNoise', 'maxNoise', 'minNoise', 'meanNoise'])
+    prediction = rf_model.predict(input_df)
+    return int(prediction[0])

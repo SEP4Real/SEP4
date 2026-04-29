@@ -10,11 +10,12 @@ body {
 }
 
 .page {
-  min-height: calc(100vh - 70px); 
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: flex-start; 
   padding-top: 20px;
+  padding-bottom: 80px;
 }
 
 .page-container {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { mockHistory } from "../MockData";
+import { getEnvironmentData} from "../services/EnvironmentService";
+//import { mockHistory } from "../MockData";
 import "./History.css";
 import "../index.css";
 
@@ -9,17 +10,52 @@ const History = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
 
-  useEffect(() => {
-    setData(mockHistory);
-  }, []);
+ useEffect(() => {
+  const loadData = async () => {
+    try {
+    console.log("Fetching real data from DB...");
+    const rawData = await getEnvironmentData();
+    
+    // Mape (sent_at, co2_level, etc.) -> UI (date, time, co2)
+   if (rawData && Array.isArray(rawData)) {
+      const formattedData = rawData.map(item => ({
+        id: item.id,
+        temperature: item.temperature,
+        humidity: item.humidity,
+        co2: item.co2Level,    
+        light: item.lightLevel, 
+        date: new Date(item.sentAt).toLocaleDateString(),
+        time: new Date(item.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }));
+      
+      console.log("Data formatted for chart:", formattedData);
+      setData(formattedData);
+    }
+  } catch (error) {
+    console.error("Data processing error:", error);
+  }
+  };
+
+  loadData();
+
+  // set the update time to 1 minute
+  const interval = setInterval(() => {
+    loadData();
+  }, 60000); 
+
+  // Cleanup - 
+  return () => clearInterval(interval);
+}, []);
 
   const toggleAccordion = (id) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const filteredData = filterDate 
+  /*const filteredData = filterDate 
     ? data.filter(item => item.date === filterDate)
-    : data;
+    : data;*/
+
+  const filteredData = data;
 
 
   const latest = filteredData.length > 0 ? filteredData[filteredData.length - 1] : {};
@@ -29,7 +65,7 @@ const History = () => {
       <div className="content-wrapper">
         
         {/*sec1*/}
-        {/* SEC 1:  (Stat Cards) */}
+        {/* (Stat Cards) */}
         <section className="indicators-section">
         <div className="indicators-header">
             <h2 className="title">Real-time Environmental Monitoring</h2>

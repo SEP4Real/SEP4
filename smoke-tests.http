@@ -1,5 +1,5 @@
 @localBase = http://localhost:8000
-@deployedBase = https://sep4.edproduction.dev
+@deployedBase = https://mal.sep4.eduardfekete.com
 
 ### Local: hello
 GET {{localBase}}/

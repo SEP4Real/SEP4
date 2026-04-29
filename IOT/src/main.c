@@ -1,30 +1,95 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdio.h>
-#include "drivers/sound_detector.h"
 
-static int uart_putchar(char c, FILE *stream) {
-    while (!(UCSR0A & (1 << UDRE0)));
-    UDR0 = c;
-    return 0;
+#include "uart.h"
+#include "uart_stdio.h"
+#include "wifi.h"
+#include "wifi_http.h"
+#include "dht11.h"
+#include "timer.h"
+#include "server_api.h"
+
+static void delay_s(uint8_t seconds)
+{
+    for (uint8_t s = 0; s < seconds; s++){
+        for (uint8_t m = 0; m < 100; m++){
+            _delay_ms(10);
+        }
+    }
 }
 
-static FILE uart_stdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
+static volatile uint8_t pulse_due = 0;
+static volatile uint8_t data_due  = 0;
 
-int main(void) {
-    UBRR0 = 103;
-    UCSR0B = (1 << TXEN0);
-    UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
-    stdout = &uart_stdout;
+static void on_pulse_timer(uint8_t id) { (void)id; pulse_due = 1; }
+static void on_data_timer(uint8_t id)  { (void)id; data_due  = 1; }
 
-    sound_detector_init(0);
-    sound_detector_set_calibration_offset(0.0f);
+int main(void)
+{
+    sei();
 
-    while (1) {
-        float db = sound_detector_read_db();
-        printf("%d dB\n", (int)db);
-        _delay_ms(500);
+    uart_stdio_init(115200);
+
+    printf("\n=== Device boot ===\n");
+
+    wifi_init();
+    printf("[WIFI] Waiting for module...\n");
+    delay_s(4);
+
+    printf("[WIFI] Sending AT...\n");
+    while (wifi_command_AT() != WIFI_OK) delay_s(1);
+    printf("[WIFI] Module OK\n");
+
+    wifi_command_disable_echo();
+    wifi_command_set_mode_to_1();
+
+    printf("[WIFI] Connecting to %s...\n", WIFI_SSID);
+    while (wifi_command_join_AP(WIFI_SSID, WIFI_PASSWORD) != WIFI_OK)
+    {
+        printf("[WIFI] Retrying...\n");
+        delay_s(2);
+    }
+    printf("[WIFI] Connected\n");
+
+    wifi_command_set_to_single_Connection();
+
+    while (http_resolve_host() != WIFI_OK)
+    {
+        printf("[DNS] Retrying in 2s...\n");
+        delay_s(2);
     }
 
-    return 0;
+    server_register_device();
+    delay_s(1);
+    server_start_session();
+
+    int8_t pulse_timer = timer_create_sw(on_pulse_timer, 5000);
+    int8_t data_timer  = timer_create_sw(on_data_timer,  10000);
+
+    if (pulse_timer < 0 || data_timer < 0){
+        printf("[ERROR] Timer creation failed\n");
+    }
+
+    while (1)
+    {
+        if (pulse_due)
+        {
+            pulse_due = 0;
+            server_send_pulse();
+        }
+
+        if (data_due)
+        {
+            data_due = 0;
+            uint8_t t_int = 0, t_dec = 0, h_int = 0, h_dec = 0;
+            if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK){
+                server_send_data(t_int, t_dec);
+            }
+            else{
+                printf("[ERROR] DHT11 read failed\n");
+            }
+        }
+    }
 }

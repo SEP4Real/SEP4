@@ -1,0 +1,63 @@
+@IOT_backend_HostAddress = http://iot.sep4.eduardfekete.com
+@DevicePublicKey = smoke-device-{{$timestamp}}
+
+### Smoke: list devices, proves the API can read from the database
+GET {{IOT_backend_HostAddress}}/Device
+Accept: application/json
+
+### Smoke: verify the IoT database schema is reachable and complete
+GET {{IOT_backend_HostAddress}}/Health/db
+Accept: application/json
+
+### Smoke: create a device row
+# @name createDevice
+POST {{IOT_backend_HostAddress}}/Device
+Content-Type: application/json
+Accept: application/json
+
+{
+  "publicKey": "{{DevicePublicKey}}"
+}
+
+### Smoke: read the device row back
+GET {{IOT_backend_HostAddress}}/Device/{{DevicePublicKey}}
+Accept: application/json
+
+### Smoke: create a session for the device
+# @name createSession
+POST {{IOT_backend_HostAddress}}/Session
+Content-Type: application/json
+Accept: application/json
+
+{
+  "deviceId": "{{DevicePublicKey}}"
+}
+
+### Smoke: pulse the active session
+PATCH {{IOT_backend_HostAddress}}/Session/{{createSession.response.body.$.id}}/pulse
+Accept: application/json
+
+### Smoke: insert an IoT data point for the session
+# @name createDataPoint
+POST {{IOT_backend_HostAddress}}/Data
+Content-Type: application/json
+Accept: application/json
+
+{
+  "sessionId": {{createSession.response.body.$.id}},
+  "temperature": 22.4,
+  "humidity": 48.2,
+  "co2Level": 612,
+  "lightLevel": 301
+}
+
+### Smoke: read data points for the session
+GET {{IOT_backend_HostAddress}}/Data/session/{{createSession.response.body.$.id}}
+Accept: application/json
+
+### Smoke: end the session with a study-quality rating
+PATCH {{IOT_backend_HostAddress}}/Session/{{createSession.response.body.$.id}}/end
+Content-Type: application/json
+Accept: application/json
+
+8

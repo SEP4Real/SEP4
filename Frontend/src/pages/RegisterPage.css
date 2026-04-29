@@ -84,3 +84,18 @@ button {
 .success {
   color: green;
 }
+
+.auth-link {
+  margin: 0;
+  font-size: 15px;
+}
+
+.auth-link a {
+  color: #2e7d32;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
