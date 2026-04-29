@@ -1,11 +1,11 @@
 import os
+from datetime import datetime
 
 from fastapi import FastAPI
 import psycopg
-from .model import predict
+from .model import MODEL_PATH, predict
 from pydantic import BaseModel, Field, model_validator
 
-#comment
 app = FastAPI(title="MAL API")
 
 
@@ -59,17 +59,15 @@ def db_check() -> dict[str, str | int]:
 
 @app.get("/model-info")
 def get_model_info() -> dict[str, str | float]:
-    import os
-    from datetime import datetime
-    model_path = "rf_model.pkl"
-    if os.path.exists(model_path):
-        mtime = os.path.getmtime(model_path)
+    if MODEL_PATH.exists():
+        mtime = os.path.getmtime(MODEL_PATH)
         last_modified = datetime.fromtimestamp(mtime).isoformat()
         return {"status": "available", "last_modified": last_modified, "model": "RandomForest"}
     return {"status": "not_found"}
 
-@app.post("/predict")
-async def get_prediction(data: PredictionRequest):
+
+@app.post("/predict", response_model=PredictionResponse)
+async def get_prediction(data: PredictionRequest) -> PredictionResponse:
     rating = predict(
         data.currentNoise,
         data.maxNoise,
