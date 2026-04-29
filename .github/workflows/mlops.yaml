@@ -101,3 +101,7 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+    - name: Trigger Coolify Deployment
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        curl -X GET "${{ secrets.COOLIFY_WEBHOOK_URL }}"

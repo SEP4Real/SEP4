@@ -63,14 +63,28 @@ def collect_data():
             password=db_password,
         ) as conn:
             with conn.cursor() as cur:
-                # Fetching all columns dynamically
+                # Grouping the data per session to create aggregated features (min, max, mean)
+                # which models typically use to predict the overall study_quality (rating).
                 query = """
-                    SELECT d.*, s.study_quality 
-                    FROM data d
-                    JOIN sessions s ON d.session_id = s.id
+                    SELECT 
+                        MAX(d.temperature) AS maxTemp,
+                        MIN(d.temperature) AS minTemp,
+                        AVG(d.temperature) AS meanTemp,
+                        MAX(d.humidity) AS maxHumidity,
+                        MIN(d.humidity) AS minHumidity,
+                        AVG(d.humidity) AS meanHumidity,
+                        MAX(d.co2_level) AS maxCO2,
+                        MIN(d.co2_level) AS minCO2,
+                        AVG(d.co2_level) AS meanCO2,
+                        MAX(d.light_level) AS maxLight,
+                        MIN(d.light_level) AS minLight,
+                        AVG(d.light_level) AS meanLight,
+                        s.study_quality AS rating
+                    FROM sessions s
+                    JOIN data d ON s.id = d.session_id
                     WHERE s.study_quality IS NOT NULL
-                    ORDER BY d.sent_at DESC 
-                    LIMIT 2000
+                    GROUP BY s.id, s.study_quality
+                    ORDER BY s.id DESC
                 """
                 cur.execute(query)
                 rows = cur.fetchall()
@@ -86,7 +100,7 @@ def collect_data():
                     writer.writerows(rows)
                     
         return {
-            "message": "Dynamic data collection complete",
+            "message": "Aggregated session data collection complete",
             "count": len(rows),
             "columns": colnames,
             "saved_to": output_file
