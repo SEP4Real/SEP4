@@ -10,6 +10,7 @@ from .model import FEATURE_COLUMNS, MODEL_PATH, REAL_DATASET_PATH, predict
 
 app = FastAPI(title="MAL API")
 
+#test/comment
 
 class PredictionRequest(BaseModel):
     currentTemperature: float = Field(allow_inf_nan=False)
