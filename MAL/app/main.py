@@ -43,6 +43,58 @@ def db_check() -> dict[str, str | int]:
     return {"status": "ok", "result": result[0] if result else 0}
 
 
+@app.get("/collect-data")
+def collect_data():
+    import csv
+    db_host = os.environ["DB_HOST"]
+    db_port = os.environ["DB_PORT"]
+    db_name = os.environ["DB_NAME"]
+    db_user = os.environ["DB_USER"]
+    db_password = os.environ["DB_PASSWORD"]
+    
+    output_file = "environment_history_realdata.csv"
+    
+    try:
+        with psycopg.connect(
+            host=db_host,
+            port=db_port,
+            dbname=db_name,
+            user=db_user,
+            password=db_password,
+        ) as conn:
+            with conn.cursor() as cur:
+                # Fetching all columns dynamically
+                query = """
+                    SELECT d.*, s.study_quality 
+                    FROM data d
+                    JOIN sessions s ON d.session_id = s.id
+                    WHERE s.study_quality IS NOT NULL
+                    ORDER BY d.sent_at DESC 
+                    LIMIT 2000
+                """
+                cur.execute(query)
+                rows = cur.fetchall()
+                # Get actual column names from the cursor
+                colnames = [desc[0] for desc in cur.description]
+                
+                if not rows:
+                    return {"message": "No labeled data found in database (study_quality is NULL)"}
+                
+                with open(output_file, mode='w', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(colnames) 
+                    writer.writerows(rows)
+                    
+        return {
+            "message": "Dynamic data collection complete",
+            "count": len(rows),
+            "columns": colnames,
+            "saved_to": output_file
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.get("/model-info")
 def get_model_info() -> dict[str, list[dict]]:
     from datetime import datetime

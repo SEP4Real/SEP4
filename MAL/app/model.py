@@ -25,9 +25,16 @@ MODEL_PATHS = {
 }
 df = pd.read_csv(DATASET_PATH)
 
-FEATURE_COLUMNS = ['currentTemperature', 'maxTemp', 'minTemp', 'meanTemp']
+# Use columns that actually exist in your CSV to avoid the KeyError
+FEATURE_COLUMNS = [col for col in ['temperature', 'humidity', 'co2_level', 'light_level'] if col in df.columns]
 
-X = df[FEATURE_COLUMNS]
+# If none of those match, fallback to whatever is in the CSV (like temperature or maxTemp)
+if not FEATURE_COLUMNS:
+    FEATURE_COLUMNS = df.drop(columns=['rating', 'timestamp', 'timePeriod'], errors='ignore').columns.tolist()
+
+# Ensure we only keep numeric columns
+X = df[FEATURE_COLUMNS].select_dtypes(include=[np.number])
+FEATURE_COLUMNS = X.columns.tolist()
 y = df['rating']
 
 X_train_val, X_test, y_train_val, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
@@ -71,9 +78,9 @@ joblib.dump(gb_model, MODEL_PATHS["gradient_boosting"])
 nn_model.save(MODEL_PATHS["neural_network"])
 
 
-def predict(current_temperature, max_temperature, min_temperature, mean_temperature):
+def predict(temperature, humidity, co2_level, light_level):
     input_df = pd.DataFrame(
-        [[current_temperature, max_temperature, min_temperature, mean_temperature]],
+        [[temperature, humidity, co2_level, light_level]],
         columns=FEATURE_COLUMNS
     )
     prediction = rf_model.predict(input_df)
