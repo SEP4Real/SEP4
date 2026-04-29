@@ -27,9 +27,7 @@ def load_dataset(path: Path = DATASET_PATH) -> pd.DataFrame:
 
 def load_real_sensor_dataset(path: Path = REAL_DATASET_PATH) -> pd.DataFrame:
     df = pd.read_csv(path)
-    missing_columns = [column for column in [*FEATURE_COLUMNS, TARGET_COLUMN] if column not in df.columns]
-    if missing_columns:
-        raise ValueError(f"Real sensor dataset is missing required columns: {', '.join(missing_columns)}")
+    # The real data pulled from the database won't have feature aggregates or ratings yet
     return df
 
 

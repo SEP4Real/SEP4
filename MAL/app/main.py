@@ -78,33 +78,17 @@ def collect_data() -> dict[str, object]:
         ) as conn:
             with conn.cursor() as cur:
                 query = """
-                    SELECT
-                        (ARRAY_AGG(d.temperature ORDER BY d.sent_at DESC))[1] AS "currentTemperature",
-                        MAX(d.temperature) AS "maxTemp",
-                        MIN(d.temperature) AS "minTemp",
-                        AVG(d.temperature) AS "meanTemp",
-                        MAX(d.humidity) AS "maxHumidity",
-                        MIN(d.humidity) AS "minHumidity",
-                        AVG(d.humidity) AS "meanHumidity",
-                        MAX(d.co2_level) AS "maxCO2",
-                        MIN(d.co2_level) AS "minCO2",
-                        AVG(d.co2_level) AS "meanCO2",
-                        MAX(d.light_level) AS "maxLight",
-                        MIN(d.light_level) AS "minLight",
-                        AVG(d.light_level) AS "meanLight",
-                        s.study_quality AS rating
-                    FROM sessions s
-                    JOIN data d ON s.id = d.session_id
-                    WHERE s.study_quality IS NOT NULL
-                    GROUP BY s.id, s.study_quality
-                    ORDER BY s.id DESC
+                    SELECT *
+                    FROM data
+                    ORDER BY sent_at DESC
+                    LIMIT 2000
                 """
                 cur.execute(query)
                 rows = cur.fetchall()
                 colnames = [desc[0] for desc in cur.description]
 
                 if not rows:
-                    return {"message": "No labeled data found in database (study_quality is NULL)"}
+                    return {"message": "No data found in database"}
 
                 with REAL_DATASET_PATH.open(mode="w", newline="") as f:
                     writer = csv.writer(f)
@@ -112,7 +96,7 @@ def collect_data() -> dict[str, object]:
                     writer.writerows(rows)
 
         return {
-            "message": "Aggregated session data collection complete",
+            "message": "Data collection complete",
             "count": len(rows),
             "columns": colnames,
             "saved_to": str(REAL_DATASET_PATH),
