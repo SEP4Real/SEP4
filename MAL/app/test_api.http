@@ -10,7 +10,11 @@ Accept: application/json
 GET {{baseUrl}}/db-check
 Accept: application/json
 
-### 3. Model Information (shows last training time)
+### 3. Collect Real Data from Database
+GET {{baseUrl}}/collect-data
+Accept: application/json
+
+### 4. Model Information (shows last training time)
 GET {{baseUrl}}/model-info
 Accept: application/json
 
