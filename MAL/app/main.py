@@ -44,15 +44,22 @@ def db_check() -> dict[str, str | int]:
 
 
 @app.get("/model-info")
-def get_model_info() -> dict[str, str | float]:
+def get_model_info() -> dict[str, list[dict]]:
     import os
     from datetime import datetime
-    model_path = "rf_model.pkl"
-    if os.path.exists(model_path):
-        mtime = os.path.getmtime(model_path)
-        last_modified = datetime.fromtimestamp(mtime).isoformat()
-        return {"status": "available", "last_modified": last_modified, "model": "RandomForest"}
-    return {"status": "not_found"}
+    models = ["dt_model.pkl", "rf_model.pkl", "gb_model.pkl", "nn_model.h5"]
+    info = []
+    for model_path in models:
+        if os.path.exists(model_path):
+            mtime = os.path.getmtime(model_path)
+            info.append({
+                "name": model_path,
+                "status": "available",
+                "last_modified": datetime.fromtimestamp(mtime).isoformat()
+            })
+        else:
+            info.append({"name": model_path, "status": "not_found"})
+    return {"models": info}
 
 @app.post("/predict")
 async def get_prediction(data: PredictionRequest):
