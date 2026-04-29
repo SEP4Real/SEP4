@@ -99,8 +99,3 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-    - name: Trigger Coolify Deployment
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: |
-        curl --fail --silent --show-error -X GET "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
-             -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}" || echo "Deployment trigger failed, check Coolify token"

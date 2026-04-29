@@ -1,0 +1,20 @@
+name: Deploy to Coolify
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: coolify-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Coolify Deployment
+        run: |
+          curl --fail --silent --show-error -X GET "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
+               -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}"
