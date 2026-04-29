@@ -1,28 +1,29 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI
 import psycopg
-from .model import MODEL_PATH, predict
+from fastapi import FastAPI
 from pydantic import BaseModel, Field, model_validator
+
+from .model import FEATURE_COLUMNS, MODEL_PATH, predict
 
 app = FastAPI(title="MAL API")
 
 
 class PredictionRequest(BaseModel):
-    currentNoise: float = Field(ge=0, allow_inf_nan=False)
-    maxNoise: float = Field(ge=0, allow_inf_nan=False)
-    minNoise: float = Field(ge=0, allow_inf_nan=False)
-    meanNoise: float = Field(ge=0, allow_inf_nan=False)
+    currentTemperature: float = Field(allow_inf_nan=False)
+    maxTemp: float = Field(allow_inf_nan=False)
+    minTemp: float = Field(allow_inf_nan=False)
+    meanTemp: float = Field(allow_inf_nan=False)
 
     @model_validator(mode="after")
-    def validate_noise_window(self) -> "PredictionRequest":
-        if self.maxNoise < self.minNoise:
-            raise ValueError("maxNoise must be greater than or equal to minNoise")
-        if not self.minNoise <= self.meanNoise <= self.maxNoise:
-            raise ValueError("meanNoise must be between minNoise and maxNoise")
-        if not self.minNoise <= self.currentNoise <= self.maxNoise:
-            raise ValueError("currentNoise must be between minNoise and maxNoise")
+    def validate_temperature_window(self) -> "PredictionRequest":
+        if self.maxTemp < self.minTemp:
+            raise ValueError("maxTemp must be greater than or equal to minTemp")
+        if not self.minTemp <= self.meanTemp <= self.maxTemp:
+            raise ValueError("meanTemp must be between minTemp and maxTemp")
+        if not self.minTemp <= self.currentTemperature <= self.maxTemp:
+            raise ValueError("currentTemperature must be between minTemp and maxTemp")
         return self
 
 
@@ -58,20 +59,24 @@ def db_check() -> dict[str, str | int]:
 
 
 @app.get("/model-info")
-def get_model_info() -> dict[str, str | float]:
+def get_model_info() -> dict[str, object]:
     if MODEL_PATH.exists():
-        mtime = os.path.getmtime(MODEL_PATH)
-        last_modified = datetime.fromtimestamp(mtime).isoformat()
-        return {"status": "available", "last_modified": last_modified, "model": "RandomForest"}
-    return {"status": "not_found"}
+        last_modified = datetime.fromtimestamp(MODEL_PATH.stat().st_mtime).isoformat()
+        return {
+            "status": "available",
+            "last_modified": last_modified,
+            "model": "RandomForestClassifier",
+            "features": FEATURE_COLUMNS,
+        }
+    return {"status": "not_found", "model": "RandomForestClassifier", "features": FEATURE_COLUMNS}
 
 
 @app.post("/predict", response_model=PredictionResponse)
 async def get_prediction(data: PredictionRequest) -> PredictionResponse:
     rating = predict(
-        data.currentNoise,
-        data.maxNoise,
-        data.minNoise,
-        data.meanNoise
+        data.currentTemperature,
+        data.maxTemp,
+        data.minTemp,
+        data.meanTemp,
     )
     return PredictionResponse(rating=rating)

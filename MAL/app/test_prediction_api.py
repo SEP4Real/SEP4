@@ -7,18 +7,18 @@ except ModuleNotFoundError:
 
 
 VALID_PAYLOAD = {
-    "currentNoise": 40,
-    "maxNoise": 45,
-    "minNoise": 35,
-    "meanNoise": 40,
+    "currentTemperature": 22,
+    "maxTemp": 24,
+    "minTemp": 20,
+    "meanTemp": 22,
 }
 
 
 def test_predict_returns_model_rating(monkeypatch):
     calls = []
 
-    def fake_predict(current_noise, max_noise, min_noise, mean_noise):
-        calls.append((current_noise, max_noise, min_noise, mean_noise))
+    def fake_predict(current_temperature, max_temperature, min_temperature, mean_temperature):
+        calls.append((current_temperature, max_temperature, min_temperature, mean_temperature))
         return 4
 
     monkeypatch.setattr(main, "predict", fake_predict)
@@ -27,36 +27,46 @@ def test_predict_returns_model_rating(monkeypatch):
 
     assert response.status_code == 200
     assert response.json() == {"rating": 4}
-    assert calls == [(40, 45, 35, 40)]
+    assert calls == [(22, 24, 20, 22)]
 
 
-def test_predict_rejects_missing_noise_feature():
+def test_predict_rejects_missing_temperature_feature():
     payload = VALID_PAYLOAD.copy()
-    payload.pop("meanNoise")
+    payload.pop("meanTemp")
 
     response = TestClient(main.app).post("/predict", json=payload)
 
     assert response.status_code == 422
 
 
-def test_predict_rejects_negative_noise():
-    payload = VALID_PAYLOAD | {"currentNoise": -1}
+def test_predict_accepts_negative_temperature(monkeypatch):
+    monkeypatch.setattr(main, "predict", lambda *args: 3)
+    payload = {"currentTemperature": -2, "maxTemp": 1, "minTemp": -5, "meanTemp": -1}
+
+    response = TestClient(main.app).post("/predict", json=payload)
+
+    assert response.status_code == 200
+    assert response.json() == {"rating": 3}
+
+
+def test_predict_rejects_invalid_temperature_window():
+    payload = VALID_PAYLOAD | {"maxTemp": 19, "minTemp": 20}
 
     response = TestClient(main.app).post("/predict", json=payload)
 
     assert response.status_code == 422
 
 
-def test_predict_rejects_invalid_noise_window():
-    payload = VALID_PAYLOAD | {"maxNoise": 30, "minNoise": 35}
+def test_predict_rejects_mean_outside_temperature_window():
+    payload = VALID_PAYLOAD | {"meanTemp": 25}
 
     response = TestClient(main.app).post("/predict", json=payload)
 
     assert response.status_code == 422
 
 
-def test_predict_rejects_mean_outside_noise_window():
-    payload = VALID_PAYLOAD | {"meanNoise": 50}
+def test_predict_rejects_current_temperature_outside_window():
+    payload = VALID_PAYLOAD | {"currentTemperature": 25}
 
     response = TestClient(main.app).post("/predict", json=payload)
 
