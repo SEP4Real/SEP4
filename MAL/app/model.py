@@ -8,8 +8,8 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 
 APP_DIR = Path(__file__).resolve().parent
-# DATASET_PATH = APP_DIR / "focus_dataset.csv"
-DATASET_PATH = APP_DIR / "focus_dataset_realdata.csv"
+DATASET_PATH = APP_DIR / "focus_dataset.csv"
+# DATASET_PATH = APP_DIR / "focus_dataset_realdata.csv"
 REAL_DATASET_PATH = APP_DIR / "environment_history_realdata.csv"
 MODEL_PATH = APP_DIR / "rf_model.pkl"
 
