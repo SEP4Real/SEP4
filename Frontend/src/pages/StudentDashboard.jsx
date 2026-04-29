@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getEnvironmentData } from "../services/EnvironmentService";
+import { getEnvironmentDataa } from "../services/EnvironmentService";
 import SensorCard from "../components/SensorCard";
 import "./dashboard.css";
 
@@ -8,7 +8,7 @@ export default function StudentDashboard() {
 
   
   useEffect(() => {
-    getEnvironmentData().then((res) => {
+    getEnvironmentDataa().then((res) => {
       setData(res);
     });
   }, []);

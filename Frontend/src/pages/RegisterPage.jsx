@@ -10,8 +10,6 @@ export default function RegisterPage() {
     lastName: "",
     email: "",
     password: "",
-    studentNumber: "",
-    adminNumber: "",
   });
 
   const [error, setError] = useState("");
@@ -35,16 +33,6 @@ export default function RegisterPage() {
 
     if (!form.name || !form.lastName || !form.email || !form.password) {
       setError("Fill required fields");
-      return;
-    }
-
-    if (!form.studentNumber && !form.adminNumber) {
-      setError("Enter student or admin number");
-      return;
-    }
-
-    if (form.studentNumber && form.adminNumber) {
-      setError("Only one: student OR admin");
       return;
     }
 
@@ -98,28 +86,7 @@ export default function RegisterPage() {
             />
           </label>
 
-          <div className="student-admin-row">
-            <label>
-              Student nr:
-              <input
-                name="studentNumber"
-                value={form.studentNumber}
-                onChange={handleChange}
-              />
-            </label>
-
-            <span>Or</span>
-
-            <label>
-              Admin nr:
-              <input
-                name="adminNumber"
-                value={form.adminNumber}
-                onChange={handleChange}
-              />
-            </label>
-          </div>
-
+        
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
 

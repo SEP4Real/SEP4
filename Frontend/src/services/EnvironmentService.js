@@ -1,4 +1,4 @@
-/*export const getEnvironmentData = async () => {
+export const getEnvironmentDataa= async () => {
     // This simulates fetching data from the ML/Backend team later
     return {
         environmentStatus: 1, // 1 for Good, 0 for Bad
@@ -11,7 +11,7 @@
         predictedSuitabilityLevel: 0.90,
         predictedTrend: 1, // 1 for improving, -1 for declining
     };
-};*/
+};
 
 const API_URL = '/Data'; // Endpoint - DataController.cs
 

@@ -31,13 +31,10 @@ const Navbar = () => {
           <Link to="/history" onClick={() => setIsMenuOpen(false)}>History</Link>
         </li>
         <li>
-          <Link to="/student" onClick={() => setIsMenuOpen(false)}>Student Dashboard</Link>
+          <Link to="/student" onClick={() => setIsMenuOpen(false)}> Dashboard</Link>
         </li>
         <li>
-          <Link to="/admin" onClick={() => setIsMenuOpen(false)}>Admin Dashboard</Link>
-        </li>
-        <li>
-        <Link to="/profile" onClick={() => setIsMenuOpen(false)}> Profile</Link>
+                <Link to="/profile" onClick={() => setIsMenuOpen(false)}> Profile</Link>
         </li>
       </ul>
     </nav>
