@@ -3,17 +3,31 @@ import os
 from fastapi import FastAPI
 import psycopg
 from .model import predict
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, model_validator
 
 
 app = FastAPI(title="MAL API")
 
 
 class PredictionRequest(BaseModel):
-    currentNoise: float
-    maxNoise: float
-    minNoise: float
-    meanNoise: float
+    currentNoise: float = Field(ge=0, allow_inf_nan=False)
+    maxNoise: float = Field(ge=0, allow_inf_nan=False)
+    minNoise: float = Field(ge=0, allow_inf_nan=False)
+    meanNoise: float = Field(ge=0, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def validate_noise_window(self) -> "PredictionRequest":
+        if self.maxNoise < self.minNoise:
+            raise ValueError("maxNoise must be greater than or equal to minNoise")
+        if not self.minNoise <= self.meanNoise <= self.maxNoise:
+            raise ValueError("meanNoise must be between minNoise and maxNoise")
+        if not self.minNoise <= self.currentNoise <= self.maxNoise:
+            raise ValueError("currentNoise must be between minNoise and maxNoise")
+        return self
+
+
+class PredictionResponse(BaseModel):
+    rating: int = Field(ge=1, le=5)
 
 
 @app.get("/")
@@ -43,12 +57,12 @@ def db_check() -> dict[str, str | int]:
     return {"status": "ok", "result": result[0] if result else 0}
 
 
-@app.post("/predict")
-async def get_prediction(data: PredictionRequest):
+@app.post("/predict", response_model=PredictionResponse)
+async def get_prediction(data: PredictionRequest) -> PredictionResponse:
     rating = predict(
         data.currentNoise,
         data.maxNoise,
         data.minNoise,
         data.meanNoise
     )
-    return {"rating": rating}
+    return PredictionResponse(rating=rating)

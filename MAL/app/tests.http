@@ -1,0 +1,54 @@
+@localBase = http://localhost:8000
+@deployedBase = https://mal.sep4.eduardfekete.com
+
+### Local: hello
+GET {{localBase}}/
+Accept: application/json
+
+### Local: db-check
+GET {{localBase}}/db-check
+Accept: application/json
+
+### Local: predict a focus rating
+POST {{localBase}}/predict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "currentNoise": 40,
+  "maxNoise": 45,
+  "minNoise": 35,
+  "meanNoise": 40
+}
+
+### Local: invalid prediction payload returns 422
+POST {{localBase}}/predict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "currentNoise": 40,
+  "maxNoise": 30,
+  "minNoise": 35,
+  "meanNoise": 40
+}
+
+### Deployed: hello
+GET {{deployedBase}}/
+Accept: application/json
+
+### Deployed: db-check
+GET {{deployedBase}}/db-check
+Accept: application/json
+
+### Deployed: predict a focus rating
+POST {{deployedBase}}/predict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "currentNoise": 40,
+  "maxNoise": 45,
+  "minNoise": 35,
+  "meanNoise": 40
+}
