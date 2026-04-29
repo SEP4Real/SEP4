@@ -46,5 +46,12 @@ services:
       postgres:
         condition: service_healthy
 
+  frontend:
+    image: ghcr.io/sep4real/sep4/frontend:main
+    build:
+      context: ./Frontend
+    expose:
+      - "80"
+
 volumes:
   postgres_data:
