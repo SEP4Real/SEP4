@@ -27,8 +27,9 @@ def load_dataset(path: Path = DATASET_PATH) -> pd.DataFrame:
 
 def load_real_sensor_dataset(path: Path = REAL_DATASET_PATH) -> pd.DataFrame:
     df = pd.read_csv(path)
-    if "study_quality" not in df.columns:
-        raise ValueError("Real sensor dataset must contain a study_quality column")
+    missing_columns = [column for column in [*FEATURE_COLUMNS, TARGET_COLUMN] if column not in df.columns]
+    if missing_columns:
+        raise ValueError(f"Real sensor dataset is missing required columns: {', '.join(missing_columns)}")
     return df
 
 

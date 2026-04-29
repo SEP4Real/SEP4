@@ -77,12 +77,26 @@ def collect_data() -> dict[str, object]:
         ) as conn:
             with conn.cursor() as cur:
                 query = """
-                    SELECT d.*, s.study_quality
-                    FROM data d
-                    JOIN sessions s ON d.session_id = s.id
+                    SELECT
+                        (ARRAY_AGG(d.temperature ORDER BY d.sent_at DESC))[1] AS "currentTemperature",
+                        MAX(d.temperature) AS "maxTemp",
+                        MIN(d.temperature) AS "minTemp",
+                        AVG(d.temperature) AS "meanTemp",
+                        MAX(d.humidity) AS "maxHumidity",
+                        MIN(d.humidity) AS "minHumidity",
+                        AVG(d.humidity) AS "meanHumidity",
+                        MAX(d.co2_level) AS "maxCO2",
+                        MIN(d.co2_level) AS "minCO2",
+                        AVG(d.co2_level) AS "meanCO2",
+                        MAX(d.light_level) AS "maxLight",
+                        MIN(d.light_level) AS "minLight",
+                        AVG(d.light_level) AS "meanLight",
+                        s.study_quality AS rating
+                    FROM sessions s
+                    JOIN data d ON s.id = d.session_id
                     WHERE s.study_quality IS NOT NULL
-                    ORDER BY d.sent_at DESC
-                    LIMIT 2000
+                    GROUP BY s.id, s.study_quality
+                    ORDER BY s.id DESC
                 """
                 cur.execute(query)
                 rows = cur.fetchall()
@@ -97,7 +111,7 @@ def collect_data() -> dict[str, object]:
                     writer.writerows(rows)
 
         return {
-            "message": "Labeled sensor data collection complete",
+            "message": "Aggregated session data collection complete",
             "count": len(rows),
             "columns": colnames,
             "saved_to": str(REAL_DATASET_PATH),
