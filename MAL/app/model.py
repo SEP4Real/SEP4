@@ -9,7 +9,9 @@ from sklearn.model_selection import train_test_split
 
 APP_DIR = Path(__file__).resolve().parent
 DATASET_PATH = APP_DIR / "focus_dataset.csv"
+REAL_DATASET_PATH = APP_DIR / "environment_history_realdata.csv"
 MODEL_PATH = APP_DIR / "rf_model.pkl"
+
 FEATURE_COLUMNS = ["currentTemperature", "maxTemp", "minTemp", "meanTemp"]
 TARGET_COLUMN = "rating"
 RANDOM_STATE = 42
@@ -20,6 +22,13 @@ def load_dataset(path: Path = DATASET_PATH) -> pd.DataFrame:
     missing_columns = [column for column in [*FEATURE_COLUMNS, TARGET_COLUMN] if column not in df.columns]
     if missing_columns:
         raise ValueError(f"Dataset is missing required columns: {', '.join(missing_columns)}")
+    return df
+
+
+def load_real_sensor_dataset(path: Path = REAL_DATASET_PATH) -> pd.DataFrame:
+    df = pd.read_csv(path)
+    if "study_quality" not in df.columns:
+        raise ValueError("Real sensor dataset must contain a study_quality column")
     return df
 
 

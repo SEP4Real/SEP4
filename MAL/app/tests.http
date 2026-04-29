@@ -8,6 +8,10 @@ Accept: application/json
 GET {{base}}/db-check
 Accept: application/json
 
+### Collect labeled sensor data
+GET {{base}}/collect-data
+Accept: application/json
+
 ### Model info
 GET {{base}}/model-info
 Accept: application/json
