@@ -1,4 +1,4 @@
-@base = https://mal.sep4.eduardfekete.com
+@base = http://localhost:8000
 
 ### Local: hello
 GET {{base}}/
