@@ -19,6 +19,9 @@ on:
 jobs:
   test-and-train:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     services:
       postgres:
@@ -70,3 +73,29 @@ jobs:
           MAL/app/*.pkl
           MAL/app/*.h5
           # Add any other model files here
+          
+    - name: Log in to the Container registry
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/sep4real/sep4/mal-api
+
+    - name: Build and push Docker image
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/build-push-action@v5
+      with:
+        context: ./MAL
+        # The trained model is in MAL/app because we just ran model.py 
+        # so it will be included in the Docker image by the COPY app ./app instruction in Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}

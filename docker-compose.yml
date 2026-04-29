@@ -15,6 +15,7 @@ services:
       retries: 10
 
   mal-api:
+    image: ghcr.io/sep4real/sep4/mal-api:main
     build:
       context: ./MAL
     environment:
