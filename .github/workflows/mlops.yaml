@@ -62,10 +62,8 @@ jobs:
 
     - name: Train Model
       run: |
-        cd MAL/app
-        # Run the model training script
-        # This will regenerate the model in memory/filesystem
-        python model.py
+        cd MAL
+        python -m app.train_model
 
     - name: Upload Trained Model Artifact
       uses: actions/upload-artifact@v4
@@ -96,7 +94,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./MAL
-        # The trained model is in MAL/app because we just ran model.py  
+        # The trained model is in MAL/app because we just ran app.train_model
         # so it will be included in the Docker image by the COPY app ./app instruction in Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}

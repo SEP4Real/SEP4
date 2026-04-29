@@ -8,6 +8,7 @@ secrets.ini
 !.ini.example
 
 # Dependency/build output
+__pycache__/
 node_modules/
 bin/
 obj/
@@ -20,3 +21,7 @@ build/
 /ratings.csv
 /focus_dataset.csv
 /environment_history.csv
+
+# Generated ML artifacts
+MAL/app/*.pkl
+MAL/app/*.h5

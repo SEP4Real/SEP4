@@ -1,19 +1,35 @@
+import csv
 import os
+from datetime import datetime
 
-from fastapi import FastAPI
 import psycopg
-from .model import MODEL_PATHS, predict
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field, model_validator
 
-#comment
+from .model import FEATURE_COLUMNS, MODEL_PATH, REAL_DATASET_PATH, predict
+
 app = FastAPI(title="MAL API")
 
 
 class PredictionRequest(BaseModel):
-    currentTemperature: float
-    maxTemp: float
-    minTemp: float
-    meanTemp: float
+    currentTemperature: float = Field(allow_inf_nan=False)
+    maxTemp: float = Field(allow_inf_nan=False)
+    minTemp: float = Field(allow_inf_nan=False)
+    meanTemp: float = Field(allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def validate_temperature_window(self) -> "PredictionRequest":
+        if self.maxTemp < self.minTemp:
+            raise ValueError("maxTemp must be greater than or equal to minTemp")
+        if not self.minTemp <= self.meanTemp <= self.maxTemp:
+            raise ValueError("meanTemp must be between minTemp and maxTemp")
+        if not self.minTemp <= self.currentTemperature <= self.maxTemp:
+            raise ValueError("currentTemperature must be between minTemp and maxTemp")
+        return self
+
+
+class PredictionResponse(BaseModel):
+    rating: int = Field(ge=1, le=5)
 
 
 @app.get("/")
@@ -44,16 +60,13 @@ def db_check() -> dict[str, str | int]:
 
 
 @app.get("/collect-data")
-def collect_data():
-    import csv
+def collect_data() -> dict[str, object]:
     db_host = os.environ["DB_HOST"]
     db_port = os.environ["DB_PORT"]
     db_name = os.environ["DB_NAME"]
     db_user = os.environ["DB_USER"]
     db_password = os.environ["DB_PASSWORD"]
-    
-    output_file = "environment_history_realdata.csv"
-    
+
     try:
         with psycopg.connect(
             host=db_host,
@@ -63,59 +76,69 @@ def collect_data():
             password=db_password,
         ) as conn:
             with conn.cursor() as cur:
-                # Grouping the data per session to create aggregated features (min, max, mean)
-                # which models typically use to predict the overall study_quality (rating).
                 query = """
-                    SELECT * 
-                    FROM data
-                    ORDER BY sent_at DESC 
-                    LIMIT 2000
+                    SELECT
+                        (ARRAY_AGG(d.temperature ORDER BY d.sent_at DESC))[1] AS "currentTemperature",
+                        MAX(d.temperature) AS "maxTemp",
+                        MIN(d.temperature) AS "minTemp",
+                        AVG(d.temperature) AS "meanTemp",
+                        MAX(d.humidity) AS "maxHumidity",
+                        MIN(d.humidity) AS "minHumidity",
+                        AVG(d.humidity) AS "meanHumidity",
+                        MAX(d.co2_level) AS "maxCO2",
+                        MIN(d.co2_level) AS "minCO2",
+                        AVG(d.co2_level) AS "meanCO2",
+                        MAX(d.light_level) AS "maxLight",
+                        MIN(d.light_level) AS "minLight",
+                        AVG(d.light_level) AS "meanLight",
+                        s.study_quality AS rating
+                    FROM sessions s
+                    JOIN data d ON s.id = d.session_id
+                    WHERE s.study_quality IS NOT NULL
+                    GROUP BY s.id, s.study_quality
+                    ORDER BY s.id DESC
                 """
                 cur.execute(query)
                 rows = cur.fetchall()
-                # Get actual column names from the cursor
                 colnames = [desc[0] for desc in cur.description]
-                
+
                 if not rows:
-                    return {"message": "No data found in database"}
-                
-                with open(output_file, mode='w', newline='') as f:
+                    return {"message": "No labeled data found in database (study_quality is NULL)"}
+
+                with REAL_DATASET_PATH.open(mode="w", newline="") as f:
                     writer = csv.writer(f)
-                    writer.writerow(colnames) 
+                    writer.writerow(colnames)
                     writer.writerows(rows)
-                    
+
         return {
             "message": "Aggregated session data collection complete",
             "count": len(rows),
             "columns": colnames,
-            "saved_to": output_file
+            "saved_to": str(REAL_DATASET_PATH),
         }
-    except Exception as e:
-        return {"error": str(e)}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/model-info")
-def get_model_info() -> dict[str, list[dict]]:
-    from datetime import datetime
-    info = []
-    for model_path in MODEL_PATHS.values():
-        if model_path.exists():
-            mtime = model_path.stat().st_mtime
-            info.append({
-                "name": model_path.name,
-                "status": "available",
-                "last_modified": datetime.fromtimestamp(mtime).isoformat()
-            })
-        else:
-            info.append({"name": model_path.name, "status": "not_found"})
-    return {"models": info}
+def get_model_info() -> dict[str, object]:
+    if MODEL_PATH.exists():
+        last_modified = datetime.fromtimestamp(MODEL_PATH.stat().st_mtime).isoformat()
+        return {
+            "status": "available",
+            "last_modified": last_modified,
+            "model": "RandomForestClassifier",
+            "features": FEATURE_COLUMNS,
+        }
+    return {"status": "not_found", "model": "RandomForestClassifier", "features": FEATURE_COLUMNS}
 
-@app.post("/predict")
-async def get_prediction(data: PredictionRequest):
+
+@app.post("/predict", response_model=PredictionResponse)
+async def get_prediction(data: PredictionRequest) -> PredictionResponse:
     rating = predict(
         data.currentTemperature,
         data.maxTemp,
         data.minTemp,
-        data.meanTemp
+        data.meanTemp,
     )
-    return {"rating": rating}
+    return PredictionResponse(rating=rating)

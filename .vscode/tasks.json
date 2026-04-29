@@ -2,45 +2,50 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build Academic HTML",
-            "type": "shell",
-            "command": "make -C Misc/AcademicTemplate html SRC='${file}'",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [],
-            "detail": "Converts current Markdown file to HTML using the academic template."
-        },
-        {
-            "label": "Build Academic PDF",
-            "type": "shell",
-            "command": "make -C Misc/AcademicTemplate pdf SRC='${file}'",
-            "group": "build",
-            "problemMatcher": [],
-            "detail": "Converts current Markdown file to PDF using academic template."
-        },
-        {
-            "label": "Run Everything (Docker Compose)",
+            "label": "Run Everything",
             "type": "shell",
             "command": "docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": [],
-            "detail": "Builds and starts Postgres and MAL API."
+            "detail": "Builds and starts the local Docker Compose stack."
         },
         {
-            "label": "Smoke Test API",
+            "label": "Stop Everything",
             "type": "shell",
-            "command": "bash scripts/smoke-test.sh",
+            "command": "docker compose -f docker-compose.yml -f docker-compose.local.yml down",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Stops the local Docker Compose stack."
+        },
+        {
+            "label": "Rebuild MAL Model",
+            "type": "shell",
+            "command": "docker compose -f docker-compose.yml -f docker-compose.local.yml build --no-cache mal-api && docker compose -f docker-compose.yml -f docker-compose.local.yml up -d mal-api",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Forces a fresh MAL image build so the model is retrained, then restarts mal-api."
+        },
+        {
+            "label": "Simulate MAL GitHub Action",
+            "type": "shell",
+            "command": "docker build -t sep4-mal-api-test ./MAL && docker run --rm sep4-mal-api-test python -m pytest app",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "group": "test",
             "problemMatcher": [],
-            "detail": "Runs local and deployed API smoke tests."
+            "detail": "Builds the MAL Docker image and runs tests inside it, matching the simplified CI workflow."
         }
     ]
 }
