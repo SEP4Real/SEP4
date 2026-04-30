@@ -1,9 +1,6 @@
 from fastapi.testclient import TestClient
 
-try:
-    from MAL.app import main
-except ModuleNotFoundError:
-    from app import main
+from backend.app import main
 
 
 VALID_PAYLOAD = {

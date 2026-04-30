@@ -6,12 +6,10 @@ import psycopg
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, model_validator
 
-from .model import FEATURE_COLUMNS, MODEL_PATH, REAL_DATASET_PATH, predict
-from .transform_realdata import transform_real_data
+from ml_pipeline.model import FEATURE_COLUMNS, MODEL_PATH, REAL_SENSOR_HISTORY_PATH, predict
+from ml_pipeline.transform_real_data import transform_real_data
 
 app = FastAPI(title="MAL API")
-
-#test/comment
 
 class PredictionRequest(BaseModel):
     currentTemperature: float = Field(allow_inf_nan=False)
@@ -91,19 +89,20 @@ def collect_data() -> dict[str, object]:
                 if not rows:
                     return {"message": "No data found in database"}
 
-                with REAL_DATASET_PATH.open(mode="w", newline="") as f:
+                REAL_SENSOR_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+                with REAL_SENSOR_HISTORY_PATH.open(mode="w", newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(colnames)
                     writer.writerows(rows)
 
         # Run the transformation script to create session aggregates
-        transform_real_data(input_file=REAL_DATASET_PATH)
+        transform_real_data(input_file=REAL_SENSOR_HISTORY_PATH)
 
         return {
             "message": "Data collection complete and transformed to focus dataset",
             "count": len(rows),
             "columns": colnames,
-            "saved_to": str(REAL_DATASET_PATH),
+            "saved_to": str(REAL_SENSOR_HISTORY_PATH),
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

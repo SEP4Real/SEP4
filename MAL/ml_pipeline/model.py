@@ -7,11 +7,16 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 
-APP_DIR = Path(__file__).resolve().parent
-DATASET_PATH = APP_DIR / "focus_dataset.csv"
-# DATASET_PATH = APP_DIR / "focus_dataset_realdata.csv"
-REAL_DATASET_PATH = APP_DIR / "environment_history_realdata.csv"
-MODEL_PATH = APP_DIR / "rf_model.pkl"
+MAL_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = MAL_DIR / "data"
+PROCESSED_DATA_DIR = DATA_DIR / "processed"
+RAW_DATA_DIR = DATA_DIR / "raw"
+MODELS_DIR = MAL_DIR / "models"
+
+DATASET_PATH = PROCESSED_DATA_DIR / "focus_dataset.csv"
+REAL_SENSOR_HISTORY_PATH = RAW_DATA_DIR / "environment_history_realdata.csv"
+REAL_FOCUS_DATASET_PATH = PROCESSED_DATA_DIR / "focus_dataset_realdata.csv"
+MODEL_PATH = MODELS_DIR / "rf_model.pkl"
 
 FEATURE_COLUMNS = ["currentTemperature", "maxTemp", "minTemp", "meanTemp"]
 TARGET_COLUMN = "rating"
@@ -26,7 +31,7 @@ def load_dataset(path: Path = DATASET_PATH) -> pd.DataFrame:
     return df
 
 
-def load_real_sensor_dataset(path: Path = REAL_DATASET_PATH) -> pd.DataFrame:
+def load_real_sensor_dataset(path: Path = REAL_SENSOR_HISTORY_PATH) -> pd.DataFrame:
     df = pd.read_csv(path)
     # The real data pulled from the database won't have feature aggregates or ratings yet
     return df
@@ -80,6 +85,7 @@ def evaluate_model(model, x: pd.DataFrame, y: pd.Series) -> dict[str, float]:
 
 
 def save_model(model: RandomForestClassifier, path: Path = MODEL_PATH) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, path)
     load_model.cache_clear()
     return path
@@ -90,7 +96,7 @@ def load_model() -> RandomForestClassifier:
     if not MODEL_PATH.exists():
         raise FileNotFoundError(
             f"Model artifact not found at {MODEL_PATH}. "
-            "Run `python -m app.train_model` from the MAL directory first."
+            "Run `python scripts/train_model.py` from the MAL directory first."
         )
     return joblib.load(MODEL_PATH)
 

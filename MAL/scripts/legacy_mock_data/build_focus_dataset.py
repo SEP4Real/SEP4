@@ -1,11 +1,12 @@
 from pathlib import Path
+
 import pandas as pd
 
 # How many minutes of sensor history to use for each rating
 WINDOW_MINUTES = 30
 
-BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "generated_files"
+MAL_DIR = Path(__file__).resolve().parents[2]
+DATA_DIR = MAL_DIR / "data" / "mock" / "legacy" / "generated_files"
 DATA_DIR.mkdir(exist_ok=True)
 
 # Input files from mockdata.py
