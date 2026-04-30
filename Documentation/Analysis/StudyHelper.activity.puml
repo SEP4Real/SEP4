@@ -13,6 +13,20 @@ partition "Student" {
 }
 split again
 partition "Student" {
+    label RateStudySessionSuitability_start
+    :submitStudySessionRating;
+    :confirmRatingReceipt;
+    label RateStudySessionSuitability_end
+}
+split again
+partition "Student" {
+    label ViewEnvironmentConditionHistory_start
+    :requestEnvironmentConditionHistory;
+    :sendEnvironmentConditionHistory;
+    label ViewEnvironmentConditionHistory_end
+}
+split again
+partition "Student" {
     label ConfigureStudySessionMonitoring_start
     :configureStudySessionMonitoring;
     :confirmStudySessionMonitoringConfiguration;
@@ -28,20 +42,6 @@ partition "Student" {
     endif
     :sendConditionAlert;
     label ReceiveStudentEnvironmentAlert_end
-}
-split again
-partition "Student" {
-    label ViewEnvironmentConditionHistory_start
-    :requestEnvironmentConditionHistory;
-    :sendEnvironmentConditionHistory;
-    label ViewEnvironmentConditionHistory_end
-}
-split again
-partition "Student" {
-    label RateStudySessionSuitability_start
-    :submitStudySessionRating;
-    :confirmRatingReceipt;
-    label RateStudySessionSuitability_end
 }
 split again
 partition "Teacher" {

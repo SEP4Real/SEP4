@@ -25,6 +25,32 @@
 **Postconditions:**
 - `Student.knowsCurrentStudyConditions`
 
+### RateStudySessionSuitability
+**Description:** "As a Student I want to submit a Rating after a Study Session, so that the system can improve suitability predictions for my environment."
+
+**Actor:** Student
+
+**Flow of Events:**
+1. @start submitStudySessionRating 
+    - ratingValue: int
+2. confirmRatingReceipt (Target: actor)
+
+**Postconditions:**
+- `@sys.studySessionSuitabilityRated`
+
+### ViewEnvironmentConditionHistory
+**Description:** "As a Student I want to see the history of Conditions in my environment, so that I can understand trends during a Study Session."
+
+**Actor:** Student
+
+**Flow of Events:**
+1. @start requestEnvironmentConditionHistory 
+2. sendEnvironmentConditionHistory (Target: actor)
+    - historyDataPoints: int
+
+**Postconditions:**
+- `Student.knowsEnvironmentHistory`
+
 ### ConfigureStudySessionMonitoring
 **Description:** "As a Student I want to configure automatic refresh and alerts, so that the box supports active monitoring during my Study Session."
 
@@ -51,32 +77,6 @@
 
 **Postconditions:**
 - `@sys.studentAlertSent`
-
-### ViewEnvironmentConditionHistory
-**Description:** "As a Student I want to see the history of Conditions in my environment, so that I can understand trends during a Study Session."
-
-**Actor:** Student
-
-**Flow of Events:**
-1. @start requestEnvironmentConditionHistory 
-2. sendEnvironmentConditionHistory (Target: actor)
-    - historyDataPoints: int
-
-**Postconditions:**
-- `Student.knowsEnvironmentHistory`
-
-### RateStudySessionSuitability
-**Description:** "As a Student I want to submit a Rating after a Study Session, so that the system can improve suitability predictions for my environment."
-
-**Actor:** Student
-
-**Flow of Events:**
-1. @start submitStudySessionRating 
-    - ratingValue: int
-2. confirmRatingReceipt (Target: actor)
-
-**Postconditions:**
-- `@sys.studySessionSuitabilityRated`
 
 ### AssessConditionsForTeaching
 **Description:** "As a Teacher I want an overview of current and predicted Conditions, so that I can decide if the environment is suitable for teaching."

@@ -1,0 +1,26 @@
+@startuml
+title StudyHelper Runtime Architecture
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+
+actor Student
+actor Teacher
+node "IoT device\nArduino / PlatformIO" as Device
+
+rectangle "Coolify deployment" {
+  component "Frontend\nReact + Vite" as Frontend
+  component "IoT backend\nASP.NET Core" as IotApi
+  component "MAL API\nFastAPI + scikit-learn" as MalApi
+  database "PostgreSQL" as Db
+}
+
+Student --> Frontend
+Teacher --> Frontend
+Device --> IotApi : REST\n/Device /Session /Data
+Frontend --> IotApi : REST\nhistory + sessions
+Frontend --> MalApi : REST\npredictions
+IotApi --> Db : EF Core / Npgsql
+MalApi --> Db : psycopg
+@enduml
+

@@ -1,0 +1,33 @@
+@startuml
+title StudyHelper Database Model
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+
+class devices {
+  +public_key : varchar <<PK>>
+}
+
+class sessions {
+  +id : bigint <<PK>>
+  +device_id : varchar <<FK>>
+  +started_at : timestamptz
+  +ended_at : timestamptz
+  +last_pulse_at : timestamptz
+  +study_quality : int
+}
+
+class data {
+  +id : bigint <<PK>>
+  +session_id : bigint <<FK>>
+  +temperature : float
+  +humidity : float
+  +co2_level : float
+  +light_level : float
+  +sent_at : timestamptz
+}
+
+devices "1" -- "0..*" sessions : owns
+sessions "1" -- "0..*" data : contains
+@enduml
+
