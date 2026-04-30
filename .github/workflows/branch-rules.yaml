@@ -1,0 +1,16 @@
+name: Enforce Main PR Sources
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        if: ${{ github.head_ref != 'dev' && !startsWith(github.head_ref, 'fix/') }}
+        run: |
+          echo "Error: Invalid source branch '${{ github.head_ref }}'."
+          echo "Pull requests to 'main' must originate from 'dev' or a 'fix/*' branch."
+          exit 1
