@@ -68,6 +68,11 @@ static WIFI_ERROR_MESSAGE_t http_request(const char *method, const char *endpoin
         waited += 10;
     }
 
+    for (uint8_t i = 0; i < 50; i++){
+        wdt_reset();
+        _delay_ms(10);
+    }
+
     wifi_command_close_TCP_connection();
     return err;
 }
