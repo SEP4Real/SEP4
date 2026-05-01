@@ -28,6 +28,9 @@ const Navbar = () => {
           <Link to="/" onClick={() => setIsMenuOpen(false)}>Register</Link>
         </li>
         <li>
+          <Link to="/calendar" onClick={() => setIsMenuOpen(false)}>Calendar</Link>
+        </li>
+        <li>
           <Link to="/history" onClick={() => setIsMenuOpen(false)}>History</Link>
         </li>
         <li>
