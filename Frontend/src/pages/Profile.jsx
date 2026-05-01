@@ -4,6 +4,9 @@ import './Profile.css';
 const Profile = () => {
   const navigate = useNavigate();
   const userData = localStorage.getItem('user');
+  if (!userData) {
+    return <Navigate to="/login" replace />;
+  }
   // no data - log out
   if (!userData) {
     return <Navigate to="/login" replace />;
@@ -17,8 +20,9 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
-   localStorage.clear(); 
-   navigate('/login', { replace: true });
+    localStorage.removeItem("user"); // better than clear()
+    window.dispatchEvent(new Event("storage")); // 🔥 force update
+    navigate('/login', { replace: true });
   };
 
  return (
