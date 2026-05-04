@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import History from "./pages/History";
 import Navbar from "./components/Navbar";
 import StudentDashboard from "./pages/StudentDashboard";
+import CalendarPage from "./pages/CalendarPage";
 
 import Profile from './pages/Profile';
 
@@ -21,6 +22,7 @@ function App() {
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<RegisterPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
       </Routes>
     </>
   );
