@@ -24,8 +24,8 @@ services:
       DB_NAME: ${POSTGRES_DB:?POSTGRES_DB must be set}
       DB_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -40,8 +40,8 @@ services:
       DB_NAME: ${POSTGRES_DB:?POSTGRES_DB must be set}
       DB_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
-    expose:
-      - "8080"
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,8 +50,8 @@ services:
     image: ghcr.io/sep4real/sep4/frontend:main
     build:
       context: ./Frontend
-    expose:
-      - "80"
+    ports:
+      - "3000:80"
 
 volumes:
   postgres_data:
