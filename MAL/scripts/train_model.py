@@ -1,4 +1,10 @@
-from .model import (
+import sys
+from pathlib import Path
+
+MAL_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(MAL_DIR))
+
+from ml_pipeline.model import (
     build_model,
     evaluate_model,
     load_dataset,

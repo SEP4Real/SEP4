@@ -1,7 +1,8 @@
-import pandas as pd
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
+
+import pandas as pd
 
 # Configuration
 total_rows = 100000
@@ -83,8 +84,8 @@ while rows_generated < total_rows:
 df_history = pd.DataFrame(history_data)
 df_ratings = pd.DataFrame(ratings_data)
 
-BASE_DIR = Path(__file__).resolve().parent
-OUTPUT_DIR = BASE_DIR / "generated_files"
+MAL_DIR = Path(__file__).resolve().parents[2]
+OUTPUT_DIR = MAL_DIR / "data" / "mock" / "legacy" / "generated_files"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 df_history.to_csv(OUTPUT_DIR / "environment_history.csv", index=False)
