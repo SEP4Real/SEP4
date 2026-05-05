@@ -20,7 +20,7 @@ Teacher --> Frontend
 Device --> IotApi : REST\n/Device /Session /Data
 Frontend --> IotApi : REST\nhistory + sessions
 Frontend --> MalApi : REST\npredictions
-IotApi --> Db : EF Core / Npgsql
+IotApi --> Db : EF Core
 MalApi --> Db : psycopg
 @enduml
 
