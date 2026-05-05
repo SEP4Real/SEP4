@@ -23,5 +23,6 @@ build/
 /environment_history.csv
 
 # Generated ML artifacts
-MAL/app/*.pkl
-MAL/app/*.h5
+/MAL/models/*.pkl
+/MAL/models/*.h5
+/MAL/models/*.joblib
