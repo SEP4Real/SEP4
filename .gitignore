@@ -26,3 +26,6 @@ build/
 /MAL/models/*.pkl
 /MAL/models/*.h5
 /MAL/models/*.joblib
+
+# Ignore combined KETI csv datasset data / run the script to generate it if needed
+data/interim/combined_keti_sensor_data.csv
