@@ -3,9 +3,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <avr/wdt.h>
+#include <util/delay.h>
 
-static long  session_id = -1;
-static char  tcp_rx_buf[1024];
+#define SESSION_START_RETRIES  5
+#define SESSION_RETRY_DELAY_MS 2000
+
+static long session_id = -1;
+static char tcp_rx_buf[1024];
+
+static void delay_ms_wdt(uint16_t ms)
+{
+    for (uint16_t i = 0; i < ms / 10; i++)
+    {
+        wdt_reset();
+        _delay_ms(10);
+    }
+}
 
 void server_register_device(void)
 {
@@ -17,38 +31,65 @@ void server_register_device(void)
 
 void server_start_session(void)
 {
-    printf("[SESSION] Starting...\n");
     char body[64];
     snprintf(body, sizeof(body), "{\"deviceId\":\"%s\"}", DEVICE_PUBLIC_KEY);
-    http_post("/Session", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 
-    char *p = strstr(tcp_rx_buf, "\"id\":");
-    if (p)
+    for (uint8_t attempt = 1; attempt <= SESSION_START_RETRIES; attempt++)
     {
-        p += 5;
-        session_id = atol(p);
-        printf("[SESSION] Started — ID: %ld\n", session_id);
+        printf("[SESSION] Starting (attempt %d/%d)...\n", attempt, SESSION_START_RETRIES);
+
+        http_post("/Session", body, tcp_rx_buf, sizeof(tcp_rx_buf));
+
+        char *p = strstr(tcp_rx_buf, "\"id\":");
+        if (p)
+        {
+            p += 5;
+            session_id = atol(p);
+            if (session_id > 0)
+            {
+                printf("[SESSION] Started — ID: %ld\n", session_id);
+                return;
+            }
+        }
+
+        printf("[SESSION] Parse failed — response: %s\n", tcp_rx_buf);
+
+        if (attempt < SESSION_START_RETRIES)
+            delay_ms_wdt(SESSION_RETRY_DELAY_MS);
     }
-    else
-    {
-        printf("[ERROR] Could not parse session ID\n");
-    }
+
+    printf("[ERROR] Could not start session after %d attempts — rebooting\n",
+           SESSION_START_RETRIES);
+    wdt_enable(WDTO_30MS);
+    while (1) { }
 }
 
 void server_send_pulse(void)
 {
     if (session_id < 0) return;
+
     char endpoint[32];
     snprintf(endpoint, sizeof(endpoint), "/Session/%ld/pulse", session_id);
     printf("[PULSE] Sending keepalive\n");
-    http_patch(endpoint, "", tcp_rx_buf, sizeof(tcp_rx_buf));
+    
+    http_patch(endpoint, "{}", tcp_rx_buf, sizeof(tcp_rx_buf));
+
+    if (strstr(tcp_rx_buf, "\"alive\":false") != NULL || strstr(tcp_rx_buf, "\"alive\": false") != NULL)
+    {
+        printf("[SESSION] Server reports session %ld is dead — restarting\n",
+               session_id);
+        session_id = -1;
+        server_start_session();
+    }
 }
 
 void server_send_data(uint8_t temp_int, uint8_t temp_dec)
 {
     if (session_id < 0) return;
     char body[96];
-    snprintf(body, sizeof(body), "{\"sessionId\":%ld,\"temperature\":%d.%d}", session_id, temp_int, temp_dec);
+    snprintf(body, sizeof(body),
+        "{\"sessionId\":%ld,\"temperature\":%d.%d}",
+        session_id, temp_int, temp_dec);
     printf("[DATA] Sending temp=%d.%d\n", temp_int, temp_dec);
     http_post("/Data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 }
