@@ -93,7 +93,7 @@ int main(void)
             request_in_progress = 1;
             uint8_t t_int = 0, t_dec = 0, h_int = 0, h_dec = 0;
             if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK){
-                server_send_data(t_int, t_dec);
+                server_send_data(t_int, t_dec, h_int, h_dec);
             }
             else{
                 printf("[ERROR] DHT11 read failed\n");

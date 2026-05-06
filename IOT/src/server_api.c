@@ -58,8 +58,7 @@ void server_start_session(void)
             delay_ms_wdt(SESSION_RETRY_DELAY_MS);
     }
 
-    printf("[ERROR] Could not start session after %d attempts — rebooting\n",
-           SESSION_START_RETRIES);
+    printf("[ERROR] Could not start session after %d attempts — rebooting\n", SESSION_START_RETRIES);
     wdt_enable(WDTO_30MS);
     while (1) { }
 }
@@ -76,20 +75,17 @@ void server_send_pulse(void)
 
     if (strstr(tcp_rx_buf, "\"alive\":false") != NULL || strstr(tcp_rx_buf, "\"alive\": false") != NULL)
     {
-        printf("[SESSION] Server reports session %ld is dead — restarting\n",
-               session_id);
+        printf("[SESSION] Server reports session %ld is dead — restarting\n", session_id);
         session_id = -1;
         server_start_session();
     }
 }
 
-void server_send_data(uint8_t temp_int, uint8_t temp_dec)
+void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec)
 {
     if (session_id < 0) return;
-    char body[96];
-    snprintf(body, sizeof(body),
-        "{\"sessionId\":%ld,\"temperature\":%d.%d}",
-        session_id, temp_int, temp_dec);
-    printf("[DATA] Sending temp=%d.%d\n", temp_int, temp_dec);
+    char body[128];
+    snprintf(body, sizeof(body), "{\"sessionId\":%ld,\"temperature\":%d.%d,\"humidity\":%d.%d}", session_id, temp_int, temp_dec, hum_int, hum_dec);
+    printf("[DATA] Sending temp=%d.%d, hum=%d.%d\n", temp_int, temp_dec, hum_int, hum_dec);
     http_post("/Data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 }

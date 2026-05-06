@@ -24,8 +24,7 @@ static void delay_ms_wdt(uint16_t ms)
 WIFI_ERROR_MESSAGE_t http_resolve_host(void)
 {
     printf("[DNS] Resolving %s...\n", SERVER_HOST);
-    WIFI_ERROR_MESSAGE_t err =
-        wifi_command_get_ip_from_URL((char *)SERVER_HOST, server_ip);
+    WIFI_ERROR_MESSAGE_t err = wifi_command_get_ip_from_URL((char *)SERVER_HOST, server_ip);
 
     if (err != WIFI_OK || server_ip[0] == '\0')
     {
