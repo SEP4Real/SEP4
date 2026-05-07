@@ -56,15 +56,15 @@ jobs:
 
     - name: Verify trained model is committed
       run: |
-        test -f MAL/app/rf_model.pkl || {
-          echo "::error::MAL/app/rf_model.pkl is missing. Train locally with 'python -m app.train_model' from MAL/ and commit the artifact."
+        test -f MAL/models/rf_model.pkl || {
+          echo "::error::MAL/models/rf_model.pkl is missing. Train locally with 'python scripts/train_model.py' from MAL/ and commit the artifact."
           exit 1
         }
 
     - name: Start MAL service
       run: |
         cd MAL
-        uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 &
         for i in $(seq 1 30); do
           curl -sf http://localhost:8000/ && break
           sleep 1
@@ -78,7 +78,7 @@ jobs:
 
     - name: Run API Tests
       run: |
-        python -m pytest MAL/app/test_prediction_api.py -v
+        python -m pytest MAL/tests/test_prediction_api.py -v
 
     - name: Log in to the Container registry
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -100,8 +100,8 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./MAL
-        # rf_model.pkl is committed to the repo and copied into the image by the
-        # Dockerfile's `COPY app ./app` step. No retraining at build time.
+        # rf_model.pkl is committed to the repo and copied into the image via
+        # the Dockerfile's `COPY models ./models` step. No retraining at build time.
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

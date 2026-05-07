@@ -28,4 +28,4 @@ build/
 /MAL/models/*.joblib
 # Keep the manually trained production model so CI can run tests against it
 # without retraining on every push.
-!MAL/app/rf_model.pkl
+!/MAL/models/rf_model.pkl

@@ -5,12 +5,11 @@ These tests hit a running MAL instance over real HTTP — they verify the
 service starts, the model is loaded, the /predict endpoint returns valid
 ratings, and the request validator rejects bad payloads. Run before
 deploying to Coolify.
-from backend.app import main
 
 Set MAL_BASE_URL to point at a running instance (defaults to localhost:8000).
 
 Run:
-    MAL_BASE_URL=http://localhost:8000 python -m pytest app/test_prediction_api.py -v
+    MAL_BASE_URL=http://localhost:8000 python -m pytest tests/test_prediction_api.py -v
 """
 import os
 
