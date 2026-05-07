@@ -26,3 +26,6 @@ build/
 /MAL/models/*.pkl
 /MAL/models/*.h5
 /MAL/models/*.joblib
+# Keep the manually trained production model so CI can run tests against it
+# without retraining on every push.
+!/MAL/models/rf_model.pkl
