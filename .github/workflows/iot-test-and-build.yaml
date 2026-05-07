@@ -28,18 +28,29 @@ jobs:
           pip install platformio
           sudo apt-get install -y lcov
 
+      - name: Create secrets.ini
+        run: |
+          cat > secrets.ini << EOF
+          [secrets]
+          build_flags =
+              -DSERVER_HOST='"localhost"'
+              -DSERVER_PORT=8080
+          EOF
+
       - name: Run tests
-        run: pio test -e native-coverage
+        run: |
+          pio run -e native-coverage
+          .pio/build/native-coverage/program
 
       - name: Generate coverage report
         run: |
           lcov --capture --directory .pio/build/native-coverage \
-               --output-file coverage.info \
-               --ignore-errors mismatch,unused
+              --output-file coverage.info \
+              --ignore-errors mismatch,unused
           lcov --remove coverage.info \
-               '*/.pio/*' '*/fakes/*' '*/unity/*' '*/test/*' '/usr/*' \
-               --output-file coverage.info \
-               --ignore-errors unused
+              '*/.pio/*' '*/fakes/*' '*/unity/*' '*/test/*' '/usr/*' \
+              --output-file coverage.info \
+              --ignore-errors unused
           genhtml coverage.info --output-directory coverage-html
 
       - name: Upload HTML report as artifact
