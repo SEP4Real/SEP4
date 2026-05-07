@@ -38,8 +38,12 @@ export default function RegisterPage() {
 
     try {
       await register(form);
-      setSuccess("Registred successfully");
-      navigate("/dashboard");
+      setSuccess("Registred successfully! Logging you in...");
+      
+      setTimeout(() => {
+      window.location.href = "/student";
+      }, 1000);
+      
     } catch (err) {
       setError(err.message);
     }

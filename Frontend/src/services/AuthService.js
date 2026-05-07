@@ -1,17 +1,23 @@
 export async function register(data) {
+  console.log("Sending to backend:", data);
+
   return new Promise((resolve) => {
     setTimeout(() => {
-      // get existing users
       const users = JSON.parse(localStorage.getItem("users")) || [];
 
-      // add user
-      users.push(data);
+      if (!users.find(u => u.email === data.email)) {
+        users.push(data);
+        localStorage.setItem("users", JSON.stringify(users));
+      } //check if the user exists
 
-      // save back to localStorage
-      localStorage.setItem("users", JSON.stringify(users));
-
-      // simulate success response
-      resolve({ ok: true });
+      const userData = {
+        email: data.email,
+        name: data.name,
+        lastName: data.lastName,
+        role: "Student" 
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
+      resolve({ ok: true, user: userData });
     }, 500);
   });
 }
@@ -19,24 +25,20 @@ export async function register(data) {
 export async function login(data) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      
-      // get existing users
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-
-      // find user with matching credentials from localStorage
-      const foundUser = users.find(
+      const allUsers = JSON.parse(localStorage.getItem("users")) || [];
+      const foundUser = allUsers.find(
         (u) => u.email === data.email && u.password === data.password
       );
 
       if (foundUser) {
-        //login successful → user data
-        resolve({
-          user: foundUser,
-        });
+        localStorage.setItem('user', JSON.stringify(foundUser));
+        resolve({ user: foundUser });
       } else {
-        // login failed → error
-        reject(new Error("Invalid credentials"));
+        reject(new Error("Invalid email or password"));
       }
     }, 500);
   });
 }
+       // Store user info in local storage to maintain the session and 
+       // provide data to the Profile page
+        

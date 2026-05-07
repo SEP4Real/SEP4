@@ -13,9 +13,11 @@ export const getEnvironmentDataa= async () => {
     };
 };
 
+const API_URL = "http://localhost:8080/api";
+
 export const getEnvironmentData = async () => {
     try {
-        const response = await fetch('/api/Data'); // /api for proxy
+        const response = await fetch(API_URL); 
         if (!response.ok) throw new Error('Error while retrieving data');
        return await response.json();
 

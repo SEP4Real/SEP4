@@ -11,7 +11,7 @@ const History = () => {
   const [filterDate, setFilterDate] = useState("");
 
  useEffect(() => {
-  const loadData = async () => {
+    const loadData = async () => {
     try {
     console.log("Fetching real data from DB...");
     const rawData = await getEnvironmentData();
@@ -36,8 +36,6 @@ const History = () => {
     console.error("Data processing error:", error);
   }
   };
-
-  loadData();
 
   // set the update time to 1 minute
   const interval = setInterval(() => {

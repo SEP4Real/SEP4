@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import History from "./pages/History";
@@ -14,22 +14,26 @@ import PublicRoute from "./components/PublicRoute";
 
 function App() {
   return (
-    <>
+    <>  
       <Navbar />
 
       <Routes>
+        <Route path="/" element={
+            <PublicRoute>
+            <LoginPage/>
+            </PublicRoute>} />
+        
         <Route path="/integration-test" element={<IntegrationTest />} />
-        <Route path="/" element={<RegisterPage />} />
-        import PublicRoute from "./components/PublicRoute";
+      
 
         {/* public routes */}
         <Route
           path="/register"
           element={
-            <PublicRoute>
+              <PublicRoute>
               <RegisterPage />
-            </PublicRoute>
-          }
+              </PublicRoute>
+              }
         />
 
         <Route
@@ -75,7 +79,7 @@ function App() {
           }
         />
 
-        <Route path="*" element={<RegisterPage />} />
+        <Route path="*" element={<Navigate to="/student" />} />
         
       </Routes>
     </>
