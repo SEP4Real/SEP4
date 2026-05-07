@@ -115,6 +115,9 @@ Were these considerations built into the project from the start, or addressed re
 
 # 4. Project Execution
 
+MAL notes (maybe project report relevant too):
+When it comes to finding mock data about noise in the rooms in the beginning phases few datasets where found. Most interestingly one containing information about how different categories of background noise influence focus during different activities. We tried to combine it with another dataset which was classifying different background noise categories - labeled wav files. The solution was to extract different frequencies and laudness from the sound files and because it was categorized, it was possible to glue it to the first dataset ending up with data about how frequencies and laudness of environment influences the focus. This was a huge win since we tried to make target variable as less random as possible.
+
 <!-- Reflect on the MIDDLE of the project — how you actually worked through it.
      Focus on the process: what methods did you use and why, did they work,
      what surprised you, what would you change?
