@@ -54,26 +54,32 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r MAL/requirements.txt
 
-    - name: Run ML Unit Tests
+    - name: Verify trained model is committed
       run: |
-        # Placeholder for future ML unit tests (data processing, model validation)
-        # Note: You can add tests to a MAL/tests directory later
-        python -m pytest MAL/ --ignore=MAL/app/main.py || echo "No ML tests found yet"
+        test -f MAL/app/rf_model.pkl || {
+          echo "::error::MAL/app/rf_model.pkl is missing. Train locally with 'python -m app.train_model' from MAL/ and commit the artifact."
+          exit 1
+        }
 
-    - name: Train Model
+    - name: Start MAL service
       run: |
         cd MAL
-        python -m app.train_model
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        for i in $(seq 1 30); do
+          curl -sf http://localhost:8000/ && break
+          sleep 1
+        done
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: sep4_db
+        DB_USER: user
+        DB_PASSWORD: password
 
-    - name: Upload Trained Model Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: trained-model
-        path: |
-          MAL/app/*.pkl
-          MAL/app/*.h5
-          # Add any other model files here
-          
+    - name: Run API Tests
+      run: |
+        python -m pytest MAL/app/test_prediction_api.py -v
+
     - name: Log in to the Container registry
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: docker/login-action@v3
@@ -94,8 +100,8 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./MAL
-        # The trained model is in MAL/app because we just ran app.train_model
-        # so it will be included in the Docker image by the COPY app ./app instruction in Dockerfile
+        # rf_model.pkl is committed to the repo and copied into the image by the
+        # Dockerfile's `COPY app ./app` step. No retraining at build time.
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

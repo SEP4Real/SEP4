@@ -25,3 +25,6 @@ build/
 # Generated ML artifacts
 MAL/app/*.pkl
 MAL/app/*.h5
+# Keep the manually trained production model so CI can run tests against it
+# without retraining on every push.
+!MAL/app/rf_model.pkl
