@@ -6,7 +6,7 @@
 #include <avr/wdt.h>
 #include <util/delay.h>
 
-#define SESSION_START_RETRIES  5
+#define SESSION_START_RETRIES 5
 #define SESSION_RETRY_DELAY_MS 2000
 
 static long session_id = -1;
@@ -60,17 +60,20 @@ void server_start_session(void)
 
     printf("[ERROR] Could not start session after %d attempts — rebooting\n", SESSION_START_RETRIES);
     wdt_enable(WDTO_30MS);
-    while (1) { }
+    while (1)
+    {
+    }
 }
 
 void server_send_pulse(void)
 {
-    if (session_id < 0) return;
+    if (session_id < 0)
+        return;
 
     char endpoint[32];
     snprintf(endpoint, sizeof(endpoint), "/Session/%ld/pulse", session_id);
     printf("[PULSE] Sending keepalive\n");
-    
+
     http_patch(endpoint, "{}", tcp_rx_buf, sizeof(tcp_rx_buf));
 
     if (strstr(tcp_rx_buf, "\"alive\":false") != NULL || strstr(tcp_rx_buf, "\"alive\": false") != NULL)
@@ -83,9 +86,15 @@ void server_send_pulse(void)
 
 void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec)
 {
-    if (session_id < 0) return;
+    if (session_id < 0)
+        return;
     char body[128];
     snprintf(body, sizeof(body), "{\"sessionId\":%ld,\"temperature\":%d.%d,\"humidity\":%d.%d}", session_id, temp_int, temp_dec, hum_int, hum_dec);
     printf("[DATA] Sending temp=%d.%d, hum=%d.%d\n", temp_int, temp_dec, hum_int, hum_dec);
     http_post("/Data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
+}
+
+void server_reset(void)
+{
+    session_id = -1;
 }
