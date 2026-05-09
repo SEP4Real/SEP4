@@ -84,13 +84,14 @@ void server_send_pulse(void)
     }
 }
 
-void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec)
+void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec, uint16_t light_raw)
 {
-    if (session_id < 0)
+    if (session_id < 0){
         return;
+    }
     char body[128];
-    snprintf(body, sizeof(body), "{\"sessionId\":%ld,\"temperature\":%d.%d,\"humidity\":%d.%d}", session_id, temp_int, temp_dec, hum_int, hum_dec);
-    printf("[DATA] Sending temp=%d.%d, hum=%d.%d\n", temp_int, temp_dec, hum_int, hum_dec);
+    snprintf(body, sizeof(body), "{\"sessionId\":%ld,\"temperature\":%d.%d,\"humidity\":%d.%d,\"lightLevel\":%u}", session_id, temp_int, temp_dec, hum_int, hum_dec, light_raw);
+    printf("[DATA] Sending temp=%d.%d, hum=%d.%d, light=%u\n", temp_int, temp_dec, hum_int, hum_dec, light_raw);
     http_post("/Data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 }
 
