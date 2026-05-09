@@ -13,15 +13,6 @@ CONNINFO = (
     f"user={DB_USER} password={DB_PASSWORD}"
 )
 
-
-def get_conn() -> psycopg.Connection:
-    return psycopg.connect(CONNINFO, row_factory=dict_row)
-
-
-async def get_aconn() -> psycopg.AsyncConnection:
-    return await psycopg.AsyncConnection.connect(CONNINFO, row_factory=dict_row)
-
-
 async def get_db():
     conn = await psycopg.AsyncConnection.connect(CONNINFO, row_factory=dict_row)
     try:
@@ -86,7 +77,6 @@ CREATE INDEX IF NOT EXISTS ix_data_sent_at ON data(sent_at);
 
 
 async def ensure_schema_created():
-    conn = await get_aconn()
-    async with conn:
+    async with await psycopg.AsyncConnection.connect(CONNINFO, row_factory=dict_row) as conn:
         await conn.execute(SCHEMA_SQL)
         await conn.commit()
