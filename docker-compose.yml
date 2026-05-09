@@ -33,7 +33,7 @@ services:
   iot-api:
     image: sep4-iot-api:local
     build:
-      context: ./IOT_backend
+      context: ./IOT_backend_py
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
