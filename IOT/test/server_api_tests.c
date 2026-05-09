@@ -230,7 +230,7 @@ void test_send_pulse_restarts_session_when_alive_false(void)
 
 void test_send_data_is_noop_without_session(void)
 {
-    server_send_data(22, 5, 60, 0);
+    server_send_data(22, 5, 60, 0, 856);
     TEST_ASSERT_EQUAL(0, http_post_fake.call_count);
 }
 
@@ -238,7 +238,7 @@ void test_send_data_calls_http_post_with_session(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0);
+    server_send_data(22, 5, 60, 0, 856);
     TEST_ASSERT_EQUAL(1, http_post_fake.call_count);
 }
 
@@ -246,7 +246,7 @@ void test_send_data_posts_to_data_endpoint(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0);
+    server_send_data(22, 5, 60, 0, 856);
     TEST_ASSERT_EQUAL_STRING("/Data", captured_endpoint);
 }
 
@@ -254,7 +254,7 @@ void test_send_data_body_contains_temperature_field(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0);
+    server_send_data(22, 5, 60, 0, 856);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "temperature"));
 }
 
@@ -262,7 +262,7 @@ void test_send_data_body_contains_humidity_field(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0);
+    server_send_data(22, 5, 60, 0, 856);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "humidity"));
 }
 
@@ -270,7 +270,7 @@ void test_send_data_body_contains_session_id_field(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0);
+    server_send_data(22, 5, 60, 0, 856);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "sessionId"));
 }
 
@@ -278,7 +278,7 @@ void test_send_data_body_contains_temp_values(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0);
+    server_send_data(22, 5, 60, 0, 856);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "22"));
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "5"));
 }
@@ -287,9 +287,25 @@ void test_send_data_body_contains_humidity_values(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 3);
+    server_send_data(22, 5, 60, 3, 856);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "60"));
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "3"));
+}
+
+void test_send_data_body_contains_light_field(void)
+{
+    start_session_with_id(3);
+    http_post_fake.custom_fake = capture_and_inject_post;
+    server_send_data(22, 5, 60, 3, 856);
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "lightLevel"));
+}
+
+void test_send_data_body_contains_light_values(void)
+{
+    start_session_with_id(3);
+    http_post_fake.custom_fake = capture_and_inject_post;
+    server_send_data(22, 5, 60, 3, 856);
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "856"));
 }
 
 int main(void)
@@ -322,6 +338,8 @@ int main(void)
     RUN_TEST(test_send_data_body_contains_session_id_field);
     RUN_TEST(test_send_data_body_contains_temp_values);
     RUN_TEST(test_send_data_body_contains_humidity_values);
+    RUN_TEST(test_send_data_body_contains_light_field);
+    RUN_TEST(test_send_data_body_contains_light_values);
 
     return UNITY_END();
 }
