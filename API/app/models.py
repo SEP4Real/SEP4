@@ -35,7 +35,7 @@ class Session(BaseModel):
     id: int
     device_id: str = Field(..., alias="deviceId")
     started_at: datetime = Field(..., alias="startedAt")
-    ended_at: Optional[datetime] = Field(None, alias="endedAt")
+    is_ended: bool = Field(None, alias="isEnded")
     last_pulse_at: Optional[datetime] = Field(None, alias="lastPulseAt")
     study_quality: Optional[int] = Field(None, alias="studyQuality", ge=1, le=10)
 
@@ -47,7 +47,7 @@ class Session(BaseModel):
             id=row["id"],
             deviceId=row["device_id"],
             startedAt=row["started_at"],
-            endedAt=row.get("ended_at"),
+            isEnded=row.get("is_ended"),
             lastPulseAt=row.get("last_pulse_at"),
             studyQuality=row.get("study_quality"),
         )

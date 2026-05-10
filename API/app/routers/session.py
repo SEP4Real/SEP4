@@ -41,20 +41,6 @@ async def get_by_id(id: int, db: AsyncConnection = Depends(get_db)):
     if row is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # Auto-end session if pulse timed out
-    if row["ended_at"] is None and row["last_pulse_at"] is not None:
-        elapsed = _now() - row["last_pulse_at"]
-        if elapsed.total_seconds() > PULSE_TIMEOUT_SECONDS:
-            ended_at = row["last_pulse_at"]
-            async with db.cursor() as cur:
-                await cur.execute(
-                    "UPDATE sessions SET ended_at = %s WHERE id = %s",
-                    (ended_at, id),
-                )
-            await db.commit()
-            row = dict(row)
-            row["ended_at"] = ended_at
-
     return Session.from_row(row)
 
 
@@ -91,14 +77,14 @@ async def end_session(id: int, study_quality: Optional[int] = None, db: AsyncCon
 
     if row is None:
         raise HTTPException(status_code=404, detail="Session not found")
-    if row["ended_at"] is not None:
+    if row["is_ended"]:
         raise HTTPException(status_code=409, detail="Session already ended")
 
     now = _now()
     async with db.cursor() as cur:
         await cur.execute(
-            "UPDATE sessions SET ended_at = %s, study_quality = %s WHERE id = %s RETURNING *",
-            (now, study_quality, id),
+            "UPDATE sessions SET is_ended = %s, study_quality = %s WHERE id = %s RETURNING *",
+            (True, study_quality, id),
         )
         row = await cur.fetchone()
     await db.commit()
@@ -108,12 +94,12 @@ async def end_session(id: int, study_quality: Optional[int] = None, db: AsyncCon
 @router.patch("/{id}/pulse")
 async def pulse(id: int, db: AsyncConnection = Depends(get_db)):
     async with db.cursor() as cur:
-        await cur.execute("SELECT ended_at FROM sessions WHERE id = %s", (id,))
+        await cur.execute("SELECT is_ended FROM sessions WHERE id = %s", (id,))
         row = await cur.fetchone()
 
     if row is None:
         raise HTTPException(status_code=404, detail="Session not found")
-    if row["ended_at"] is not None:
+    if row["is_ended"]:
         return {"alive": False}
 
     async with db.cursor() as cur:

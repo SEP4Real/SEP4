@@ -1,5 +1,6 @@
 import os
 import psycopg
+import asyncio
 from psycopg.rows import dict_row
 
 DB_HOST = os.environ["DB_HOST"]
@@ -20,6 +21,20 @@ async def get_db():
     finally:
         await conn.close()
 
+async def cleanup_sessions(interval: int = 30):
+    while True:
+        await asyncio.sleep(interval)
+        conn = await psycopg.AsyncConnection.connect(CONNINFO, row_factory=dict_row)
+        try:
+            await conn.execute("""
+                UPDATE sessions
+                SET is_ended = TRUE
+                WHERE NOT is_ended
+                  AND last_pulse_at < now() - INTERVAL '30 seconds'
+            """)
+            await conn.commit()
+        finally:
+            await conn.close()
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS devices (
@@ -30,7 +45,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     id BIGSERIAL PRIMARY KEY,
     device_id VARCHAR(255) NOT NULL,
     started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    ended_at TIMESTAMPTZ,
+    is_ended BOOLEAN NOT NULL DEFAULT FALSE,
     last_pulse_at TIMESTAMPTZ,
     study_quality INT CHECK (study_quality BETWEEN 1 AND 10),
     CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(public_key) ON DELETE RESTRICT
@@ -73,6 +88,7 @@ CREATE INDEX IF NOT EXISTS ix_sessions_device_id ON sessions(device_id);
 CREATE INDEX IF NOT EXISTS ix_sessions_started_at ON sessions(started_at);
 CREATE INDEX IF NOT EXISTS ix_data_session_id ON data(session_id);
 CREATE INDEX IF NOT EXISTS ix_data_sent_at ON data(sent_at);
+CREATE INDEX idx_sessions_last_pulse_at ON sessions(last_pulse_at) WHERE is_ended IS FALSE;
 """
 
 
