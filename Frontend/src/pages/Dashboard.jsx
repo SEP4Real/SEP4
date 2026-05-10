@@ -3,7 +3,7 @@ import { getEnvironmentDataa } from "../services/EnvironmentService";
 import SensorCard from "../components/SensorCard";
 import "./Dashboard.css";
 
-export default function StudentDashboard() {
+export default function Dashboard() {
   const [data, setData] = useState(null);
 
   
@@ -20,7 +20,7 @@ export default function StudentDashboard() {
   
   return (
     <div className="dashboard">
-      <h1>Student Dashboard</h1>
+      <h1>Dashboard</h1>
 
       <div className="dashboard-grid">
 

@@ -3,7 +3,7 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import History from "./pages/History";
 import Navbar from "./components/Navbar";
-import StudentDashboard from "./pages/StudentDashboard";
+import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
 
 import Profile from './pages/Profile';
@@ -20,7 +20,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/history" element={<History />} />
-        <Route path="/student" element={<StudentDashboard />} />
+        <Route path="/student" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<RegisterPage />} />
         
