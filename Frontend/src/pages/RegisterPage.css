@@ -99,3 +99,35 @@ button {
 .auth-link a:hover {
   text-decoration: underline;
 }
+
+/* DARK THEME*/
+
+body.dark-theme .card {
+  color: #ffffff;
+}
+
+body.dark-theme .card h1,
+body.dark-theme .card h2 {
+  color: #ffffff;
+}
+
+body.dark-theme .form label,
+body.dark-theme .student-admin-row span {
+  color: #ffffff;
+}
+
+body.dark-theme .form input {
+  background: #2b2b2b;
+  color: #ffffff;
+  border: 1px solid #555;
+}
+
+body.dark-theme button {
+  background: #2d6a4f;
+  color: #ffffff;
+}
+
+body.dark-theme .auth-link,
+body.dark-theme .auth-link a {
+  color: rgb(188, 255, 226);
+}
