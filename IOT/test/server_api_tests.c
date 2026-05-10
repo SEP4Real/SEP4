@@ -105,18 +105,18 @@ void test_register_posts_to_device_endpoint(void)
     TEST_ASSERT_EQUAL_STRING("/Device", captured_endpoint);
 }
 
-void test_register_body_contains_public_key(void)
+void test_register_body_contains_id(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
     server_register_device();
-    TEST_ASSERT_NOT_NULL(strstr(captured_body, DEVICE_PUBLIC_KEY));
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, DEVICE_ID));
 }
 
-void test_register_body_contains_public_key_field(void)
+void test_register_body_contains_id_field(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
     server_register_device();
-    TEST_ASSERT_NOT_NULL(strstr(captured_body, "publicKey"));
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "id"));
 }
 
 // server_start_session
@@ -134,7 +134,7 @@ void test_start_session_body_contains_device_id(void)
     inject_post_response = "{\"id\":1}";
     http_post_fake.custom_fake = capture_and_inject_post;
     server_start_session();
-    TEST_ASSERT_NOT_NULL(strstr(captured_body, DEVICE_PUBLIC_KEY));
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, DEVICE_ID));
 }
 
 void test_start_session_body_contains_device_id_field(void)
@@ -314,8 +314,8 @@ int main(void)
 
     RUN_TEST(test_register_calls_http_post_once);
     RUN_TEST(test_register_posts_to_device_endpoint);
-    RUN_TEST(test_register_body_contains_public_key);
-    RUN_TEST(test_register_body_contains_public_key_field);
+    RUN_TEST(test_register_body_contains_id);
+    RUN_TEST(test_register_body_contains_id_field);
 
     RUN_TEST(test_start_session_posts_to_session_endpoint);
     RUN_TEST(test_start_session_body_contains_device_id);
