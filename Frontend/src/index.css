@@ -14,8 +14,8 @@ body.light-theme {
   color: #1f1f1f;
 }
 
-body.gray-theme {
-  background: linear-gradient(to bottom, rgb(188, 255, 226) 0%, #d4d4d4 70%);
+body.dark-theme {
+  background: linear-gradient(to bottom, rgb(188, 255, 226) 0%, #2f2f2f 70%);
   color: #1f1f1f;
 }
 
