@@ -78,3 +78,36 @@
 .auth-link a:hover {
   text-decoration: underline;
 }
+
+
+/* DARK THEME*/
+
+body.dark-theme .login-page {
+  background: transparent;
+  color: #ffffff;
+}
+
+body.dark-theme .login-card h1,
+body.dark-theme .login-card h2 {
+  color: #ffffff;
+}
+
+body.dark-theme .login-form label {
+  color: #ffffff;
+}
+
+body.dark-theme .login-form input {
+  background: #0a0404;
+  color: #ffffff;
+  border: 1px solid #555;
+}
+
+body.dark-theme .login-form button {
+  background: #2d6a4f;
+  color: #ffffff;
+}
+
+body.dark-theme .auth-link,
+body.dark-theme .auth-link a {
+  color: rgb(188, 255, 226);
+}
