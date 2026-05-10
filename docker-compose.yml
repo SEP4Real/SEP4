@@ -30,10 +30,10 @@ services:
       postgres:
         condition: service_healthy
 
-  iot-api:
-    image: sep4-iot-api:local
+  api:
+    image: api:local
     build:
-      context: ./IOT_backend
+      context: ./API
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
