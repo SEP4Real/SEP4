@@ -4,9 +4,19 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, rgb(188, 255, 226) 0%, #ffffff 70%);
   padding-top: 60px;
   min-height: 100vh;
+}
+
+
+body.light-theme {
+  background: linear-gradient(to bottom, rgb(188, 255, 226) 0%, #ffffff 70%);
+  color: #1f1f1f;
+}
+
+body.gray-theme {
+  background: linear-gradient(to bottom, rgb(188, 255, 226) 0%, #d4d4d4 70%);
+  color: #1f1f1f;
 }
 
 .page {
