@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
+import { useTheme } from "../context/ThemeContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <nav className="navbar">
@@ -36,6 +38,11 @@ const Navbar = () => {
         <li>
                 <Link to="/profile" onClick={() => setIsMenuOpen(false)}> Profile</Link>
         </li>
+        <li>
+  <button className="theme-button" onClick={toggleTheme}>
+    {theme === "light" ? "Dark" : "Light"}
+  </button>
+</li>
       </ul>
     </nav>
   );

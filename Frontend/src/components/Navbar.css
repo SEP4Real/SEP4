@@ -80,3 +80,17 @@
     display: flex;
   }
 }
+
+.theme-button {
+  border: none;
+  background: #8dd9bd;
+  color: #1f1f1f;
+  padding: 7px 12px;
+  border-radius: 7px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-button:hover {
+  background: #76c9aa;
+}
