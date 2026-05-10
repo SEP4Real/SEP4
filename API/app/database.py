@@ -38,7 +38,7 @@ async def cleanup_sessions(interval: int = 30):
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS devices (
-    public_key VARCHAR(255) PRIMARY KEY
+    id VARCHAR(255) PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     is_ended BOOLEAN NOT NULL DEFAULT FALSE,
     last_pulse_at TIMESTAMPTZ,
     study_quality INT CHECK (study_quality BETWEEN 1 AND 10),
-    CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(public_key) ON DELETE RESTRICT
+    CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS data (
@@ -72,7 +72,7 @@ BEGIN
     ) THEN
         ALTER TABLE sessions
         ADD CONSTRAINT fk_sessions_device
-        FOREIGN KEY (device_id) REFERENCES devices(public_key) ON DELETE RESTRICT;
+        FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE RESTRICT;
     END IF;
 
     IF NOT EXISTS (
@@ -88,7 +88,7 @@ CREATE INDEX IF NOT EXISTS ix_sessions_device_id ON sessions(device_id);
 CREATE INDEX IF NOT EXISTS ix_sessions_started_at ON sessions(started_at);
 CREATE INDEX IF NOT EXISTS ix_data_session_id ON data(session_id);
 CREATE INDEX IF NOT EXISTS ix_data_sent_at ON data(sent_at);
-CREATE INDEX idx_sessions_last_pulse_at ON sessions(last_pulse_at) WHERE is_ended IS FALSE;
+CREATE INDEX IF NOT EXISTS idx_sessions_last_pulse_at ON sessions(last_pulse_at) WHERE is_ended IS FALSE;
 """
 
 

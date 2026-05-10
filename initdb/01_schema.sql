@@ -1,5 +1,5 @@
 CREATE TABLE devices (
-    public_key  VARCHAR(255) PRIMARY KEY
+    id  VARCHAR(255) PRIMARY KEY
 );
 
 CREATE TABLE sessions (
@@ -9,7 +9,7 @@ CREATE TABLE sessions (
     is_ended BOOLEAN NOT NULL DEFAULT FALSE,
     last_pulse_at TIMESTAMPTZ,
     study_quality INT CHECK (study_quality BETWEEN 1 AND 10),
-    CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(public_key) ON DELETE RESTRICT
+    CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE data (

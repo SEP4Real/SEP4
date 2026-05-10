@@ -7,19 +7,19 @@ from pydantic import BaseModel, Field
 # ── Device ────────────────────────────────────────────────────────────────────
 
 class DeviceCreate(BaseModel):
-    public_key: str = Field(..., alias="publicKey", max_length=255)
+    id: str = Field(..., alias="id", max_length=255)
 
     model_config = {"populate_by_name": True}
 
 
 class Device(BaseModel):
-    public_key: str = Field(..., alias="publicKey")
+    id: str = Field(..., alias="id")
 
     model_config = {"populate_by_name": True, "from_attributes": True}
 
     @classmethod
     def from_row(cls, row: dict) -> "Device":
-        return cls(publicKey=row["public_key"])
+        return cls(id=row["id"])
 
 
 # ── Session ───────────────────────────────────────────────────────────────────

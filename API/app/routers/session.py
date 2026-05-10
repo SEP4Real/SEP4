@@ -24,10 +24,10 @@ async def get_all(db: AsyncConnection = Depends(get_db)):
     return [Session.from_row(r) for r in rows]
 
 
-@router.get("/device/{public_key}", response_model=list[Session])
-async def get_by_device(public_key: str, db: AsyncConnection = Depends(get_db)):
+@router.get("/device/{id}", response_model=list[Session])
+async def get_by_device(id: str, db: AsyncConnection = Depends(get_db)):
     async with db.cursor() as cur:
-        await cur.execute("SELECT * FROM sessions WHERE device_id = %s", (public_key,))
+        await cur.execute("SELECT * FROM sessions WHERE device_id = %s", (id,))
         rows = await cur.fetchall()
     return [Session.from_row(r) for r in rows]
 
@@ -52,7 +52,7 @@ async def create_session(body: SessionCreate, db: AsyncConnection = Depends(get_
 
     now = _now()
     async with db.cursor() as cur:
-        await cur.execute("SELECT 1 FROM devices WHERE public_key = %s", (device_id,))
+        await cur.execute("SELECT 1 FROM devices WHERE id = %s", (device_id,))
         if not await cur.fetchone():
             raise HTTPException(status_code=404, detail=f"Device {device_id} does not exist")
 
@@ -63,28 +63,6 @@ async def create_session(body: SessionCreate, db: AsyncConnection = Depends(get_
             RETURNING *
             """,
             (device_id, now, now, body.study_quality),
-        )
-        row = await cur.fetchone()
-    await db.commit()
-    return Session.from_row(row)
-
-
-@router.patch("/{id}/end", response_model=Session)
-async def end_session(id: int, study_quality: Optional[int] = None, db: AsyncConnection = Depends(get_db)):
-    async with db.cursor() as cur:
-        await cur.execute("SELECT * FROM sessions WHERE id = %s", (id,))
-        row = await cur.fetchone()
-
-    if row is None:
-        raise HTTPException(status_code=404, detail="Session not found")
-    if row["is_ended"]:
-        raise HTTPException(status_code=409, detail="Session already ended")
-
-    now = _now()
-    async with db.cursor() as cur:
-        await cur.execute(
-            "UPDATE sessions SET is_ended = %s, study_quality = %s WHERE id = %s RETURNING *",
-            (True, study_quality, id),
         )
         row = await cur.fetchone()
     await db.commit()
