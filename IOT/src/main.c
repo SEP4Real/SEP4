@@ -8,6 +8,7 @@
 #include "wifi.h"
 #include "wifi_http.h"
 #include "dht11.h"
+#include "light.h"
 #include "timer.h"
 #include "server_api.h"
 
@@ -34,7 +35,7 @@ int main(void)
     uart_stdio_init(115200);
 
     printf("\n=== Device boot ===\n");
-
+    light_init();
     wifi_init();
     printf("[WIFI] Waiting for module...\n");
     delay_s(4);
@@ -92,8 +93,9 @@ int main(void)
             data_due = 0;
             request_in_progress = 1;
             uint8_t t_int = 0, t_dec = 0, h_int = 0, h_dec = 0;
+            uint16_t current_light = light_measure_raw();
             if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK){
-                server_send_data(t_int, t_dec);
+                server_send_data(t_int, t_dec, h_int, h_dec, current_light);
             }
             else{
                 printf("[ERROR] DHT11 read failed\n");
