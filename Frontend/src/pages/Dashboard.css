@@ -123,3 +123,32 @@
 .status-bad {
   background: linear-gradient(135deg, #ffe5e5, #ffb3b3);
 }
+
+
+/* DARK THEMEDASHBOARD */
+
+body.dark-theme .dashboard h1 {
+  color: #ffffff;
+}
+
+body.dark-theme .sensor-card {
+  background: #2b2b2b;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-theme .sensor-title {
+  color: #ffffff;
+}
+
+body.dark-theme .sensor-value {
+  color: rgb(188, 255, 226);
+}
+
+body.dark-theme .status-good {
+  background: #1f3d32;
+}
+
+body.dark-theme .status-bad {
+  background: #4a1f1f;
+}
