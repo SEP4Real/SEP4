@@ -40,7 +40,7 @@ const Navbar = () => {
         </li>
         <li>
   <button className="theme-button" onClick={toggleTheme}>
-    {theme === "light" ? "Dark" : "Light"}
+    {theme === "light" ? "⋆.˚ ☾⭒.˚" : "🔆"}
   </button>
 </li>
       </ul>
