@@ -13,16 +13,44 @@ export const getEnvironmentDataa= async () => {
     };
 };
 
-const API_URL = "http://localhost:8080/api";
+const API_URL = 'http://127.0.0.1:8000';
+
+export const getEnvironmentHistory = async () => {
+  const token = localStorage.getItem('token');
+
+  try {
+    const response = await fetch(`${API_URL}/data/history`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      }
+    });
+
+    if (!response.ok) throw new Error('Could not load history');
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching history:", error);
+    return [];
+  }
+};
 
 export const getEnvironmentData = async () => {
-    try {
-        const response = await fetch(API_URL); 
-        if (!response.ok) throw new Error('Error while retrieving data');
-       return await response.json();
+  const token = localStorage.getItem('token');
 
-    } catch (error) {
-        console.error("Error fetching history:", error);
-        return [];
-    }
+  try {
+    const response = await fetch(`${API_URL}/data/current`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Error in current data');
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };

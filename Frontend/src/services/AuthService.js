@@ -1,44 +1,56 @@
-export async function register(data) {
-  console.log("Sending to backend:", data);
+const API_URL = 'http://127.0.0.1:8000';
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem("users")) || [];
+export async function register(userData) {
+  const response = await fetch(`${API_URL}/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(userData)
+  });
 
-      if (!users.find(u => u.email === data.email)) {
-        users.push(data);
-        localStorage.setItem("users", JSON.stringify(users));
-      } //check if the user exists
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Registration error');
+  }
 
-      const userData = {
-        email: data.email,
-        name: data.name,
-        lastName: data.lastName,
+  return await response.json();
+}
+
+export async function login(credentials) {
+  const response = await fetch(`${API_URL}/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: credentials.email, // send email like username for Python
+      password: credentials.password
+    })
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json();
+    throw new Error(errorBody.detail || 'Authentication error');
+  }
+
+  const data = await response.json();
+
+  // Save token in localStorage
+  if (data.access_token) {
+    localStorage.setItem('token', data.access_token);
+    const userToSave = { 
+        email: credentials.email || "student", 
         role: "Student" 
-      };
-      localStorage.setItem('user', JSON.stringify(userData));
-      resolve({ ok: true, user: userData });
-    }, 500);
-  });
+    };
+  
+    localStorage.setItem('user', JSON.stringify(userToSave));
+  }
+
+  return data;
 }
 
-export async function login(data) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const allUsers = JSON.parse(localStorage.getItem("users")) || [];
-      const foundUser = allUsers.find(
-        (u) => u.email === data.email && u.password === data.password
-      );
-
-      if (foundUser) {
-        localStorage.setItem('user', JSON.stringify(foundUser));
-        resolve({ user: foundUser });
-      } else {
-        reject(new Error("Invalid email or password"));
-      }
-    }, 500);
-  });
+export function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 }
-       // Store user info in local storage to maintain the session and 
-       // provide data to the Profile page
-        

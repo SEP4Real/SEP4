@@ -2,11 +2,20 @@ import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { getEnvironmentData } from "../services/EnvironmentService";
 import './Profile.css';
+import { logout } from '../services/AuthService';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const userData = JSON.parse(localStorage.getItem('user'));
+  const userData = localStorage.getItem('user');
+  let user = { email: "User", role: "Student" }; 
 
+    if (userData && userData !== "undefined") {
+        try {
+            user = JSON.parse(userData);
+        } catch (e) {
+            console.error("Eroare la citirea userului din storage", e);
+        }
+    }
   const [recentHistory, setRecentHistory] = useState([]);
   const [stats, setStats] = useState({ totalSessions: 0, lastActivity: "--" });
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "" });
@@ -99,6 +108,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     window.dispatchEvent(new Event("storage"));
     navigate('/login', { replace: true });
   };
@@ -124,7 +134,7 @@ const Profile = () => {
       <div className="profile-header-new">
         <div className="avatar-side">
           <div className="profile-avatar">
-            {studentInfo.profilePic ? <img src={studentInfo.profilePic} alt="Profile" /> : userData.name.charAt(0).toUpperCase()}
+            {studentInfo.profilePic ? <img src={studentInfo.profilePic} alt="Profile" /> : userData?.name?.charAt(0).toUpperCase()}
           </div>
           <label className="upload-label">
             <span>Change Photo</span>
@@ -207,7 +217,7 @@ const Profile = () => {
       </div>
     </div>
 
-    {/* GRID JOS: AI & HISTORY */}
+    {/* AI & HISTORY */}
     <div className="profile-row-grid">
       <div className="profile-section">
         <h3>🤖 AI Insights 🤖 (MAL)</h3>
