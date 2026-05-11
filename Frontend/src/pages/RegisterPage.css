@@ -58,7 +58,7 @@
   padding-top: 26px;
 }
 
-button {
+.form button {
   grid-column: 2;
   justify-self: center;
   margin-top: 28px;

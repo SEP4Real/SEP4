@@ -9,7 +9,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 50px;
+  padding: 0 30px;
   box-sizing: border-box; 
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   z-index: 9999;
@@ -22,13 +22,17 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .nav-links {
   display: flex;
+  align-items: center;
   list-style: none;
   gap: 30px;
   margin: 0;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .nav-links a {
@@ -37,6 +41,11 @@
   font-size: 1.1rem;
   font-weight: 600;
   transition: color 0.3s;
+}
+
+.nav-links li {
+  display: flex;
+  align-items: center;
 }
 
 .nav-links a:hover {
@@ -81,14 +90,19 @@
   }
 }
 
-
 .theme-icon-button {
-  border: none;
-  background: transparent;
-  color: #111;
-  font-size: 1.4rem;
   cursor: pointer;
-  padding: 4px 8px;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+
+.theme-icon-button:hover {
+  transform: scale(1.15);
 }
 
 /* Dark theme navbar */

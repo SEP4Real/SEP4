@@ -39,9 +39,19 @@ const Navbar = () => {
                 <Link to="/profile" onClick={() => setIsMenuOpen(false)}> Profile</Link>
         </li>
         <li>
-  <button className="theme-button" onClick={toggleTheme}>
-    {theme === "light" ? "⋆.˚ ☾⭒.˚" : "🔆"}
-  </button>
+          <span
+  className="theme-icon-button"
+  onClick={toggleTheme}
+  role="button"
+  tabIndex={0}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      toggleTheme();
+    }
+  }}
+>
+     {theme === "light" ? "⋆☾˚" : "🔆"}
+</span>
 </li>
       </ul>
     </nav>
