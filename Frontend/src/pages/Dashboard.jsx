@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { getEnvironmentDataa } from "../services/EnvironmentService";
 import SensorCard from "../components/SensorCard";
 import "./Dashboard.css";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
+  const { t } = useLanguage();
 
   
   useEffect(() => {
@@ -14,35 +16,34 @@ export default function Dashboard() {
   }, []);
 
   if (!data) {
-    return <p>Loading environment data...</p>;
+    return <p>{t.loading}</p>;
   }
 
   
   return (
     <div className="dashboard">
-      <h1>Dashboard</h1>
+      <h1>{t.dashboard}</h1>
 
       <div className="dashboard-grid">
 
-        <SensorCard title="Temperature " value={data.temperature + " °C"} />
-        <SensorCard title="Humidity " value={data.humidity + " %"} />
-        <SensorCard title="CO₂ Level " value={data.co2Level + " ppm"} />
-        <SensorCard title="Light Level " value={data.lightLevel + " lx"} />
-        <SensorCard title="Noise Level " value={data.noiseLevel + " dB"} />
+        <SensorCard title={t.temperature} value={data.temperature + " °C"} />
+        <SensorCard title={t.humidity} value={data.humidity + " %"} />
+        <SensorCard title={t.co2Level} value={data.co2Level + " ppm"} />
+        <SensorCard title={t.lightLevel} value={data.lightLevel + " lx"} />
         <SensorCard 
-        title="Suitability Level "
+        title={t.suitabilityLevel}
         value={(data.suitabilityLevel * 100).toFixed(0) + "%"}/>
         <SensorCard
-        title="Predicted Suitability "
+        title={t.predictedSuitability}
         value={(data.predictedSuitabilityLevel * 100).toFixed(0) + "%"}/>
         <SensorCard
-        title="Trend "
+        title={t.trend}
         value={data.predictedTrend === 1
-            ? "Improving"
-            : "Declining"}/>
+            ? t.improving
+            : t.declining}/>
         <SensorCard
-        title="Environment Status "
-        value={data.environmentStatus === 1 ? "Good" : "Bad"}/>
+        title={t.environmentStatus}
+        value={data.environmentStatus === 1 ? t.good : t.bad}/>
 
       </div>
     </div>
