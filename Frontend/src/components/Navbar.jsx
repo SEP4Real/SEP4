@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
 import { useTheme } from "../context/ThemeContext";
+import { useLanguage } from "../context/LanguageContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,11 +11,11 @@ const Navbar = () => {
   };
 
   const { theme, toggleTheme } = useTheme();
-
+const { language, toggleLanguage, t } = useLanguage();
   return (
     <nav className="navbar">
       <div className="navbar-logo">
-        <span className="logo-icon">🌿</span> Student Environment Helper
+        <span className="logo-icon">🌿</span> {t.appName}
       </div>
 
       {/*Hamburger  Buton  */}
@@ -27,16 +28,16 @@ const Navbar = () => {
       {/* Link */}
       <ul className={`nav-links ${isMenuOpen ? 'show' : ''}`}>
         <li>
-          <Link to="/" onClick={() => setIsMenuOpen(false)}>Register</Link>
+          <Link to="/" onClick={() => setIsMenuOpen(false)}>{t.register}</Link>
         </li>
         <li>
-          <Link to="/history" onClick={() => setIsMenuOpen(false)}>History</Link>
+          <Link to="/history" onClick={() => setIsMenuOpen(false)}>{t.history}</Link>
         </li>
         <li>
-          <Link to="/student" onClick={() => setIsMenuOpen(false)}> Dashboard</Link>
+          <Link to="/student" onClick={() => setIsMenuOpen(false)}> {t.dashboard}</Link>
         </li>
         <li>
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)}> Profile</Link>
+                <Link to="/profile" onClick={() => setIsMenuOpen(false)}> {t.profile}</Link>
         </li>
         <li>
           <span
@@ -52,6 +53,21 @@ const Navbar = () => {
 >
      {theme === "light" ? "⋆☾˚" : "🔆"}
 </span>
+</li>
+<li>
+  <span
+    className="language-toggle"
+    onClick={toggleLanguage}
+    role="button"
+    tabIndex={0}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        toggleLanguage();
+      }
+    }}
+  >
+    {language === "en" ? "DK" : "EN"}
+  </span>
 </li>
       </ul>
     </nav>

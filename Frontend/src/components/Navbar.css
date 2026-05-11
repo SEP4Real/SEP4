@@ -66,6 +66,16 @@
   transition: 0.3s;
 }
 
+.language-toggle {
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.language-toggle:hover {
+  color: #8dd9bd;
+}
 /* Media Query  Mobil */
 @media (max-width: 768px) {
   .hamburger {
@@ -131,6 +141,10 @@ body.dark-theme .theme-icon-button {
   color: rgb(188, 255, 226);
 }
 
+body.dark-theme .language-toggle {
+  color: rgb(188, 255, 226);
+}
+
 /* Light theme navbar */
 body.light-theme .navbar {
   background: white;
@@ -145,5 +159,9 @@ body.light-theme .nav-links a {
 }
 
 body.light-theme .theme-icon-button {
+  color: #111;
+}
+
+body.light-theme .language-toggle {
   color: #111;
 }
