@@ -4,6 +4,7 @@ import { register } from "../services/AuthService";
 import "../index.css";
 import "./RegisterPage.css";
 
+
 export default function RegisterPage() {
   const [form, setForm] = useState({
     name: "",
