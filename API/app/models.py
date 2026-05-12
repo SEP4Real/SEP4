@@ -87,3 +87,6 @@ class DataPoint(BaseModel):
             lightLevel=row.get("light_level"),
             sentAt=row["sent_at"],
         )
+
+class DataPointResponse(BaseModel):
+    study_quality: int = Field(ge=1, le=5)
