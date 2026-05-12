@@ -46,6 +46,15 @@ export default function Dashboard() {
         value={data.environmentStatus === 1 ? t.good : t.bad}/>
 
       </div>
+
+<div className="recommendation-card">
+  <h2>{t.recommendation}</h2>
+
+  <p>
+    {data.recommendation}
+  </p>
+</div>
+
     </div>
   );
 }

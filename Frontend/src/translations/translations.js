@@ -41,6 +41,7 @@ humShort: "Hum",
 dashboardError: "Could not load environment data.",
 tryAgain: "Try again",
 noData: "No data available.",
+recommendation: "Recommendation",
   },
 
   da: {
@@ -85,5 +86,6 @@ humShort: "Fugt",
 dashboardError: "Kunne ikke indlæse miljødata.",
 tryAgain: "Prøv igen",
 noData: "Ingen data tilgængelige.",
+recommendation: "Anbefaling",
   },
 };
