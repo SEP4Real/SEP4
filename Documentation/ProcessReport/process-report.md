@@ -115,8 +115,23 @@ Were these considerations built into the project from the start, or addressed re
 
 # 4. Project Execution
 
-MAL notes (maybe project report relevant too):
+**MAL notes (maybe project report relevant too):**
+
+**Mock data search activities:**
 When looking for mock data in the early phase, we initially focused on datasets about how environmental noise might influence focus during different activities. We found one dataset describing focus-related effects of background noise and tried to combine it with another dataset containing labelled sound categories from WAV files. The idea was to extract frequencies and loudness from the sound files and connect them to the focus-related dataset. During the project, however, we narrowed the ML goal from predicting focus directly to predicting a user-provided study suitability rating, because focus cannot be measured directly by our system. This still helped us make the target variable less random, since the rating could be based on environmental conditions and user feedback rather than arbitrary labels.
+
+Further investigation and search for more relialable datasets continued and brought us to many conclusions about where are we heading from there. Firstly, we eliminated few datasets containing data which seemed very suspicious, like produced by an algorithm rather than collected by real sensors. This can be seen on the distribution of features like humidity, noise and light of data 2 and 4 on the figures below. It looked to perfectly distributed.![1778581492077](image/process-report/1778581492077.png)
+
+![1778581584716](image/process-report/1778581584716.png)
+
+![1778581593641](image/process-report/1778581593641.png)
+
+Another interesting analysis was about coleration where we found out that features like co2, temperature and humidity are naturally correlated often and some datasets correlations showed that nothing is correlated which seems that the data is very random. Two figures below are showing healthy and supsicious correlation. [todo: remove id from matrix]![1778581896856](image/process-report/1778581896856.png)
+
+![1778581949534](image/process-report/1778581949534.png)
+
+One of the datasets (correlation on the figure below) if used alone would make our models super overfitting but we decided to keep it and merge with other datasets which can create interesting outliers and diversity.![1778582109105](image/process-report/1778582109105.png)
+
 
 <!-- Reflect on the MIDDLE of the project — how you actually worked through it.
      Focus on the process: what methods did you use and why, did they work,
