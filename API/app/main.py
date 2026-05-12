@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
     task.cancel();
 
 
-app = FastAPI(title="IoT API", lifespan=lifespan)
+app = FastAPI(title="API", lifespan=lifespan)
 
 app.include_router(device.router)
 app.include_router(session.router)
