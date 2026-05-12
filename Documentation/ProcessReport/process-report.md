@@ -130,14 +130,13 @@ Another interesting analysis was about coleration where we found out that featur
 
 ![1778581949534](image/process-report/1778581949534.png)
 
-One of the datasets (correlation on the figure below) if used alone would make our models super overfitting but we decided to keep it and merge with other datasets which can create interesting outliers and diversity.![1778582109105](image/process-report/1778582109105.png)
+One of the datasets (correlation on the figure below) if used alone would make our models super overfitting but we decided to keep it and merge with other datasets which can create interesting diversity.![1778582109105](image/process-report/1778582109105.png)
 
+Another issue was that most datasets were missing 1 to 2 sensor data, so after mergin them into final mock dataset, several options for handling missing values (columns) were investigated. In order to keep the variance and avoid the "perfect average" look often seen in basic imputation, we implemented a more sophisticated approach using MICE framework.
 
-<!-- Reflect on the MIDDLE of the project — how you actually worked through it.
-     Focus on the process: what methods did you use and why, did they work,
-     what surprised you, what would you change?
-     Technical details belong in the Project Report — your reflections on
-     using those techniques belong here. -->
+In order to make it as realistic as possible we wanted something else than simple means or standard linear MICE. Our process started by finding room type groups by using k-means clustering model based on features (temperature, co2, humidity) that were in full dataset. This was done because we though that there might be rooms where those features are more correlated (because of e.g. sun exposion), or less correlated (e.g. laboratories). ExtraTress model were chosen as an estimator to model more complex relationships than linear. We also modified the imputation so that the averagae standard deviation from Trees used to include a natural distirbution and variance rather than a flat average line.
+
+Unfortunatelly some clusters were missing not 1 but 2 columns (both noise and light). Because without at least some local ground truth, a model cannot statistically converge on a meaningful correlation, for those specific instances, a global median was used to handle extreme data sparsity and prevent model bias. This allowed us to achieve 100% missing columns coverage in a lot better way than just randomizing or generating them.
 
 ## 4.1 Application of Methods and Theories
 
