@@ -8,23 +8,35 @@
 #include "wifi.h"
 #include "wifi_http.h"
 #include "dht11.h"
+#include "light.h"
 #include "timer.h"
 #include "server_api.h"
 
 static void delay_s(uint8_t seconds)
 {
-    for (uint8_t s = 0; s < seconds; s++){
-        for (uint8_t m = 0; m < 100; m++){
+    for (uint8_t s = 0; s < seconds; s++)
+    {
+        for (uint8_t m = 0; m < 100; m++)
+        {
             _delay_ms(10);
         }
     }
 }
 
 static volatile uint8_t pulse_due = 0;
-static volatile uint8_t data_due  = 0;
+static volatile uint8_t data_due = 0;
+static uint8_t request_in_progress = 0;
 
-static void on_pulse_timer(uint8_t id) { (void)id; pulse_due = 1; }
-static void on_data_timer(uint8_t id)  { (void)id; data_due  = 1; }
+static void on_pulse_timer(uint8_t id)
+{
+    (void)id;
+    pulse_due = 1;
+}
+static void on_data_timer(uint8_t id)
+{
+    (void)id;
+    data_due = 1;
+}
 
 int main(void)
 {
@@ -33,13 +45,16 @@ int main(void)
     uart_stdio_init(115200);
 
     printf("\n=== Device boot ===\n");
-
+    light_init();
     wifi_init();
     printf("[WIFI] Waiting for module...\n");
     delay_s(4);
 
     printf("[WIFI] Sending AT...\n");
-    while (wifi_command_AT() != WIFI_OK) delay_s(1);
+    while (wifi_command_AT() != WIFI_OK)
+    {
+        delay_s(1);
+    }
     printf("[WIFI] Module OK\n");
 
     wifi_command_disable_echo();
@@ -66,30 +81,40 @@ int main(void)
     server_start_session();
 
     int8_t pulse_timer = timer_create_sw(on_pulse_timer, 5000);
-    int8_t data_timer  = timer_create_sw(on_data_timer,  10000);
+    int8_t data_timer = timer_create_sw(on_data_timer, 30000);
 
-    if (pulse_timer < 0 || data_timer < 0){
+    if (pulse_timer < 0 || data_timer < 0)
+    {
         printf("[ERROR] Timer creation failed\n");
     }
 
+    printf("[MAIN] Entering main loop\n");
+
     while (1)
     {
-        if (pulse_due)
+        if (!request_in_progress && pulse_due)
         {
             pulse_due = 0;
+            request_in_progress = 1;
             server_send_pulse();
+            request_in_progress = 0;
         }
 
-        if (data_due)
+        if (!request_in_progress && data_due)
         {
             data_due = 0;
+            request_in_progress = 1;
             uint8_t t_int = 0, t_dec = 0, h_int = 0, h_dec = 0;
-            if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK){
-                server_send_data(t_int, t_dec);
+            uint16_t current_light = light_measure_raw();
+            if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK)
+            {
+                server_send_data(t_int, t_dec, h_int, h_dec, current_light);
             }
-            else{
+            else
+            {
                 printf("[ERROR] DHT11 read failed\n");
             }
+            request_in_progress = 0;
         }
     }
 }

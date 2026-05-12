@@ -29,3 +29,7 @@ build/
 
 # Combined Data_6 csv dataset / run /Mal/scripts/combine_keti_data.py if needed
 /MAL/data/interim/combined_keti_sensor_data.csv
+
+# Keep the manually trained production model so CI can run tests against it
+# without retraining on every push.
+!/MAL/models/rf_model.pkl

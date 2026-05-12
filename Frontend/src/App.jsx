@@ -4,6 +4,8 @@ import LoginPage from "./pages/LoginPage";
 import History from "./pages/History";
 import Navbar from "./components/Navbar";
 import StudentDashboard from "./pages/StudentDashboard";
+import IntegrationTest from "./components/IntegrationTest";
+
 import CalendarPage from "./pages/CalendarPage";
 import Profile from './pages/Profile';
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -16,6 +18,7 @@ function App() {
       <Navbar />
 
       <Routes>
+        <Route path="/integration-test" element={<IntegrationTest />} />
         <Route path="/" element={<RegisterPage />} />
         import PublicRoute from "./components/PublicRoute";
 
@@ -73,6 +76,7 @@ function App() {
         />
 
         <Route path="*" element={<RegisterPage />} />
+        
       </Routes>
     </>
   );
