@@ -44,6 +44,23 @@
   color: #2d6a4f;
 }
 
+.dashboard-message {
+  padding-top: 120px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.dashboard-message button {
+  margin-top: 15px;
+  width: 120px;
+  height: 36px;
+  border: none;
+  border-radius: 7px;
+  background: #8dd9bd;
+  cursor: pointer;
+  font-size: 16px;
+}
+
 /* ADMIN BUTTONS */
 .admin-actions {
   margin-top: 30px;
@@ -151,4 +168,13 @@ body.dark-theme .status-good {
 
 body.dark-theme .status-bad {
   background: #4a1f1f;
+}
+
+body.dark-theme .dashboard-message {
+  color: #ffffff;
+}
+
+body.dark-theme .dashboard-message button {
+  background: rgb(188, 255, 226);
+  color: #111;
 }

@@ -38,6 +38,9 @@ detailedHistory: "Detailed History",
 light: "Light",
 tempShort: "Temp",
 humShort: "Hum",
+dashboardError: "Could not load environment data.",
+tryAgain: "Try again",
+noData: "No data available.",
   },
 
   da: {
@@ -79,5 +82,8 @@ detailedHistory: "Detaljeret historik",
 light: "Lys",
 tempShort: "Temp",
 humShort: "Fugt",
+dashboardError: "Kunne ikke indlæse miljødata.",
+tryAgain: "Prøv igen",
+noData: "Ingen data tilgængelige.",
   },
 };
