@@ -16,7 +16,7 @@ all_rooms_data = []
 print(f"Looking for data in: {base_dir}")
 print("Starting data processing...")
 
-for room_name in os.listdir(str(base_dir)):
+for room_name in sorted(os.listdir(str(base_dir))):
     room_path = base_dir / room_name
     
     if room_path.is_dir():
@@ -27,8 +27,9 @@ for room_name in os.listdir(str(base_dir)):
             file_path = room_path / f"{sensor}.csv"
             
             if file_path.exists():
-                df = pd.read_csv(file_path, header=None, names=['timestamp', sensor])
-                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+                df = pd.read_csv(file_path, header=None, names=['timestamp', sensor], skipinitialspace=True)
+                df['timestamp'] = pd.to_datetime(df['timestamp'].astype('int64'), unit='s')
+                df[sensor] = pd.to_numeric(df[sensor], errors='coerce')
                 df.set_index('timestamp', inplace=True)
                 
                 if room_df.empty:
