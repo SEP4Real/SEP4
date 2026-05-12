@@ -3,6 +3,7 @@ import { getEnvironmentDataa } from "../services/EnvironmentService";
 import SensorCard from "../components/SensorCard";
 import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
+import SessionRating from "../components/SessionRating";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -54,6 +55,7 @@ export default function Dashboard() {
     {data.recommendation}
   </p>
 </div>
+<SessionRating />
 
     </div>
   );
