@@ -5,11 +5,12 @@ import History from "./pages/History";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
-
+import StudentDashboard from './pages/StudentDashboard';
 import CalendarPage from "./pages/CalendarPage";
 import Profile from './pages/Profile';
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
+
 
 
 function App() {
@@ -30,7 +31,7 @@ function App() {
         <Route path="/history" element={<History />} />
         <Route path="/student" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
-        import PublicRoute from "./components/PublicRoute";
+       
 
         {/* public routes */}
         <Route
@@ -64,7 +65,7 @@ function App() {
           path="/student"
           element={
             <ProtectedRoute>
-              <StudentDashboard />
+              <Dashboard />
             </ProtectedRoute>
           }
         />
