@@ -1,56 +1,47 @@
-const API_URL = 'http://127.0.0.1:8000';
+export const register = async (userData) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // save the received data in localStorage under the key "user"
+      const allUsers = JSON.parse(localStorage.getItem("users")) || [];
+      allUsers.push(userData);
+      localStorage.setItem("users", JSON.stringify(allUsers));
 
-export async function register(userData) {
-  const response = await fetch(`${API_URL}/register`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(userData)
+      localStorage.setItem("user", JSON.stringify(userData));
+      resolve({ success: true, user: userData });
+    }, 500);
   });
+};
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || 'Registration error');
-  }
+export const login = async (email, password) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const rawData = localStorage.getItem("users");
+      let allUsers = [];
 
-  return await response.json();
-}
+      try {
+        const parsedData = JSON.parse(rawData);
+        // Forțăm allUsers să fie un array, chiar dacă datele sunt corupte
+        allUsers = Array.isArray(parsedData) ? parsedData : [];
+      } catch (e) {
+        allUsers = [];
+      }
 
-export async function login(credentials) {
-  const response = await fetch(`${API_URL}/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      username: credentials.email, // send email like username for Python
-      password: credentials.password
-    })
+      const foundUser = allUsers.find(
+        (u) => u.email === email && String(u.password) === String(password)
+      );
+
+      if (foundUser) {
+        localStorage.setItem("user", JSON.stringify(foundUser));
+        resolve({ success: true, user: foundUser });
+      } else {
+        reject(new Error("Invalid email or password"));
+      }
+    }, 500);
   });
+};
 
-  if (!response.ok) {
-    const errorBody = await response.json();
-    throw new Error(errorBody.detail || 'Authentication error');
-  }
-
-  const data = await response.json();
-
-  // Save token in localStorage
-  if (data.access_token) {
-    localStorage.setItem('token', data.access_token);
-    const userToSave = { 
-        email: credentials.email || "student", 
-        role: "Student" 
-    };
-  
-    localStorage.setItem('user', JSON.stringify(userToSave));
-  }
-
-  return data;
-}
 
 export function logout() {
-  localStorage.removeItem('token');
   localStorage.removeItem('user');
+  window.dispatchEvent(new Event("storage"));
 }

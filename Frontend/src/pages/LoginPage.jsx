@@ -32,9 +32,20 @@ export default function LoginPage() {
       setError(t.enterEmailPassword);
       return;
     }
+    /*const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await login(email, password); 
+      if (result.success) {
+        navigate("/student");
+      }
+    } catch (error) {
+      alert(error.message); 
+    }
+    };*/
 
     try {
-      const result = await login(form);
+      const result = await login(form.email, form.password);
       localStorage.setItem("user", JSON.stringify(result.user));
       window.dispatchEvent(new Event("storage")); 
       navigate("/student");

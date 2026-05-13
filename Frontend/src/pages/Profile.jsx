@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { getEnvironmentData } from "../services/EnvironmentService";
+import { getEnvironmentDataa } from "../services/EnvironmentService";
 import './Profile.css';
 import { logout } from '../services/AuthService';
+import { useLanguage } from "../context/LanguageContext";
 
 const Profile = () => {
   const navigate = useNavigate();
   const userData = localStorage.getItem('user');
+  const { t } = useLanguage();
   let user = { email: "User", role: "Student" }; 
-
+ 
     if (userData && userData !== "undefined") {
         try {
             user = JSON.parse(userData);
         } catch (e) {
-            console.error("Eroare la citirea userului din storage", e);
+            console.error("Error reading user from storage", e);
         }
     }
   const [recentHistory, setRecentHistory] = useState([]);
@@ -38,7 +40,7 @@ const Profile = () => {
     if (!userData) return;
     const loadData = async () => {
       try {
-        const data = await getEnvironmentData();
+        const data = await getEnvironmentDataa();
         if (data && data.length > 0) {
           setStats({ 
             totalSessions: data.length, 
@@ -54,7 +56,7 @@ const Profile = () => {
   if (!userData) return <Navigate to="/login" replace />;
 
   const calculateProgress = () => {
-    let fields = [userData.name, studentInfo.university, studentInfo.StudyProgram, studentInfo.year, studentInfo.goal, studentInfo.profilePic];
+    let fields = [user?.name, studentInfo.university, studentInfo.StudyProgram, studentInfo.year, studentInfo.goal, studentInfo.profilePic];
     let completed = fields.filter(f => f && f !== "").length;
     return Math.round((completed / fields.length) * 100);
   };
@@ -75,24 +77,46 @@ const Profile = () => {
     alert("Profile and Preferences updated!");
   };
 
-  const handleUpdatePassword = () => {
-    const allUsers = JSON.parse(localStorage.getItem("users")) || [];
-    const userIdx = allUsers.findIndex(u => u.email === userData.email);
+ const handleUpdatePassword = () => {
+  // take the data from the form
+  const { current, next } = passwordForm;
 
-    if (userIdx === -1 || allUsers[userIdx].password !== passwordForm.current) {
-      alert("Current password is incorrect!");
-      return;
-    }
-    if (passwordForm.next.length < 3) {
-      alert("New password too short!");
-      return;
-    }
+  // take the current "session" and the "database" of users
+  const user = JSON.parse(localStorage.getItem("user"));
+  const allUsers = JSON.parse(localStorage.getItem("users")) || [];
 
-    allUsers[userIdx].password = passwordForm.next;
+  if (!user) {
+    alert("You are not logged in! Please log in again.");
+    return; 
+  }
+
+  // check if the current password entered matches that of the logged in user
+  if (!user || user.password !== current) {
+    alert("Current password is incorrect!");
+    return;
+  }
+
+  // Validate new password length
+  if (next.length < 3) {
+    alert("New password too short!");
+    return;
+  }
+
+  // Update the password in the session object (to stay logged in with the new data)
+  const updatedUser = { ...user, password: next };
+  localStorage.setItem("user", JSON.stringify(updatedUser));
+
+  // update the password in the "database" as well (for future logins)
+  const userIdx = allUsers.findIndex(u => u.email === user.email);
+  if (userIdx !== -1) {
+    allUsers[userIdx].password = next;
     localStorage.setItem("users", JSON.stringify(allUsers));
-    alert("Password changed! Use it at next login.");
-    setPasswordForm({ current: "", next: "" });
-  };
+  }
+
+  // Completion
+  alert("Password changed successfully!");
+  setPasswordForm({ current: "", next: "" });
+};
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -108,7 +132,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    //localStorage.removeItem("token");
     window.dispatchEvent(new Event("storage"));
     navigate('/login', { replace: true });
   };
@@ -117,6 +141,8 @@ const Profile = () => {
     <div className="profile-page-container">
   <div className="profile-card-wrapper">
     <h1>User Profile</h1>
+    <h1>Welcome, {user?.name}</h1>
+    
 
     {/* PROGRESS */}
     <div className="completion-container">

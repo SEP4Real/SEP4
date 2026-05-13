@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState("");
 
   const navigate = useNavigate();
-   const { t } = useLanguage();
+  const { t } = useLanguage();
 
   function handleChange(e) {
     const { name, value } = e.target;

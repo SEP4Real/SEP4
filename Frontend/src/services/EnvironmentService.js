@@ -16,7 +16,7 @@ export const getEnvironmentDataa = async () => {
   });
 };
 
-export const getEnvironmentData = async () => {
+/*export const getEnvironmentData = async () => {
   try {
     const response = await fetch("/api/Data");
 
@@ -29,4 +29,4 @@ export const getEnvironmentData = async () => {
     console.error("Error fetching history:", error);
     return [];
   }
-};
+};*/

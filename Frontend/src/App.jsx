@@ -5,7 +5,6 @@ import History from "./pages/History";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
-import StudentDashboard from './pages/StudentDashboard';
 import CalendarPage from "./pages/CalendarPage";
 import Profile from './pages/Profile';
 import ProtectedRoute from "./components/ProtectedRoute";

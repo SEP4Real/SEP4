@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getEnvironmentData} from "../services/EnvironmentService";
+import { getEnvironmentDataa} from "../services/EnvironmentService";
 //import { mockHistory } from "../MockData";
 import "./History.css";
 import "../index.css";
