@@ -44,6 +44,42 @@
   color: #2d6a4f;
 }
 
+.dashboard-message {
+  padding-top: 120px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.dashboard-message button {
+  margin-top: 15px;
+  width: 120px;
+  height: 36px;
+  border: none;
+  border-radius: 7px;
+  background: #8dd9bd;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.recommendation-card {
+  margin-top: 30px;
+  padding: 25px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #caf7db, #b7e4c7);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.recommendation-card h2 {
+  margin-top: 0;
+  color: #1b4332;
+}
+
+.recommendation-card p {
+  font-size: 1.1rem;
+  color: #2d6a4f;
+  line-height: 1.5;
+}
+
 /* ADMIN BUTTONS */
 .admin-actions {
   margin-top: 30px;
@@ -122,4 +158,54 @@
 
 .status-bad {
   background: linear-gradient(135deg, #ffe5e5, #ffb3b3);
+}
+
+
+/* DARK THEME */
+
+body.dark-theme .dashboard h1 {
+  color: #ffffff;
+}
+
+body.dark-theme .sensor-card {
+  background: #2b2b2b;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-theme .sensor-title {
+  color: #ffffff;
+}
+
+body.dark-theme .sensor-value {
+  color: rgb(188, 255, 226);
+}
+
+body.dark-theme .status-good {
+  background: #1f3d32;
+}
+
+body.dark-theme .status-bad {
+  background: #4a1f1f;
+}
+
+body.dark-theme .dashboard-message {
+  color: #ffffff;
+}
+
+body.dark-theme .dashboard-message button {
+  background: rgb(188, 255, 226);
+  color: #111;
+}
+
+body.dark-theme .recommendation-card {
+  background: #2a2a2a;
+}
+
+body.dark-theme .recommendation-card h2 {
+  color: white;
+}
+
+body.dark-theme .recommendation-card p {
+  color: #dddddd;
 }

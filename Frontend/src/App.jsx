@@ -3,7 +3,7 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import History from "./pages/History";
 import Navbar from "./components/Navbar";
-import StudentDashboard from "./pages/StudentDashboard";
+import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
 
 import CalendarPage from "./pages/CalendarPage";
@@ -24,7 +24,13 @@ function App() {
             </PublicRoute>} />
         
         <Route path="/integration-test" element={<IntegrationTest />} />
-      
+        <Route path="/" element={<RegisterPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/student" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+        import PublicRoute from "./components/PublicRoute";
 
         {/* public routes */}
         <Route

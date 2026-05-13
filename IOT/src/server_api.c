@@ -23,16 +23,16 @@ static void delay_ms_wdt(uint16_t ms)
 
 void server_register_device(void)
 {
-    printf("[DEVICE] Registering device key: %s\n", DEVICE_PUBLIC_KEY);
+    printf("[DEVICE] Registering device id: %s\n", DEVICE_ID);
     char body[64];
-    snprintf(body, sizeof(body), "{\"publicKey\":\"%s\"}", DEVICE_PUBLIC_KEY);
+    snprintf(body, sizeof(body), "{\"id\":\"%s\"}", DEVICE_ID);
     http_post("/Device", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 }
 
 void server_start_session(void)
 {
     char body[64];
-    snprintf(body, sizeof(body), "{\"deviceId\":\"%s\"}", DEVICE_PUBLIC_KEY);
+    snprintf(body, sizeof(body), "{\"deviceId\":\"%s\"}", DEVICE_ID);
 
     for (uint8_t attempt = 1; attempt <= SESSION_START_RETRIES; attempt++)
     {
@@ -86,7 +86,8 @@ void server_send_pulse(void)
 
 void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec, uint16_t light_raw)
 {
-    if (session_id < 0){
+    if (session_id < 0)
+    {
         return;
     }
     char body[128];

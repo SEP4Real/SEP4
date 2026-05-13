@@ -14,19 +14,29 @@
 
 static void delay_s(uint8_t seconds)
 {
-    for (uint8_t s = 0; s < seconds; s++){
-        for (uint8_t m = 0; m < 100; m++){
+    for (uint8_t s = 0; s < seconds; s++)
+    {
+        for (uint8_t m = 0; m < 100; m++)
+        {
             _delay_ms(10);
         }
     }
 }
 
 static volatile uint8_t pulse_due = 0;
-static volatile uint8_t data_due  = 0;
+static volatile uint8_t data_due = 0;
 static uint8_t request_in_progress = 0;
 
-static void on_pulse_timer(uint8_t id) { (void)id; pulse_due = 1; }
-static void on_data_timer(uint8_t id)  { (void)id; data_due  = 1; }
+static void on_pulse_timer(uint8_t id)
+{
+    (void)id;
+    pulse_due = 1;
+}
+static void on_data_timer(uint8_t id)
+{
+    (void)id;
+    data_due = 1;
+}
 
 int main(void)
 {
@@ -41,7 +51,8 @@ int main(void)
     delay_s(4);
 
     printf("[WIFI] Sending AT...\n");
-    while (wifi_command_AT() != WIFI_OK){
+    while (wifi_command_AT() != WIFI_OK)
+    {
         delay_s(1);
     }
     printf("[WIFI] Module OK\n");
@@ -70,9 +81,10 @@ int main(void)
     server_start_session();
 
     int8_t pulse_timer = timer_create_sw(on_pulse_timer, 5000);
-    int8_t data_timer  = timer_create_sw(on_data_timer,  30000);
+    int8_t data_timer = timer_create_sw(on_data_timer, 30000);
 
-    if (pulse_timer < 0 || data_timer < 0){
+    if (pulse_timer < 0 || data_timer < 0)
+    {
         printf("[ERROR] Timer creation failed\n");
     }
 
@@ -94,10 +106,12 @@ int main(void)
             request_in_progress = 1;
             uint8_t t_int = 0, t_dec = 0, h_int = 0, h_dec = 0;
             uint16_t current_light = light_measure_raw();
-            if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK){
+            if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK)
+            {
                 server_send_data(t_int, t_dec, h_int, h_dec, current_light);
             }
-            else{
+            else
+            {
                 printf("[ERROR] DHT11 read failed\n");
             }
             request_in_progress = 0;

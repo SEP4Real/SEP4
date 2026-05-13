@@ -43,14 +43,14 @@ static WIFI_ERROR_MESSAGE_t http_request(const char *method, const char *endpoin
 
     char req[384];
     snprintf(req, sizeof(req),
-        "%s %s HTTP/1.0\r\n"
-        "Host: %s:%d\r\n"
-        "Content-Type: application/json\r\n"
-        "Content-Length: %u\r\n"
-        "Connection: close\r\n"
-        "\r\n%s",
-        method, endpoint, SERVER_HOST, SERVER_PORT,
-        (uint16_t)strlen(body), body);
+             "%s %s HTTP/1.0\r\n"
+             "Host: %s:%d\r\n"
+             "Content-Type: application/json\r\n"
+             "Content-Length: %u\r\n"
+             "Connection: close\r\n"
+             "\r\n%s",
+             method, endpoint, SERVER_HOST, SERVER_PORT,
+             (uint16_t)strlen(body), body);
 
     data_received = 0;
     memset(rx_buf, 0, rx_buf_size);
@@ -82,7 +82,8 @@ static WIFI_ERROR_MESSAGE_t http_request(const char *method, const char *endpoin
         waited += 10;
     }
 
-    if (!data_received){
+    if (!data_received)
+    {
         printf("[WARN] No response received\n");
     }
 
