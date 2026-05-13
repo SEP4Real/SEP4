@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
 import { useTheme } from "../context/ThemeContext";
@@ -6,6 +5,28 @@ import { useLanguage } from "../context/LanguageContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+import { useState, useEffect } from 'react';
+
+const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+
+  const [user, setUser] = useState(localStorage.getItem("user"));
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setUser(localStorage.getItem("user"));
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    setUser(localStorage.getItem("user"));
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+
+  }, []);
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -70,6 +91,38 @@ const { language, toggleLanguage, t } = useLanguage();
   </span>
 </li>
       </ul>
+
+      {/* not logged in*/}
+      {!user && (
+        <>
+          <li>
+            <Link to="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
+          </li>
+          <li>
+            <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
+          </li>
+        </>
+      )}
+
+      {/* logged in */}
+      {user && (
+        <>
+          <li>
+            <Link to="/calendar" onClick={() => setIsMenuOpen(false)}>Calendar</Link>
+          </li>
+          <li>
+            <Link to="/history" onClick={() => setIsMenuOpen(false)}>History</Link>
+          </li>
+          <li>
+            <Link to="/student" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+          </li>
+          <li>
+            <Link to="/profile" onClick={() => setIsMenuOpen(false)}>Profile</Link>
+          </li>
+        </>
+      )}
+
+    </ul>
     </nav>
   );
 };

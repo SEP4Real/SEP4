@@ -1,15 +1,3 @@
-/**
- * @file wifi.h
- * @author Laurits Ivar / Erland Larsen
- * @brief ESP8266 WiFi module interface using UART.
- * @version 0.9
- * @date 2023-08-23
- * Revision history: 0.1 - Initial version
- *                   0.9 - 2026-03-01 Refactored to use common uart driver
- * 
- * @copyright Copyright (c) 2026
- * 
- */
 #include "wifi.h"
 #include <string.h>
 #include <stdbool.h>
@@ -23,17 +11,28 @@ static uint8_t wifi_dataBufferIndex;
 static uint32_t wifi_baudrate;
 static void (*_callback)(uint8_t byte);
 
+typedef enum { TCP_IDLE, TCP_MATCH_PREFIX, TCP_LENGTH, TCP_DATA } tcp_state_t;
+static tcp_state_t tcp_state = TCP_IDLE;
+static int tcp_length = 0;
+static int tcp_index = 0;
+static int tcp_prefix_index = 0;
+
 static void wifi_TCP_callback(uint8_t byte);
 
 static void wifi_callback(uint8_t received_byte)
 {
-    if(NULL != _callback)
+    if(NULL != _callback){
         _callback(received_byte);
+    }
 }
+
 static void wifi_command_callback(uint8_t received_byte)
 {
-    wifi_dataBuffer[wifi_dataBufferIndex] = received_byte;
-    wifi_dataBufferIndex++;
+    if (wifi_dataBufferIndex < WIFI_DATABUFFERSIZE - 1) {
+        wifi_dataBuffer[wifi_dataBufferIndex] = received_byte;
+        wifi_dataBufferIndex++;
+        wifi_dataBuffer[wifi_dataBufferIndex] = '\0';
+    }
 }
 
 void wifi_init()
@@ -44,8 +43,9 @@ void wifi_init()
 
 void static wifi_clear_databuffer_and_index()
 {
-    for (uint16_t i = 0; i < WIFI_DATABUFFERSIZE; i++)
+    for (uint16_t i = 0; i < WIFI_DATABUFFERSIZE; i++){
         wifi_dataBuffer[i] = 0;
+    }
     wifi_dataBufferIndex = 0;
 }
 
@@ -59,11 +59,14 @@ WIFI_ERROR_MESSAGE_t wifi_command(const char *str, uint16_t timeOut_s)
 
     uart_send_string_blocking(UART2_ID, strcat(sendbuffer, "\r\n"));
 
-    for (uint16_t i = 0; i < timeOut_s * 100UL; i++) // timeout after 20 sec
+    for (uint16_t i = 0; i < timeOut_s * 100UL; i++) 
     {
         _delay_ms(10);
-        if (strstr((char *)wifi_dataBuffer, "OK\r\n") != NULL)
+        
+        if (strstr((char *)wifi_dataBuffer, "OK\r\n") != NULL || strstr((char *)wifi_dataBuffer, "ERROR\r\n") != NULL || strstr((char *)wifi_dataBuffer, "UNLINK\r\n") != NULL)
+        {
             break;
+        }
     }
 
     WIFI_ERROR_MESSAGE_t error;
@@ -91,10 +94,6 @@ WIFI_ERROR_MESSAGE_t wifi_command_AT()
 
 WIFI_ERROR_MESSAGE_t wifi_command_join_AP(char *ssid, char *password)
 {
-   /* WIFI_ERROR_MESSAGE_t error = wifi_command_AT();
-    if (error != WIFI_OK)
-        return error;*/
-
     char sendbuffer[128];
     strcpy(sendbuffer, "AT+CWJAP=\"");
     strcat(sendbuffer, ssid);
@@ -123,7 +122,7 @@ WIFI_ERROR_MESSAGE_t wifi_command_get_ip_from_URL(char * url, char *ip_address){
 
     uart_send_string_blocking(UART2_ID, strcat(sendbuffer, "\r\n"));
 
-    for (uint16_t i = 0; i < timeOut_s * 100UL; i++) // timeout after 20 sec
+    for (uint16_t i = 0; i < timeOut_s * 100UL; i++)
     {
         _delay_ms(10);
         if (strstr((char *)wifi_dataBuffer, "OK\r\n") != NULL)
@@ -143,20 +142,15 @@ WIFI_ERROR_MESSAGE_t wifi_command_get_ip_from_URL(char * url, char *ip_address){
     else
         error= WIFI_ERROR_RECEIVING_GARBAGE;
     
-   
     char *ipStart = strstr((char *)wifi_dataBuffer, "CIPDOMAIN:");
     if (ipStart != NULL) {
-        // Move the pointer to the start of the IP address
         ipStart += strlen("CIPDOMAIN:");
-
-        // Find the end of the IP address (assuming it ends with a newline)
         char * ipEnd = strchr(ipStart, '\r');
         if (ipEnd != NULL && (ipEnd - ipStart) < 16) {
-            // Copy the IP address into the buffer
             strncpy(ip_address, ipStart, ipEnd - ipStart);
             ip_address[ipEnd - ipStart] = '\0';
-            
-        } }
+        } 
+    }
 
     wifi_clear_databuffer_and_index();
     _callback = callback_state;
@@ -165,7 +159,6 @@ WIFI_ERROR_MESSAGE_t wifi_command_get_ip_from_URL(char * url, char *ip_address){
 
 
 WIFI_ERROR_MESSAGE_t wifi_command_quit_AP(){
-
     return wifi_command("AT+CWQAP", 5);
 }
 
@@ -191,69 +184,75 @@ WIFI_ERROR_MESSAGE_t wifi_command_close_TCP_connection()
 
 WIFI_TCP_Callback_t callback_when_message_received_static;
 char *received_message_buffer_static_pointer;
-static void  wifi_TCP_callback(uint8_t byte)
-{
-    static enum { IDLE, MATCH_PREFIX, LENGTH, DATA } state = IDLE;
-    static int length = 0, index = 0, prefix_index = 0;
 
-    switch(state) {
-        case IDLE:
+static void wifi_TCP_callback(uint8_t byte)
+{
+    switch(tcp_state) {
+        case TCP_IDLE:
             if(byte == IPD_PREFIX[0]) {
-                state = MATCH_PREFIX;
-                prefix_index = 1;
+                tcp_state = TCP_MATCH_PREFIX;
+                tcp_prefix_index = 1;
             }
             break;
 
-        case MATCH_PREFIX:
-            if(byte == IPD_PREFIX[prefix_index]) {
-                if(prefix_index == PREFIX_LENGTH - 1) {
-                    state = LENGTH;
+        case TCP_MATCH_PREFIX:
+            if(byte == IPD_PREFIX[tcp_prefix_index]) {
+                if(tcp_prefix_index == PREFIX_LENGTH - 1) {
+                    tcp_state = TCP_LENGTH;
                 } else {
-                    prefix_index++;
+                    tcp_prefix_index++;
                 }
             } else {
-                // not the expected character, reset to IDLE
-                state = IDLE;
-                prefix_index = 0;
+                tcp_state = TCP_IDLE;
+                tcp_prefix_index = 0;
             }
             break;
 
-        case LENGTH:
+        case TCP_LENGTH:
             if(byte >= '0' && byte <= '9') {
-                length = length * 10 + (byte - '0');
+                tcp_length = tcp_length * 10 + (byte - '0');
             } else if(byte == ':') {
-                state = DATA;
-                index = 0; // reset index to start storing data
+                tcp_state = TCP_DATA;
+                tcp_index = 0; 
             } else {
-                // not the expected character, reset to IDLE
-                state = IDLE;
-                length = 0;
+                tcp_state = TCP_IDLE;
+                tcp_length = 0;
             }
             break;
 
-        case DATA:
-            if(index < length) {
-                received_message_buffer_static_pointer[index++] = byte;
+        case TCP_DATA:
+            if(tcp_index < tcp_length) {
+                if (tcp_index < 1023) { 
+                    received_message_buffer_static_pointer[tcp_index] = byte;
+                }
+                tcp_index++;
             }
-            if(index == length) {
-                // message is complete, null terminate the string
-                received_message_buffer_static_pointer[index] = '\0';
+            
+            if(tcp_index == tcp_length) {
+                if (tcp_length < 1024) {
+                    received_message_buffer_static_pointer[tcp_length] = '\0';
+                } else {
+                    received_message_buffer_static_pointer[1023] = '\0';
+                }
 
-                // reset to IDLE
-                state = IDLE;
-                length = 0;
-                index = 0;
+                tcp_state = TCP_IDLE;
+                tcp_length = 0;
+                tcp_index = 0;
 
-            wifi_clear_databuffer_and_index();
-            callback_when_message_received_static();
+                wifi_clear_databuffer_and_index();
+                callback_when_message_received_static();
             }
             break;
     }
-  
 }
 
 WIFI_ERROR_MESSAGE_t wifi_command_create_TCP_connection(char *IP, uint16_t port, WIFI_TCP_Callback_t callback_when_message_received, char *received_message_buffer)
 {
+    tcp_state = TCP_IDLE;
+    tcp_length = 0;
+    tcp_index = 0;
+    tcp_prefix_index = 0;
+
     received_message_buffer_static_pointer = received_message_buffer;
     callback_when_message_received_static = callback_when_message_received;
     char sendbuffer[128];
@@ -267,10 +266,12 @@ WIFI_ERROR_MESSAGE_t wifi_command_create_TCP_connection(char *IP, uint16_t port,
     strcat(sendbuffer, portString);
 
     WIFI_ERROR_MESSAGE_t errorMessage = wifi_command(sendbuffer, 20);
-    if (errorMessage != WIFI_OK)
+    if (errorMessage != WIFI_OK){
         return errorMessage;
-    else
+    }
+    else{
         _callback = wifi_TCP_callback;
+    }
 
     wifi_clear_databuffer_and_index();
     return errorMessage;
@@ -285,8 +286,9 @@ WIFI_ERROR_MESSAGE_t wifi_command_TCP_transmit(uint8_t * data, uint16_t length)
     strcat(sendbuffer, portString);
 
     WIFI_ERROR_MESSAGE_t errorMessage = wifi_command(sendbuffer, 20);
-    if (errorMessage != WIFI_OK)
+    if (errorMessage != WIFI_OK){
         return errorMessage;
+    }
     
     uart_write_bytes(UART2_ID, data, length);
     return WIFI_OK;

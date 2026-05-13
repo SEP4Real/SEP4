@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+notebooks/
+tests/
+
+data/mock/
+data/raw/*
+data/interim/*
+models/*
+!models/.gitkeep
+

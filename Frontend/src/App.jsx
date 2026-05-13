@@ -6,7 +6,10 @@ import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
 
+import CalendarPage from "./pages/CalendarPage";
 import Profile from './pages/Profile';
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
 
 
 function App() {
@@ -22,6 +25,61 @@ function App() {
         <Route path="/history" element={<History />} />
         <Route path="/student" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
+        import PublicRoute from "./components/PublicRoute";
+
+        {/* public routes */}
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+
+        {/* protected routes */}
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <History />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student"
+          element={
+            <ProtectedRoute>
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <ProtectedRoute>
+              <CalendarPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="*" element={<RegisterPage />} />
         
       </Routes>

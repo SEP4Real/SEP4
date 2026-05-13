@@ -17,30 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache PlatformIO
-        uses: actions/cache@v4
-        with:
-          path: ~/.platformio
-          key: ${{ runner.os }}-pio
+      - name: Install lcov
+        run: sudo apt-get install -y lcov
 
-      - name: Install PlatformIO and lcov
+      - name: Create secrets.ini
         run: |
-          pip install platformio
-          sudo apt-get install -y lcov
+          cat > secrets.ini << EOF
+          [secrets]
+          build_flags =
+              -DSERVER_HOST='"test_host"'
+              -DSERVER_PORT=2137
+              -DWIFI_SSID='"test_ssid"'
+              -DWIFI_PASSWORD='"test_password"'
+          EOF
 
-      - name: Run tests
-        run: pio test -e native-coverage
-
-      - name: Generate coverage report
-        run: |
-          lcov --capture --directory .pio/build/native-coverage \
-               --output-file coverage.info \
-               --ignore-errors mismatch,unused
-          lcov --remove coverage.info \
-               '*/.pio/*' '*/fakes/*' '*/unity/*' '*/test/*' '/usr/*' \
-               --output-file coverage.info \
-               --ignore-errors unused
-          genhtml coverage.info --output-directory coverage-html
+      - name: Run tests with coverage
+        run: make coverage
 
       - name: Upload HTML report as artifact
         uses: actions/upload-artifact@v4
@@ -65,6 +57,17 @@ jobs:
 
       - name: Install PlatformIO
         run: pip install platformio
+
+      - name: Create secrets.ini
+        run: |
+          cat > secrets.ini << EOF
+          [secrets]
+          build_flags =
+              -DSERVER_HOST='"test_host"'
+              -DSERVER_PORT=2137
+              -DWIFI_SSID='"test_ssid"'
+              -DWIFI_PASSWORD='"test_password"'
+          EOF
 
       - name: Build
         run: pio run -e megaatmega2560
