@@ -108,3 +108,52 @@
   cursor: pointer;
   margin-top: 10px;
 }
+
+/* DARK THEME */
+
+body.dark-theme .profile-page-container {
+  background: transparent;
+  color: #ffffff;
+}
+
+body.dark-theme .profile-card-wrapper {
+  background: rgba(43, 43, 43, 0.9);
+  color: #ffffff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-theme .profile-card-wrapper h1 {
+  color: rgb(188, 255, 226);
+}
+
+body.dark-theme .profile-section {
+  background: #2b2b2b;
+  border-color: rgb(188, 255, 226);
+  color: #ffffff;
+}
+
+body.dark-theme .profile-avatar {
+  background-color: #111;
+  color: rgb(188, 255, 226);
+  border-color: rgb(188, 255, 226);
+}
+
+body.dark-theme .setting-row {
+  border-bottom-color: #555;
+}
+
+body.dark-theme .profile-input {
+  background: #1f1f1f;
+  color: #ffffff;
+  border: 1px solid #555;
+}
+
+body.dark-theme .save-btn {
+  background-color: #2d6a4f;
+  color: #ffffff;
+}
+
+body.dark-theme .logout-btn {
+  color: #ffb3b3;
+  border-color: #ffb3b3;
+}
