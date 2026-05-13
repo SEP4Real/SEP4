@@ -92,7 +92,7 @@ erDiagram
     sessions ||--o{ data : contains
 
     devices {
-        varchar public_key PK
+        varchar id PK
     }
 
     sessions {

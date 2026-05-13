@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { register } from "../services/AuthService";
 import "../index.css";
 import "./RegisterPage.css";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -16,6 +17,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState("");
 
   const navigate = useNavigate();
+   const { t } = useLanguage();
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -32,7 +34,7 @@ export default function RegisterPage() {
     setSuccess("");
 
     if (!form.name || !form.lastName || !form.email || !form.password) {
-      setError("Fill required fields");
+      setError(t.fillRequiredFields);
       return;
     }
 
@@ -44,6 +46,8 @@ export default function RegisterPage() {
       window.location.href = "/student";
       }, 1000);
       
+      setSuccess(t.registeredSuccessfully);
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     }
@@ -52,17 +56,17 @@ export default function RegisterPage() {
   return (
     <div className="page">
       <div className="card">
-        <h1>Hi!</h1>
-        <h2>Register</h2>
+        <h1>{t.hi}</h1>
+        <h2>{t.registerTitle}</h2>
 
         <form onSubmit={handleSubmit} className="form">
           <label>
-            Name:
+            {t.name}:
             <input name="name" value={form.name} onChange={handleChange} />
           </label>
 
           <label>
-            Last name:
+            {t.lastName}:
             <input
               name="lastName"
               value={form.lastName}
@@ -71,7 +75,7 @@ export default function RegisterPage() {
           </label>
 
           <label>
-            Password:
+            {t.password}:
             <input
               name="password"
               type="password"
@@ -81,7 +85,7 @@ export default function RegisterPage() {
           </label>
 
           <label>
-            Email:
+            {t.email}:
             <input
               name="email"
               type="email"
@@ -94,10 +98,10 @@ export default function RegisterPage() {
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
 
-          <button type="submit">Register</button>
+          <button type="submit">{t.register}</button>
 
           <p className="auth-link">
-            Already have an account? <Link to="/login">Login</Link>
+            {t.alredyHaveAccount} <Link to="/login">{t.login}</Link>
           </p>
         </form>
       </div>
