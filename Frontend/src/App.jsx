@@ -23,7 +23,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/history" element={<History />} />
-        <Route path="/student" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
         import PublicRoute from "./components/PublicRoute";
 
@@ -52,14 +52,6 @@ function App() {
           element={
             <ProtectedRoute>
               <History />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student"
-          element={
-            <ProtectedRoute>
-              <StudentDashboard />
             </ProtectedRoute>
           }
         />

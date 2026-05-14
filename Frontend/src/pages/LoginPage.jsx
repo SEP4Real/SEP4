@@ -37,7 +37,7 @@ export default function LoginPage() {
       const result = await login(form);
       localStorage.setItem("user", JSON.stringify(result.user));
       window.dispatchEvent(new Event("storage")); 
-      navigate("/student");
+      navigate("/dashboard");
     } catch {
       setError(t.loginFailed);
     }

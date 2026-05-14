@@ -43,7 +43,7 @@
   outline: none;
 }
 
-.student-admin-row {
+.dashboard-admin-row {
   grid-column: 2 / 4;
 
   display: grid;
@@ -52,7 +52,7 @@
   align-items: end;
 }
 
-.student-admin-row span {
+.dashboard-admin-row span {
   align-self: center;
   font-size: 18px;
   padding-top: 26px;
@@ -112,7 +112,7 @@ body.dark-theme .card h2 {
 }
 
 body.dark-theme .form label,
-body.dark-theme .student-admin-row span {
+body.dark-theme .dashboard-admin-row span {
   color: #ffffff;
 }
 

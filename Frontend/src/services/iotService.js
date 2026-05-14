@@ -1,4 +1,4 @@
-const IOT_API_URL = "http://localhost:8080";
+const IOT_API_URL = import.meta.env.VITE_IOT_API_URL;
 
 export async function getIoTHealthCheck() {
   const response = await fetch(`${IOT_API_URL}/`);
