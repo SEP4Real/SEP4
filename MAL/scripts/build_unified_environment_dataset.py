@@ -27,7 +27,10 @@ class SourceSpec:
 DEFAULT_SOURCES: tuple[SourceSpec, ...] = (
     SourceSpec("keti_1min_resampled", DATA_DIR / "interim" / "keti_1min_resampled.csv"),
     SourceSpec("room_conditions", DATA_DIR / "raw" / "room_conditions.csv"),
-    SourceSpec("room_measurements", DATA_DIR / "raw" / "1_room_measurements.csv"),
+    SourceSpec(
+        "room_measurements_with_comfort",
+        DATA_DIR / "processed" / "1_room_measurements_with_comfort.csv",
+    ),
     SourceSpec("homecoach_5min_2023", DATA_DIR / "raw" / "HomeCoach_5min_2023.csv"),
     SourceSpec("homecoach_5min_2024", DATA_DIR / "raw" / "HomeCoach_5min_2024.csv"),
     SourceSpec("homecoach_5min_2025", DATA_DIR / "raw" / "HomeCoach_5min_2025.csv"),
@@ -134,6 +137,13 @@ def parse_timestamps(series: pd.Series) -> pd.Series:
     return pd.Series(parsed, index=series.index)
 
 
+def display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(MAL_DIR))
+    except ValueError:
+        return str(path)
+
+
 def make_record_ids(source_slug: str, raw_df: pd.DataFrame) -> pd.Series:
     source_record_id = clean_identifier(coalesce_columns(raw_df, RECORD_ID_CANDIDATES))
     fallback_ids = pd.Series(
@@ -205,10 +215,8 @@ def make_session_ids(
             continue
 
         gaps = known_time["timestamp"].diff()
-        day_changed = known_time["timestamp"].dt.date.ne(
-            known_time["timestamp"].dt.date.shift()
-        )
-        starts_new_session = gaps.isna() | gaps.gt(SESSION_GAP) | day_changed
+        # Keep a session open across midnight when the actual time gap is small.
+        starts_new_session = gaps.isna() | gaps.gt(SESSION_GAP)
         session_numbers = starts_new_session.cumsum()
 
         for row_index, session_number in session_numbers.items():
@@ -221,6 +229,7 @@ def make_session_ids(
 
 def standardise_source(spec: SourceSpec) -> tuple[pd.DataFrame, dict[str, object]]:
     raw_df = pd.read_csv(spec.path, low_memory=False)
+    raw_row_count = len(raw_df)
     source_slug = slugify(spec.name)
 
     timestamps = parse_timestamps(coalesce_columns(raw_df, TIMESTAMP_CANDIDATES))
@@ -233,33 +242,62 @@ def standardise_source(spec: SourceSpec) -> tuple[pd.DataFrame, dict[str, object
         focus_score = focus_score.astype("Int64")
 
     location_ids = make_location_ids(source_slug, raw_df)
+    record_ids = make_record_ids(source_slug, raw_df)
+    humidity = to_numeric(coalesce_columns(raw_df, HUMIDITY_CANDIDATES))
+    light = to_numeric(coalesce_columns(raw_df, LIGHT_CANDIDATES))
+    temperature = to_numeric(coalesce_columns(raw_df, TEMPERATURE_CANDIDATES))
+    noise = to_numeric(coalesce_columns(raw_df, NOISE_CANDIDATES))
+    co2 = to_numeric(coalesce_columns(raw_df, CO2_CANDIDATES))
+
+    information = pd.DataFrame(
+        {
+            "humidity": humidity,
+            "light": light,
+            "temperature": temperature,
+            "noise": noise,
+            "co2": co2,
+            "focus_score": focus_score,
+        },
+        index=raw_df.index,
+    )
+    empty_rows = information[INFORMATION_COLUMNS].isna().all(axis=1)
+    dropped_empty_rows = int(empty_rows.sum())
+
+    raw_df = raw_df.loc[~empty_rows].copy()
+    timestamps = timestamps.loc[raw_df.index]
+    timestamp_strings = timestamp_strings.loc[raw_df.index]
+    location_ids = location_ids.loc[raw_df.index]
+    record_ids = record_ids.loc[raw_df.index]
+    humidity = humidity.loc[raw_df.index]
+    light = light.loc[raw_df.index]
+    temperature = temperature.loc[raw_df.index]
+    noise = noise.loc[raw_df.index]
+    co2 = co2.loc[raw_df.index]
+    focus_score = focus_score.loc[raw_df.index]
 
     standardised = pd.DataFrame(
         {
             "timestamp": timestamp_strings,
             "session_id": make_session_ids(source_slug, raw_df, location_ids, timestamps),
             "location_id": location_ids,
-            "record_id": make_record_ids(source_slug, raw_df),
+            "record_id": record_ids,
             "source": source_slug,
-            "humidity": to_numeric(coalesce_columns(raw_df, HUMIDITY_CANDIDATES)),
-            "light": to_numeric(coalesce_columns(raw_df, LIGHT_CANDIDATES)),
-            "temperature": to_numeric(coalesce_columns(raw_df, TEMPERATURE_CANDIDATES)),
-            "noise": to_numeric(coalesce_columns(raw_df, NOISE_CANDIDATES)),
-            "co2": to_numeric(coalesce_columns(raw_df, CO2_CANDIDATES)),
+            "humidity": humidity,
+            "light": light,
+            "temperature": temperature,
+            "noise": noise,
+            "co2": co2,
             "focus_score": focus_score,
             "_parsed_timestamp": timestamps,
         }
     )
 
-    empty_rows = standardised[INFORMATION_COLUMNS].isna().all(axis=1)
-    dropped_empty_rows = int(empty_rows.sum())
-    standardised = standardised.loc[~empty_rows].copy()
     output_timestamps = standardised["_parsed_timestamp"]
 
     report = {
         "source": source_slug,
-        "input_path": str(spec.path.relative_to(MAL_DIR)),
-        "raw_rows": len(raw_df),
+        "input_path": display_path(spec.path),
+        "raw_rows": raw_row_count,
         "output_rows": len(standardised),
         "dropped_empty_rows": dropped_empty_rows,
         "first_timestamp": output_timestamps.min(),
@@ -292,7 +330,7 @@ def build_unified_dataset(
                 reports.append(
                     {
                         "source": slugify(spec.name),
-                        "input_path": str(spec.path.relative_to(MAL_DIR)),
+                        "input_path": display_path(spec.path),
                         "raw_rows": 0,
                         "output_rows": 0,
                         "status": "missing",
