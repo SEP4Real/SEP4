@@ -19,6 +19,7 @@ from scripts.fill_missing_targets import (
     fill_missing_targets,
     fill_targets_from_student_preferences,
 )
+from scripts.linearize_session_windows import build_linearized_windows
 
 
 def test_session_ids_do_not_split_on_midnight_when_gap_is_small():
@@ -196,3 +197,78 @@ def test_fill_focus_scores_from_respondent_preferences_outputs_1_to_5_scores():
     assert filled["focus_score"].isna().sum() == 0
     assert filled["focus_score"].between(1, 5).all()
     assert model_summary["student_id"].tolist() == ["13", "31"]
+
+
+def test_linearized_windows_split_sessions_by_configurable_gap_and_overlap():
+    df = pd.DataFrame(
+        {
+            "timestamp": [
+                "2026-05-14T10:00:00Z",
+                "2026-05-14T10:10:00Z",
+                "2026-05-14T10:20:00Z",
+                "2026-05-14T11:00:00Z",
+            ],
+            "source": ["test"] * 4,
+            "location_id": ["room_a"] * 4,
+            "record_id": ["r1", "r2", "r3", "r4"],
+            "session_id": ["old"] * 4,
+            "temperature": [20.0, 22.0, 24.0, 30.0],
+            "humidity": [40.0, 42.0, 44.0, 50.0],
+            "focus_score": [2, 3, 4, 5],
+        }
+    )
+
+    linearized, session_report = build_linearized_windows(
+        df,
+        feature_columns=["temperature", "humidity"],
+        window_minutes=30,
+        session_gap_minutes=30,
+    )
+
+    assert "linear_session_id" not in linearized.columns
+    assert "source" not in linearized.columns
+    assert "window_end" not in linearized.columns
+    assert session_report["rows"].tolist() == [3, 1]
+
+    third_window = linearized.iloc[2]
+    assert third_window["temperature_latest"] == 24.0
+    assert third_window["temperature_mean"] == 22.0
+    assert third_window["temperature_min"] == 20.0
+    assert third_window["temperature_max"] == 24.0
+    assert third_window["focus_score"] == 4
+
+
+def test_linearized_window_size_is_configurable():
+    df = pd.DataFrame(
+        {
+            "timestamp": [
+                "2026-05-14T10:00:00Z",
+                "2026-05-14T10:10:00Z",
+                "2026-05-14T10:20:00Z",
+            ],
+            "source": ["test"] * 3,
+            "location_id": ["room_a"] * 3,
+            "temperature": [20.0, 22.0, 24.0],
+            "focus_score": [2, 3, 4],
+        }
+    )
+
+    linearized, _ = build_linearized_windows(
+        df,
+        feature_columns=["temperature"],
+        window_minutes=15,
+        session_gap_minutes=30,
+    )
+
+    assert linearized.iloc[2]["temperature_mean"] == 23.0
+    assert linearized.iloc[2]["temperature_count"] == 2
+    assert list(linearized.columns) == [
+        "focus_score",
+        "temperature_latest",
+        "temperature_mean",
+        "temperature_min",
+        "temperature_max",
+        "temperature_std",
+        "temperature_count",
+        "temperature_range",
+    ]
