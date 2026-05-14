@@ -94,6 +94,29 @@ void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8
     snprintf(body, sizeof(body), "{\"sessionId\":%ld,\"temperature\":%d.%d,\"humidity\":%d.%d,\"lightLevel\":%u,\"co2Level\":%u}", session_id, temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
     printf("[DATA] Sending temp=%d.%d, hum=%d.%d, light=%u, co2=%u\n", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
     http_post("/data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
+
+    char *quality_ptr = strstr(tcp_rx_buf, "\"study_quality\"");
+    if (quality_ptr != NULL){
+
+        char *colon_ptr = strchr(quality_ptr, ':');
+        if (colon_ptr != NULL)
+        {
+            int quality_val = atoi(colon_ptr + 1);
+            printf("[DATA] Server returned study quality: %d\n", quality_val);
+            if (quality_val == 1)
+            {
+                printf("[ALERT] Quality is 1 - sounding buzzer...\n");
+                for (int i = 0; i < 120; i++)
+                {
+                    wdt_reset();
+                    buzzer_beep(); 
+                }
+            }
+            
+        }
+        
+    }
+    
 }
 
 void server_reset(void)
