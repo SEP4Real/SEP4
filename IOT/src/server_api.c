@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <avr/wdt.h>
 #include <util/delay.h>
+#include "buzzer.h"
 
 #define SESSION_START_RETRIES 5
 #define SESSION_RETRY_DELAY_MS 2000
