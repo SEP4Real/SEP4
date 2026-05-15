@@ -1,42 +1,47 @@
-export async function register(data) {
+export const register = async (userData) => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // get existing users
-      const users = JSON.parse(localStorage.getItem("users")) || [];
+      // save the received data in localStorage under the key "user"
+      const allUsers = JSON.parse(localStorage.getItem("users")) || [];
+      allUsers.push(userData);
+      localStorage.setItem("users", JSON.stringify(allUsers));
 
-      // add user
-      users.push(data);
-
-      // save back to localStorage
-      localStorage.setItem("users", JSON.stringify(users));
-
-      // simulate success response
-      resolve({ ok: true });
+      localStorage.setItem("user", JSON.stringify(userData));
+      resolve({ success: true, user: userData });
     }, 500);
   });
-}
+};
 
-export async function login(data) {
+export const login = async (email, password) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      
-      // get existing users
-      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const rawData = localStorage.getItem("users");
+      let allUsers = [];
 
-      // find user with matching credentials from localStorage
-      const foundUser = users.find(
-        (u) => u.email === data.email && u.password === data.password
+      try {
+        const parsedData = JSON.parse(rawData);
+        // Forțăm allUsers să fie un array, chiar dacă datele sunt corupte
+        allUsers = Array.isArray(parsedData) ? parsedData : [];
+      } catch (e) {
+        allUsers = [];
+      }
+
+      const foundUser = allUsers.find(
+        (u) => u.email === email && String(u.password) === String(password)
       );
 
       if (foundUser) {
-        //login successful → user data
-        resolve({
-          user: foundUser,
-        });
+        localStorage.setItem("user", JSON.stringify(foundUser));
+        resolve({ success: true, user: foundUser });
       } else {
-        // login failed → error
-        reject(new Error("Invalid credentials"));
+        reject(new Error("Invalid email or password"));
       }
     }, 500);
   });
+};
+
+
+export function logout() {
+  localStorage.removeItem('user');
+  window.dispatchEvent(new Event("storage"));
 }

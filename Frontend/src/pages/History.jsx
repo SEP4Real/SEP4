@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getEnvironmentData} from "../services/EnvironmentService";
+import { getEnvironmentDataa} from "../services/EnvironmentService";
 //import { mockHistory } from "../MockData";
 import "./History.css";
 import "../index.css";
@@ -13,7 +13,7 @@ const History = () => {
   const { t } = useLanguage();
 
  useEffect(() => {
-  const loadData = async () => {
+    const loadData = async () => {
     try {
     console.log("Fetching real data from DB...");
     const rawData = await getEnvironmentData();
@@ -38,8 +38,6 @@ const History = () => {
     console.error("Data processing error:", error);
   }
   };
-
-  loadData();
 
   // set the update time to 1 minute
   const interval = setInterval(() => {

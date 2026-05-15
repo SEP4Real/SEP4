@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState("");
 
   const navigate = useNavigate();
-   const { t } = useLanguage();
+  const { t } = useLanguage();
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -40,6 +40,12 @@ export default function RegisterPage() {
 
     try {
       await register(form);
+      setSuccess("Registred successfully! Logging you in...");
+      
+      setTimeout(() => {
+      window.location.href = "/student";
+      }, 1000);
+      
       setSuccess(t.registeredSuccessfully);
       navigate("/dashboard");
     } catch (err) {
