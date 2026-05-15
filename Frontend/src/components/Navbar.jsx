@@ -1,26 +1,13 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState(localStorage.getItem("user"));
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setUser(localStorage.getItem("user"));
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    setUser(localStorage.getItem("user"));
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-
-  }, []);
+  const user = localStorage.getItem("user");
+  const location = useLocation();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -78,17 +65,21 @@ const { language, toggleLanguage, t } = useLanguage();
 
         {!user && (
           <>
-            <li>
-              <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                Register
-              </Link>
-            </li>
+            {location.pathname !== "/register" && (
+              <li>
+                <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                  Register
+                </Link>
+              </li>
+            )}
 
-            <li>
-              <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                Login
-              </Link>
-            </li>
+            {location.pathname !== "/login" && (
+              <li>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                  Login
+                </Link>
+              </li>
+            )}
           </>
         )}
 

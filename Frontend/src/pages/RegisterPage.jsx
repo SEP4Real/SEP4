@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { register } from "../services/AuthService";
+import { register, login } from "../services/AuthService";
 import "../index.css";
 import "./RegisterPage.css";
 import { useLanguage } from "../context/LanguageContext";
@@ -40,7 +40,16 @@ export default function RegisterPage() {
 
     try {
       await register(form);
+
+      const userData = await login({
+        email: form.email,
+        password: form.password,
+      });
+
+      localStorage.setItem("user", JSON.stringify(userData.user));
+
       setSuccess(t.registeredSuccessfully);
+
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);
