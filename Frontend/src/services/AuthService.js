@@ -1,19 +1,24 @@
+const API_URL = "http://localhost:8000";
+
 export async function register(data) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // get existing users
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-
-      // add user
-      users.push(data);
-
-      // save back to localStorage
-      localStorage.setItem("users", JSON.stringify(users));
-
-      // simulate success response
-      resolve({ ok: true });
-    }, 500);
+  const response = await fetch(`${API_URL}/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: data.name,
+      last_name: data.lastName,
+      email: data.email,
+      password: data.password,
+    }),
   });
+
+  if (!response.ok) {
+    throw new Error("Registration failed");
+  }
+
+  return response.json();
 }
 
 export async function login(data) {
