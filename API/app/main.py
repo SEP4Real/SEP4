@@ -1,8 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
-
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-
 from app.database import ensure_schema_created
 from app.routers import device, session, data, health, auth
 from app.database import cleanup_sessions
@@ -14,11 +13,20 @@ async def lifespan(app: FastAPI):
     yield
     task.cancel();
 
-
 app = FastAPI(title="API", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(device.router)
 app.include_router(session.router)
 app.include_router(data.router)
 app.include_router(health.router)
 app.include_router(auth.router)
+
+

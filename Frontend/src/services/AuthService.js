@@ -1,11 +1,15 @@
-const API_URL = "http://localhost:8000";
+const API_URL = "http://localhost:8080";
 
 export async function register(data) {
+
+  // send request to backend
   const response = await fetch(`${API_URL}/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+
+    // send user data
     body: JSON.stringify({
       name: data.name,
       last_name: data.lastName,
@@ -14,34 +18,41 @@ export async function register(data) {
     }),
   });
 
+  // failed -> backend error
   if (!response.ok) {
-    throw new Error("Registration failed");
+    const errorData = await response.json();
+    console.log(errorData);
+    throw new Error(JSON.stringify(errorData));
   }
 
+  // success -> backend response
   return response.json();
 }
 
 export async function login(data) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      
-      // get existing users
-      const users = JSON.parse(localStorage.getItem("users")) || [];
 
-      // find user with matching credentials from localStorage
-      const foundUser = users.find(
-        (u) => u.email === data.email && u.password === data.password
-      );
+  // send login request to backend
+  const response = await fetch(`${API_URL}/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
 
-      if (foundUser) {
-        //login successful → user data
-        resolve({
-          user: foundUser,
-        });
-      } else {
-        // login failed → error
-        reject(new Error("Invalid credentials"));
-      }
-    }, 500);
+    // send email and password
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+    }),
   });
+
+  // convert response
+  const result = await response.json();
+
+  // failed -> error
+  if (!response.ok || result.error) {
+    throw new Error(result.error || "Invalid credentials");
+  }
+
+  // success -> user data
+  return result;
 }
