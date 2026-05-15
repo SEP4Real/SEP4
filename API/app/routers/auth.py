@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.database import get_db
+from passlib.context import CryptContext
 
 router = APIRouter()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # request body for registration
 class RegisterRequest(BaseModel):
@@ -14,6 +16,8 @@ class RegisterRequest(BaseModel):
 @router.post("/register")
 async def register(data: RegisterRequest, db=Depends(get_db)):
 
+    hashed_password = pwd_context.hash(data.password)
+
     # insert new user to db
     await db.execute(
         """
@@ -24,7 +28,7 @@ async def register(data: RegisterRequest, db=Depends(get_db)):
             data.name,
             data.last_name,
             data.email,
-            data.password
+            hashed_password
         )
     )
 
@@ -59,7 +63,7 @@ async def login(data: LoginRequest, db=Depends(get_db)):
         return {"error": "Invalid credentials"}
 
     # failed: incorrect password
-    if user["password"] != data.password:
+    if not pwd_context.verify(data.password, user["password"]):
         return {"error": "Invalid credentials"}
 
     # success → return user data
