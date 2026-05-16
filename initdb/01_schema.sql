@@ -8,7 +8,7 @@ CREATE TABLE sessions (
     started_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     is_ended BOOLEAN NOT NULL DEFAULT FALSE,
     last_pulse_at TIMESTAMPTZ,
-    study_quality INT CHECK (study_quality BETWEEN 1 AND 10),
+    study_quality INT CHECK (study_quality BETWEEN 1 AND 5),
     CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE RESTRICT
 );
 
@@ -20,6 +20,7 @@ CREATE TABLE data (
     co2_level   FLOAT,
     light_level FLOAT,
     sent_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    predicted_study_quality INT CHECK (predicted_study_quality BETWEEN 1 AND 5),
     CONSTRAINT fk_data_session FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE RESTRICT
 );
 

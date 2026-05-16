@@ -328,6 +328,24 @@ void test_send_data_body_contains_co2_value(void)
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "1200"));
 }
 
+void test_bad_study_conditions_sound_buzzer(void)
+{
+    start_session_with_id(3);
+    http_post_fake.custom_fake = capture_and_inject_post;
+    inject_post_response = "{\"study_quality\": 1}";
+    server_send_data(22, 5, 60, 3, 856, 1200);
+    TEST_ASSERT_NOT_EQUAL(0, buzzer_beep_fake.call_count);
+}
+
+void test_normal_study_conditions_dont_sound_buzzer(void)
+{
+    start_session_with_id(3);
+    http_post_fake.custom_fake = capture_and_inject_post;
+    inject_post_response = "{\"study_quality\": 2}";
+    server_send_data(22, 5, 60, 3, 856, 1200);
+    TEST_ASSERT_EQUAL(0, buzzer_beep_fake.call_count);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -362,6 +380,8 @@ int main(void)
     RUN_TEST(test_send_data_body_contains_light_values);
     RUN_TEST(test_send_data_body_contains_co2_field);
     RUN_TEST(test_send_data_body_contains_co2_value);
+    RUN_TEST(test_bad_study_conditions_sound_buzzer);
+    RUN_TEST(test_normal_study_conditions_dont_sound_buzzer);
 
     return UNITY_END();
 }
