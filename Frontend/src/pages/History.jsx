@@ -10,13 +10,16 @@ const History = () => {
   const [data, setData] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
+  const [hasDevice, setHasDevice] = useState(false);
   const { t } = useLanguage();
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
  useEffect(() => {
     const loadData = async () => {
     try {
     console.log("Fetching real data from DB...");
-    const rawData = await getEnvironmentData();
+    const rawData = await getEnvironmentDataa();
     
     // Mape (sent_at, co2_level, etc.) -> UI (date, time, co2)
    if (rawData && Array.isArray(rawData)) {
@@ -39,14 +42,51 @@ const History = () => {
   }
   };
 
+  const checkConnectionAndFetch = () => {
+      const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+      const connectedDevice = userDevices.find(d => d.email === user?.email);
+
+      if (connectedDevice) {
+        setHasDevice(true);
+        loadData(); 
+      } else {
+        setHasDevice(false);
+        setData([]); 
+      }
+    };
+
+    checkConnectionAndFetch();
+
+    window.addEventListener("storage", checkConnectionAndFetch);
+
   // set the update time to 1 minute
   const interval = setInterval(() => {
     loadData();
   }, 60000); 
 
   // Cleanup - 
-  return () => clearInterval(interval);
-}, []);
+  return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", checkConnectionAndFetch);
+    };
+  }, [user?.email, hasDevice]);
+
+  if (!hasDevice) {
+    return (
+      <div className="history-page">
+        <div className="content-wrapper">
+          <section className="indicators-section">
+            <div className="indicators-header">
+              <h2 className="title">{t.historyTitle}</h2>
+            </div>
+            <div className="chart-card" style={{ textAlign: "center", padding: "40px 20px" }}>
+              <p style={{ fontSize: "1.2rem" }}>⚠️ You don't have any devices connected. Go to Profile for setup</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
 
   const toggleAccordion = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -55,7 +95,6 @@ const History = () => {
   const filteredData = filterDate
     ? data.filter(item => item.dateValue === filterDate)
     : data;
-
 
   const latest = filteredData.length > 0 ? filteredData[filteredData.length - 1] : {};
 

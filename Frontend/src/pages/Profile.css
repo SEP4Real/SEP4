@@ -158,11 +158,13 @@ h1 {
 }
 
 .profile-section {
-    background: white;
+    background: #f9f9f9;
     border-radius: 12px;
-    border: 1px solid #8dd9bd;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     padding: 20px;
     box-sizing: border-box;
+    margin-bottom: 20px;
 }
 
 .profile-section h3 {
@@ -201,14 +203,14 @@ h1 {
 
 .update-btn-full {
     width: 100%; 
-    background: #4CAF50;
+    background:#4caf50;
     color: white;
     border: none;
-    padding: 12px;
-    border-radius: 8px;
+    padding: 10px 20px;
+    border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background 0.2s;
 }
 
 .setting-row {
@@ -242,8 +244,15 @@ h1 {
 }
 
 .history-table-compact th {
+    background-color: #2e7d32;
     text-align: left;
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
-    color: #666;
+    color: white;
+}
+
+.history-table-compact td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    color: #333;
 }

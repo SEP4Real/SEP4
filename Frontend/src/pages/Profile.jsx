@@ -77,6 +77,21 @@ const Profile = () => {
     alert("Profile and Preferences updated!");
   };
 
+  const handleConnectDevice = () => {
+  const id = document.getElementById('deviceIdInput').value;
+  if (!id) return alert("Please enter an ID");
+
+  const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+  
+  if (!userDevices.find(d => d.email === user.email)) {
+    userDevices.push({ email: user.email, deviceId: id });
+    localStorage.setItem("user_devices", JSON.stringify(userDevices));
+    alert("Device " + id + " connected!");
+  } else {
+    alert("You already have a connected device!");
+  }
+};
+
  const handleUpdatePassword = () => {
   // take the data from the form
   const { current, next } = passwordForm;
@@ -116,7 +131,7 @@ const Profile = () => {
   // Completion
   alert("Password changed successfully!");
   setPasswordForm({ current: "", next: "" });
-};
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -139,7 +154,7 @@ const Profile = () => {
 
   return (
     <div className="profile-page-container">
-  <div className="profile-card-wrapper">
+    <div className="profile-card-wrapper">
     <h1>User Profile</h1>
     <h1>Welcome, {user?.name}</h1>
     
@@ -228,20 +243,35 @@ const Profile = () => {
         </div>
         <button className="update-btn-full" onClick={handleUpdatePassword}>Update Password</button>
       </div>
-
-      <div className="profile-section">
-        <h3>⚙️ Preferences ⚙️</h3>
-        <div className="setting-row">
-          <span>Ideal Temp:</span>
-          <input type="number" value={prefs.temp} onChange={e => setPreferences({...prefs, temp: e.target.value})} className="profile-input" />
-        </div>
-        <div className="setting-row">
-          <span>Max CO2:</span>
-          <input type="number" value={prefs.co2} onChange={e => setPreferences({...prefs, co2: e.target.value})} className="profile-input" />
-        </div>
-        <button className="update-btn-full" onClick={handleSaveAll}>Save Info</button>
+ 
+    <div className="profile-section">
+      <h3>🔌 Connect Device</h3>
+      <div className="setting-row">
+        <span>Device ID:</span>
+        <input type="text" placeholder="Ex: DEV-123" className="profile-input" id="deviceIdInput" />
       </div>
+      <button className="update-btn-full" onClick={() => {
+        const id = document.getElementById('deviceIdInput').value;
+        if (!id) return alert("Please enter an ID");
+
+        const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+
+        const alreadyConnected = userDevices.find(d => d.email === user.email && d.deviceId === id);
+
+        if (!alreadyConnected) {
+        userDevices.push({ email: user.email, deviceId: id });
+        localStorage.setItem("user_devices", JSON.stringify(userDevices));
+        
+        window.dispatchEvent(new Event("storage")); 
+        
+        alert("Device " + id + " connected to your account!");
+      } else {
+        alert("This device is already connected to your account!");
+      }
+      }}>Connect Now</button>
     </div>
+    </div>
+    
 
     {/* AI & HISTORY */}
     <div className="profile-row-grid">

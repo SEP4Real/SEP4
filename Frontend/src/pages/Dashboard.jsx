@@ -7,20 +7,55 @@ import SessionRating from "../components/SessionRating";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
+  const [hasDevice, setHasDevice] = useState(false);
   const { t } = useLanguage();
-
+  //get the current user
+  const user = JSON.parse(localStorage.getItem("user"));
   
   useEffect(() => {
-    getEnvironmentDataa().then((res) => {
-      setData(res);
-    });
-  }, []);
+  const checkConnection = () => {
+     // take the list of associations ("user devices")
+    const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+     //check if the logged in user has at least one device connected
+    const connectedDevice = userDevices.find(d => d.email === user?.email);
 
+    if (connectedDevice) {
+      setHasDevice(true);
+      // We only request the data if we found a device
+      getEnvironmentDataa().then((res) => {
+        setData(res);
+      });
+    } else {
+      setHasDevice(false);
+      setData("no_device");
+    }
+  };
+
+  checkConnection();
+  window.addEventListener("storage", checkConnection);
+
+  return () => {
+    window.removeEventListener("storage", checkConnection);
+  };
+  }, [user?.email]);
+
+  // If there is no device connected, we display a warning message
+  if (!hasDevice || data === "no_device") {
+    return (
+      <div className="dashboard">
+        <h1>{t.dashboard}</h1>
+        <div className="recommendation-card">
+          <p>⚠️ You don't have any devices connected. Go to Profile for setup</p>
+        </div>
+      </div>
+    );
+  }
+
+  
   if (!data) {
     return <p>{t.loading}</p>;
   }
 
-  
   return (
     <div className="dashboard">
       <h1>{t.dashboard}</h1>
