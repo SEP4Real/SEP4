@@ -35,6 +35,7 @@ export default function LoginPage() {
 
     try {
       const result = await login(form);
+      console.log(result);
       localStorage.setItem("user", JSON.stringify(result.user));
       navigate("/dashboard");
     } catch {

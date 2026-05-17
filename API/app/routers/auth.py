@@ -3,9 +3,27 @@ from pydantic import BaseModel
 from app.database import get_db
 from passlib.context import CryptContext
 from fastapi import HTTPException
+from jose import jwt
+from datetime import datetime, timedelta
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+SECRET_KEY = "your_secret_key_here"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+
+    encoded_jwt = jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM)
+
+    return encoded_jwt
 
 # request body for registration
 class RegisterRequest(BaseModel):
@@ -88,9 +106,12 @@ async def login(data: LoginRequest, db=Depends(get_db)):
     if not pwd_context.verify(data.password, user["password"]):
         return {"error": "Invalid credentials"}
 
+    access_token = create_access_token(data={"sub": str(user["id"])})
+    
     # success → return user data
     return {
         "message": "Login successful",
+        "access_token": access_token,
         "user": {
             "id": str(user["id"]),
             "name": user["name"],
