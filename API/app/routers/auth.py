@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.database import get_db
 from passlib.context import CryptContext
+from fastapi import HTTPException
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -16,7 +17,29 @@ class RegisterRequest(BaseModel):
 @router.post("/register")
 async def register(data: RegisterRequest, db=Depends(get_db)):
 
+    # check if email already exists
+    result = await db.execute(
+        """
+        SELECT * FROM users
+        WHERE email = %s
+        """,
+        (data.email,)
+    )
+
+    existing_user = await result.fetchone()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    # hash password
     hashed_password = pwd_context.hash(data.password)
+
+    print("REGISTERED USER:")
+    print(data.email)
+    print(hashed_password)
 
     # insert new user to db
     await db.execute(
@@ -35,7 +58,6 @@ async def register(data: RegisterRequest, db=Depends(get_db)):
     # save changes to db
     await db.commit()
 
-    # success
     return {"message": "User created"}
 
 

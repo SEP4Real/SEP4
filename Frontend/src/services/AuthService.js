@@ -22,7 +22,7 @@ export async function register(data) {
   if (!response.ok) {
     const errorData = await response.json();
     console.log(errorData);
-    throw new Error(JSON.stringify(errorData));
+    throw new Error(errorData.detail || "Registration failed");
   }
 
   // success -> backend response
