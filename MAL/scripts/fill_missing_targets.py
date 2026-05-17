@@ -28,6 +28,12 @@ MAL_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = MAL_DIR / "data"
 
 DEFAULT_OUTPUT_PATH = DATA_DIR / "processed" / "unified_environment_focus_dataset_filled.csv"
+
+#new alternative way to fill in rating
+DEFAULT_RULE_BASED_TARGET_OUTPUT_PATH = (
+    DATA_DIR / "processed" / "unified_environment_rule_based_focus_score_filled.csv"
+)
+
 DEFAULT_STUDENT_TARGET_OUTPUT_PATH = (
     DATA_DIR / "processed" / "unified_environment_student_target_filled.csv"
 )
@@ -123,6 +129,148 @@ def normalise_class_target(values: pd.Series, allowed_classes: set[int] | None =
         target = target.where(target.isin(allowed_classes))
     return target
 
+# new helper functions
+def score_in_range(
+    values: pd.Series,
+    ideal_low: float,
+    ideal_high: float,
+    worst_low: float,
+    worst_high: float,
+) -> pd.Series:
+    numeric_values = pd.to_numeric(values, errors="coerce")
+    scores = pd.Series(np.nan, index=values.index, dtype="float64")
+
+    scores = scores.mask(
+        numeric_values.between(ideal_low, ideal_high),
+        1.0,
+    )
+
+    below_ideal = numeric_values < ideal_low
+    scores = scores.mask(
+        below_ideal,
+        ((numeric_values - worst_low) / (ideal_low - worst_low)).clip(0, 1),
+    )
+
+    above_ideal = numeric_values > ideal_high
+    scores = scores.mask(
+        above_ideal,
+        ((worst_high - numeric_values) / (worst_high - ideal_high)).clip(0, 1),
+    )
+
+    return scores
+
+
+def score_below_threshold(
+    values: pd.Series,
+    ideal_max: float,
+    worst_max: float,
+) -> pd.Series:
+    numeric_values = pd.to_numeric(values, errors="coerce")
+
+    scores = ((worst_max - numeric_values) / (worst_max - ideal_max)).clip(0, 1)
+    scores = scores.mask(numeric_values <= ideal_max, 1.0)
+
+    return scores
+
+# new rule-based rating function
+
+def build_rule_based_focus_scores(df: pd.DataFrame) -> pd.Series:
+    required_columns = ["temperature", "humidity", "co2", "noise"]
+    missing_columns = [column for column in required_columns if column not in df.columns]
+    if missing_columns:
+        raise ValueError(
+            "Dataset is missing required columns for rule-based scoring: "
+            + ", ".join(missing_columns)
+        )
+
+    feature_scores = pd.DataFrame(
+        {
+            "temperature_score": score_in_range(
+                df["temperature"],
+                ideal_low=21,
+                ideal_high=23,
+                worst_low=17,
+                worst_high=28,
+            ),
+            "humidity_score": score_in_range(
+                df["humidity"],
+                ideal_low=40,
+                ideal_high=55,
+                worst_low=25,
+                worst_high=75,
+            ),
+            "co2_score": score_below_threshold(
+                df["co2"],
+                ideal_max=700,
+                worst_max=1600,
+            ),
+            "noise_score": score_below_threshold(
+                df["noise"],
+                ideal_max=40,
+                worst_max=65,
+            ),
+        }
+    )
+
+    weights = pd.Series(
+        {
+            "temperature_score": 0.35,
+            "humidity_score": 0.20,
+            "co2_score": 0.35,
+            "noise_score": 0.10,
+        }
+    )
+
+    weighted_sum = feature_scores.mul(weights, axis=1).sum(axis=1, min_count=1)
+    available_weight_sum = feature_scores.notna().mul(weights, axis=1).sum(axis=1)
+
+    environment_score = weighted_sum / available_weight_sum
+
+    ratings = pd.cut(
+        environment_score,
+        bins=[-0.001, 0.55, 0.70, 0.85, 0.95, 1.001],
+        labels=[1, 2, 3, 4, 5],
+        include_lowest=True,
+    )
+
+    return ratings.astype("Int64")
+
+def fill_focus_scores_from_environment_rule(
+    df: pd.DataFrame,
+    target_column: str = DEFAULT_TARGET_COLUMN,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    filled_df = df.copy()
+
+    if target_column not in filled_df.columns:
+        filled_df[target_column] = pd.NA
+    else:
+        filled_df[target_column] = normalise_target(filled_df[target_column])
+
+    rule_based_scores = build_rule_based_focus_scores(filled_df)
+
+    missing_mask = filled_df[target_column].isna()
+    fill_mask = missing_mask & rule_based_scores.notna()
+
+    filled_df.loc[fill_mask, target_column] = rule_based_scores.loc[fill_mask]
+
+    if filled_df[target_column].isna().any():
+        raise RuntimeError(
+            f"Rule-based scoring could not fill all missing values in '{target_column}'."
+        )
+
+    filled_df[target_column] = filled_df[target_column].astype(int)
+
+    summary = pd.DataFrame(
+        [
+            {
+                "method": "rule_based_environment_score",
+                "rows_filled": int(fill_mask.sum()),
+                "rows_left_missing": int(filled_df[target_column].isna().sum()),
+            }
+        ]
+    )
+
+    return filled_df, summary
 
 def train_student_models(
     labeled_df: pd.DataFrame,
@@ -390,6 +538,15 @@ def parse_args() -> argparse.Namespace:
             "and randomly selecting among those models for unlabeled rows."
         )
     )
+    # new
+    parser.add_argument(
+        "--rule-based-mode",
+        action="store_true",
+        help=(
+            "Fill missing focus_score values from a transparent environmental rule "
+            "using temperature, humidity, CO2, and noise when available."
+        ),
+    )
     parser.add_argument(
         "--input",
         type=Path,
@@ -468,7 +625,17 @@ def main() -> None:
         )
 
     df = pd.read_csv(args.input, low_memory=False)
-    if args.respondent_comfort_mode:
+    # new
+    # respondent stays available, but the rule-based can be chosen explicitly
+    if args.rule_based_mode:
+        if args.output == DEFAULT_OUTPUT_PATH:
+            args.output = DEFAULT_RULE_BASED_TARGET_OUTPUT_PATH
+
+        filled_df, model_summary = fill_focus_scores_from_environment_rule(
+            df,
+            target_column=args.target_column,
+    )
+    elif args.respondent_comfort_mode:
         measurements_df = pd.read_csv(DEFAULT_ROOM_MEASUREMENTS_PATH, low_memory=False)
         comfort_df = pd.read_csv(DEFAULT_COMFORT_PERCEPTION_PATH, low_memory=False)
         respondent_training_df = build_respondent_comfort_training_data(
@@ -523,7 +690,13 @@ def main() -> None:
     print(f"Saved filled dataset to: {args.output}")
     print(f"Rows: {len(filled_df):,}")
     print(f"Rows with missing {args.target_column}: {missing_after:,}")
-    print(f"Per-student models trained: {len(model_summary):,}")
+
+    # new
+    if args.rule_based_mode:
+        print("Rule-based target filling summary:")
+    else:
+        print(f"Per-student models trained: {len(model_summary):,}")
+
     print(model_summary.to_string(index=False))
 
 
