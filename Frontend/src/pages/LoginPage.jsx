@@ -37,6 +37,7 @@ export default function LoginPage() {
       const result = await login(form);
       console.log(result);
       localStorage.setItem("user", JSON.stringify(result.user));
+      localStorage.setItem("token", result.access_token);
       navigate("/dashboard");
     } catch {
       setError(t.loginFailed);

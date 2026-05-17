@@ -23,6 +23,7 @@ const Profile = () => {
     localStorage.removeItem("user"); // better than clear()
     window.dispatchEvent(new Event("storage")); // 🔥 force update
     navigate('/login', { replace: true });
+    localStorage.removeItem("token");
   };
 
  return (
