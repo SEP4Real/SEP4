@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getEnvironmentData} from "../services/EnvironmentService";
+import { getEnvironmentDataa} from "../services/EnvironmentService";
 //import { mockHistory } from "../MockData";
 import "./History.css";
 import "../index.css";
+import { useLanguage } from "../context/LanguageContext";
 
 const History = () => {
   const [data, setData] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
+  const { t } = useLanguage();
 
  useEffect(() => {
-  const loadData = async () => {
+    const loadData = async () => {
     try {
     console.log("Fetching real data from DB...");
     const rawData = await getEnvironmentData();
@@ -36,8 +38,6 @@ const History = () => {
     console.error("Data processing error:", error);
   }
   };
-
-  loadData();
 
   // set the update time to 1 minute
   const interval = setInterval(() => {
@@ -67,35 +67,35 @@ const History = () => {
         {/* (Stat Cards) */}
         <section className="indicators-section">
         <div className="indicators-header">
-            <h2 className="title">Real-time Environmental Monitoring</h2>
+            <h2 className="title">{t.historyTitle}</h2>
         </div>
 
         <div className="indicators-grid">
             <div className="indicator-card">
             <span className="card-icon">🌡️</span>
             <div className="card-info">
-                <p>Temperature</p>
+                <p>{t.temperature}</p>
                 <h3>{latest.temperature || "--"} °C</h3>
             </div>
             </div>
             <div className="indicator-card">
             <span className="card-icon">💧</span>
             <div className="card-info">
-                <p>Humidity</p>
+                <p>{t.humidity}</p>
                 <h3>{latest.humidity || "--"} %</h3>
             </div>
             </div>
             <div className="indicator-card">
             <span className="card-icon">💨</span>
             <div className="card-info">
-                <p>CO2 Level</p>
+                <p>{t.co2Level}</p>
                 <h3>{latest.co2 || "--"} ppm</h3>
             </div>
             </div>
             <div className="indicator-card">
             <span className="card-icon">💡</span>
             <div className="card-info">
-                <p>Light</p>
+                  <p>{t.light}</p>
                 <h3>{latest.light || "--"} lx</h3>
             </div>
             </div>
@@ -104,7 +104,7 @@ const History = () => {
 
         {/* SEC 2:  General Grafic */}
         <div className="chart-card">
-        <h4>Evolution Trend</h4>
+        <h4>{t.evolutionTrend}</h4>
         {/**/}
         <div style={{ width: '100%', height: '300px', position: 'relative' }}>
             <ResponsiveContainer width="99%" height="100%">
@@ -132,7 +132,7 @@ const History = () => {
         {/* SEC 3: Detailed History*/}
         <div className="details-card">
           <div className="details-header">
-            <h2>Detailed History</h2>
+            <h2>{t.detailedHistory}</h2>
             <input 
               type="date" 
               className="calendar-input" 
@@ -152,10 +152,10 @@ const History = () => {
                 {expandedId === item.id && (
                   <div className="row-content">
                     <div className="sensor-grid">
-                      <div className="sensor-item">Temp: <strong>{item.temperature}°C</strong></div>
-                      <div className="sensor-item">Hum: <strong>{item.humidity}%</strong></div>
+                      <div className="sensor-item">{t.tempShort}: <strong>{item.temperature}°C</strong></div>
+                      <div className="sensor-item">  {t.humShort}: <strong>{item.humidity}%</strong></div>
                       <div className="sensor-item">CO2: <strong>{item.co2} ppm</strong></div>
-                      <div className="sensor-item">Light: <strong>{item.light} lx</strong></div>
+                      <div className="sensor-item">{t.light}: <strong>{item.light} lx</strong></div>
                     </div>
                   </div>
                 )}

@@ -1,15 +1,15 @@
 CREATE TABLE devices (
-    public_key  VARCHAR(255) PRIMARY KEY
+    id  VARCHAR(255) PRIMARY KEY
 );
 
 CREATE TABLE sessions (
     id            BIGSERIAL PRIMARY KEY,
     device_id     VARCHAR(255) NOT NULL,
     started_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    ended_at      TIMESTAMPTZ,
+    is_ended BOOLEAN NOT NULL DEFAULT FALSE,
     last_pulse_at TIMESTAMPTZ,
-    study_quality INT CHECK (study_quality BETWEEN 1 AND 10),
-    CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(public_key) ON DELETE RESTRICT
+    study_quality INT CHECK (study_quality BETWEEN 1 AND 5),
+    CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE data (
@@ -20,6 +20,7 @@ CREATE TABLE data (
     co2_level   FLOAT,
     light_level FLOAT,
     sent_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    predicted_study_quality INT CHECK (predicted_study_quality BETWEEN 1 AND 5),
     CONSTRAINT fk_data_session FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE RESTRICT
 );
 
@@ -27,3 +28,4 @@ CREATE INDEX ix_sessions_device_id ON sessions(device_id);
 CREATE INDEX ix_sessions_started_at ON sessions(started_at);
 CREATE INDEX ix_data_session_id ON data(session_id);
 CREATE INDEX ix_data_sent_at ON data(sent_at);
+CREATE INDEX idx_sessions_last_pulse_at ON sessions(last_pulse_at) WHERE is_ended IS FALSE;
