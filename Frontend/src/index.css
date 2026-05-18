@@ -1,4 +1,6 @@
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -22,11 +24,18 @@ body.dark-theme {
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: flex-start; 
+  align-items: flex-start;
   padding-top: 20px;
   padding-bottom: 80px;
 }
 
 .page-container {
-  padding-top: 70px; 
+  padding-top: 70px;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
