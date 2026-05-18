@@ -99,8 +99,8 @@ const CalendarPage = () => {
       {
         title,
         note,
-        start_time: selectedEvent.start,
-        end_time: selectedEvent.end,
+        start_time: selectedEvent.start.toLocaleString("sv-SE").replace(" ", "T"),
+        end_time: selectedEvent.end.toLocaleString("sv-SE").replace(" ", "T"),    
         all_day: selectedEvent.allDay
       }
     );
@@ -109,11 +109,11 @@ const CalendarPage = () => {
       prev.map(event =>
         event.id === updatedEvent.id
           ? {
-              id: updatedEvent.id,
-              title: updatedEvent.title,
-              start: updatedEvent.start_time,
-              end: updatedEvent.end_time,
-              allDay: updatedEvent.all_day,
+            id: updatedEvent.id,
+            title: updatedEvent.title,
+            start: updatedEvent.start_time,
+            end: updatedEvent.end_time,
+            allDay: updatedEvent.all_day,
 
               extendedProps: {
                 note: updatedEvent.note
@@ -135,8 +135,8 @@ const CalendarPage = () => {
           const createdEvent = await createCalendarEvent({
             title,
             note,
-            start_time: timeInfo.start,
-            end_time: timeInfo.end,
+            start_time: timeInfo.startStr,
+            end_time: timeInfo.endStr,
             all_day: timeInfo.allDay
           });
 
@@ -215,6 +215,7 @@ const CalendarPage = () => {
         editable={true} // drag + resize
         eventDurationEditable={true}
         events={events}
+        timeZone="local"
         eventClick={handleEventClick} // edit event
         slotLabelFormat={{
           hour: '2-digit',
