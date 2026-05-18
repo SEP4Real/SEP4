@@ -28,11 +28,12 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        working-directory: MAL
         run: python scripts/extract_data.py
 
       - name: Upload Data as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: raw-sensor-data
-          path: data/
+          path: MAL/data/
           retention-days: 5
