@@ -15,61 +15,61 @@ export default function SensorChart({ data }) {
     <div style={{ width: "100%", height: 400 }}>
         <div className="chart-controls">
 
-    <label>
-        <input
-        type="checkbox"
-        checked={visibleLines.temperature}
-        onChange={() =>
-            setVisibleLines(prev => ({
-            ...prev,
-            temperature: !prev.temperature
-            }))
-        }
-        />
-        Temperature
-    </label>
+    <button
+      className={`chart-toggle temperature ${
+        visibleLines.temperature ? "active" : ""
+      }`}
+      onClick={() =>
+        setVisibleLines(prev => ({
+          ...prev,
+          temperature: !prev.temperature
+        }))
+      }
+    >
+      Temperature
+    </button>
 
-    <label>
-        <input
-        type="checkbox"
-        checked={visibleLines.humidity}
-        onChange={() =>
-            setVisibleLines(prev => ({
-            ...prev,
-            humidity: !prev.humidity
-            }))
-        }
-        />
-        Humidity
-    </label>
+    <button
+      className={`chart-toggle humidity ${
+        visibleLines.humidity ? "active" : ""
+      }`}
+      onClick={() =>
+        setVisibleLines(prev => ({
+          ...prev,
+          humidity: !prev.humidity
+        }))
+      }
+    >
+      Humidity
+    </button>
 
-    <label>
-        <input
-        type="checkbox"
-        checked={visibleLines.co2_level}
-        onChange={() =>
-            setVisibleLines(prev => ({
-            ...prev,
-            co2_level: !prev.co2_level
-            }))
-        }
-        />
-        CO₂
-    </label>
+    <button
+      className={`chart-toggle co2_level ${
+        visibleLines.co2_level ? "active" : ""
+      }`}
+      onClick={() =>
+        setVisibleLines(prev => ({
+          ...prev,
+          co2_level: !prev.co2_level
+        }))
+      }
+    >
+      CO₂
+    </button>
 
-    <label>
-        <input
-        type="checkbox"
-        checked={visibleLines.light_level}
-        onChange={() =>
-            setVisibleLines(prev => ({
-            ...prev,
-            light_level: !prev.light_level
-            }))
-        }
-        />
-        Light
-    </label>
+    <button
+      className={`chart-toggle light_level ${
+        visibleLines.light_level ? "active" : ""
+      }`}
+      onClick={() =>
+        setVisibleLines(prev => ({
+          ...prev,
+          light_level: !prev.light_level
+        }))
+      }
+    >
+      Light
+    </button>
 
     </div>
       <ResponsiveContainer>
