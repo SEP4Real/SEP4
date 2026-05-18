@@ -5,6 +5,7 @@ import { getProfile, updateProfile } from "../services/ProfileService";
 import './Profile.css';
 import { logout } from '../services/AuthService';
 import { useLanguage } from "../context/LanguageContext";
+import SessionRating from "../components/SessionRating";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Profile = () => {
   const [stats, setStats] = useState({ totalSessions: 0, lastActivity: "--" });
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "" });
   const [isEditing, setIsEditing] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   const [studentInfo, setStudentInfo] = useState({
     university: "",
@@ -171,11 +173,16 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
+    setShowRatingModal(true);
+  };
+
+  const completeLogout = () => {
     localStorage.removeItem("user");
-    //localStorage.removeItem("token");
-    window.dispatchEvent(new Event("storage"));
-    navigate('/login', { replace: true });
     localStorage.removeItem("token");
+
+    window.dispatchEvent(new Event("storage"));
+
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -312,6 +319,32 @@ const Profile = () => {
       </div>
     </div>
   </div>
+
+  {showRatingModal && (
+  <div className="rating-modal">
+
+    <div className="rating-modal-content">
+
+      <button
+        className="close-rating-modal"
+        onClick={() => setShowRatingModal(false)}
+      >
+        ×
+      </button>
+
+      <SessionRating />
+
+      <button
+        className="update-btn-full"
+        onClick={completeLogout}
+      >
+        Submit & Logout
+      </button>
+
+    </div>
+
+  </div>
+)}
 </div>
   );
 };
