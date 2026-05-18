@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from app.database import ensure_schema_created
-from app.routers import device, session, data, health, auth, profile, calendar
+from app.routers import device, session, data, health, auth, profile, calendar, dashboard
 from app.database import cleanup_sessions
 
 @asynccontextmanager
@@ -30,5 +30,6 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(calendar.router)
+app.include_router(dashboard.router)
 
 

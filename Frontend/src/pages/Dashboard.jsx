@@ -1,58 +1,117 @@
 import { useEffect, useState } from "react";
-import { getEnvironmentDataa } from "../services/EnvironmentService";
 import SensorCard from "../components/SensorCard";
 import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
 import SessionRating from "../components/SessionRating";
+import { getDashboardData } from "../services/DashboardService";
 
 export default function Dashboard() {
-  const [data, setData] = useState(null);
   const { t } = useLanguage();
-
+  const [dashboardData, setDashboardData] = useState([]);
+  console.log(dashboardData);
   
+
+  // temporary -- until db has data
+  const placeholderData = [
+    {
+      temperature: 22,
+      humidity: 45,
+      co2_level: 500,
+      light_level: 300,
+      predicted_study_quality: 4,
+      sent_at: "2026-05-18T10:00:00"
+    },
+
+    {
+      temperature: 99,
+      humidity: 12,
+      co2_level: 9999,
+      light_level: 1,
+      predicted_study_quality: 1,
+      sent_at: "2026-05-18T10:20:00"
+    }
+  ];
+
   useEffect(() => {
-    getEnvironmentDataa().then((res) => {
-      setData(res);
-    });
+
+    const loadDashboardData = async () => {
+      try {
+        const data = await getDashboardData();
+
+        // temporary -- will be replaced with setDashboardData(data);
+        setDashboardData(
+          data.length > 0 ? data : placeholderData
+        );
+
+        // 
+
+      } catch (e) {
+        console.error(e);
+
+        // temporary -- will be replaced with setDashboardData([]);
+        setDashboardData(placeholderData);
+      }
+    };
+
+    loadDashboardData();
+
   }, []);
 
-  if (!data) {
-    return <p>{t.loading}</p>;
-  }
+  
+  const latestData =
+        dashboardData[dashboardData.length - 1];
+    if (!latestData) {return <p>{t.loading}</p>;}
 
+  
   
   return (
     <div className="dashboard">
       <h1>{t.dashboard}</h1>
-
       <div className="dashboard-grid">
 
-        <SensorCard title={t.temperature} value={data.temperature + " °C"} />
-        <SensorCard title={t.humidity} value={data.humidity + " %"} />
-        <SensorCard title={t.co2Level} value={data.co2Level + " ppm"} />
-        <SensorCard title={t.lightLevel} value={data.lightLevel + " lx"} />
-        <SensorCard 
-        title={t.suitabilityLevel}
-        value={(data.suitabilityLevel * 100).toFixed(0) + "%"}/>
-        <SensorCard
-        title={t.predictedSuitability}
-        value={(data.predictedSuitabilityLevel * 100).toFixed(0) + "%"}/>
-        <SensorCard
-        title={t.trend}
-        value={data.predictedTrend === 1
-            ? t.improving
-            : t.declining}/>
-        <SensorCard
-        title={t.environmentStatus}
-        value={data.environmentStatus === 1 ? t.good : t.bad}/>
+    <SensorCard
+      title={t.temperature}
+      value={latestData.temperature + " °C"}/>
 
-      </div>
+    <SensorCard
+      title={t.humidity}
+      value={latestData.humidity + " %"}/>
+
+    <SensorCard
+      title={t.co2Level}
+      value={latestData.co2_level + " ppm"}/>
+
+    <SensorCard
+      title={t.lightLevel}
+      value={latestData.light_level + " lx"}/>
+
+    <SensorCard
+      title={t.environmentStatus}
+      value={
+        latestData.predicted_study_quality >= 4
+          ? t.good
+          : latestData.predicted_study_quality >= 3
+          ? t.okay
+          : t.bad}/>
+
+    <SensorCard
+      title={t.predictedSuitability}
+      value={latestData.predicted_study_quality + "/5"}
+    />
+
+  </div>
 
 <div className="recommendation-card">
   <h2>{t.recommendation}</h2>
 
   <p>
-    {data.recommendation}
+    {
+    latestData.predicted_study_quality >= 4
+      ? "Good study conditions"
+      : latestData.predicted_study_quality >= 3
+      ? "Conditions are acceptable"
+      : "Environment quality is decreasing"
+  }
   </p>
 </div>
 <SessionRating />
