@@ -56,3 +56,8 @@ export async function login(data) {
   // success -> user data
   return result;
 }
+
+export function logout() {
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+}
