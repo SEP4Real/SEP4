@@ -217,6 +217,14 @@ h1 {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.setting-label {
+  width: 80px;
+  min-width: 80px;
+  text-align: left;
 }
 
 .profile-input {
@@ -254,6 +262,53 @@ h1 {
   padding: 10px;
   border-bottom: 1px solid #ddd;
   color: #333;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.password-input-wrapper .profile-input {
+  width: 100%;
+  padding-right: 40px;
+  box-sizing: border-box;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.password-toggle-btn:hover {
+  color: #333;
+}
+
+.eye-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.profile-input {
+  width: 100%;
+  padding-right: 40px;
 }
 
 /* DARK MODE  */

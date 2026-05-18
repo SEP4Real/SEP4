@@ -1,38 +1,44 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
-import History from "./pages/History";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
 import CalendarPage from "./pages/CalendarPage";
-import Profile from './pages/Profile';
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 
-
-
 function App() {
   return (
-    <>  
+    <>
       <Navbar />
 
       <Routes>
-        <Route path="/" element={
+        <Route
+          path="/"
+          element={
             <PublicRoute>
-            <LoginPage/>
-            </PublicRoute>} />
-        
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+
         <Route path="/integration-test" element={<IntegrationTest />} />
- 
+        <Route path="/" element={<RegisterPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/student" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+
         {/* public routes */}
         <Route
           path="/register"
           element={
-              <PublicRoute>
+            <PublicRoute>
               <RegisterPage />
-              </PublicRoute>
-              }
+            </PublicRoute>
+          }
         />
 
         <Route
@@ -46,10 +52,10 @@ function App() {
 
         {/* protected routes */}
         <Route
-          path="/history"
+          path="/student"
           element={
             <ProtectedRoute>
-              <History />
+              <Dashboard />
             </ProtectedRoute>
           }
         />
@@ -70,17 +76,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/dashboard" />} />
-        
+        <Route path="*" element={<Navigate to="/student" />} />
       </Routes>
     </>
   );
