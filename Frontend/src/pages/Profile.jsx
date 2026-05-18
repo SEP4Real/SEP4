@@ -135,6 +135,7 @@ const Profile = () => {
     //localStorage.removeItem("token");
     window.dispatchEvent(new Event("storage"));
     navigate('/login', { replace: true });
+    localStorage.removeItem("token");
   };
 
   return (

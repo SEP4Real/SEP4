@@ -24,14 +24,7 @@ function App() {
             </PublicRoute>} />
         
         <Route path="/integration-test" element={<IntegrationTest />} />
-        <Route path="/" element={<RegisterPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/student" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
-       
-
+ 
         {/* public routes */}
         <Route
           path="/register"
@@ -61,14 +54,6 @@ function App() {
           }
         />
         <Route
-          path="/student"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/profile"
           element={
             <ProtectedRoute>
@@ -85,7 +70,16 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/student" />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/dashboard" />} />
         
       </Routes>
     </>

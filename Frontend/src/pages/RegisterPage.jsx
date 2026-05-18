@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { register } from "../services/AuthService";
+import { register, login } from "../services/AuthService";
 import "../index.css";
 import "./RegisterPage.css";
 import { useLanguage } from "../context/LanguageContext";
@@ -38,15 +38,34 @@ export default function RegisterPage() {
       return;
     }
 
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
+    if (!/[A-Z]/.test(form.password)) {
+      setError("Password must contain an uppercase letter");
+      return;
+    }
+
+    if (!/[0-9]/.test(form.password)) {
+      setError("Password must contain a number");
+      return;
+    }
+
     try {
       await register(form);
-      setSuccess("Registred successfully! Logging you in...");
-      
-      setTimeout(() => {
-      window.location.href = "/student";
-      }, 1000);
-      
+
+      const userData = await login({
+        email: form.email,
+        password: form.password,
+      });
+
+      localStorage.setItem("user", JSON.stringify(userData.user));
+      localStorage.setItem("token", userData.access_token);
+
       setSuccess(t.registeredSuccessfully);
+
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);

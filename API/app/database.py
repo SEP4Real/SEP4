@@ -90,6 +90,31 @@ CREATE INDEX IF NOT EXISTS ix_sessions_started_at ON sessions(started_at);
 CREATE INDEX IF NOT EXISTS ix_data_session_id ON data(session_id);
 CREATE INDEX IF NOT EXISTS ix_data_sent_at ON data(sent_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_last_pulse_at ON sessions(last_pulse_at) WHERE is_ended IS FALSE;
+
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+
+    title VARCHAR(255) NOT NULL,
+    note TEXT,
+
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+
+    all_day BOOLEAN DEFAULT FALSE,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 

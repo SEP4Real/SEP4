@@ -1,47 +1,63 @@
-export const register = async (userData) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // save the received data in localStorage under the key "user"
-      const allUsers = JSON.parse(localStorage.getItem("users")) || [];
-      allUsers.push(userData);
-      localStorage.setItem("users", JSON.stringify(allUsers));
+const API_URL = "http://localhost:8080";
 
-      localStorage.setItem("user", JSON.stringify(userData));
-      resolve({ success: true, user: userData });
-    }, 500);
+export async function register(data) {
+
+  // send request to backend
+  const response = await fetch(`${API_URL}/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    // send user data
+    body: JSON.stringify({
+      name: data.name,
+      last_name: data.lastName,
+      email: data.email,
+      password: data.password,
+    }),
   });
-};
 
-export const login = async (email, password) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const rawData = localStorage.getItem("users");
-      let allUsers = [];
+  // failed -> backend error
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.log(errorData);
+    throw new Error(errorData.detail || "Registration failed");
+  }
 
-      try {
-        const parsedData = JSON.parse(rawData);
-        // Forțăm allUsers să fie un array, chiar dacă datele sunt corupte
-        allUsers = Array.isArray(parsedData) ? parsedData : [];
-      } catch (e) {
-        allUsers = [];
-      }
+  // success -> backend response
+  return response.json();
+}
 
-      const foundUser = allUsers.find(
-        (u) => u.email === email && String(u.password) === String(password)
-      );
+export async function login(data) {
 
-      if (foundUser) {
-        localStorage.setItem("user", JSON.stringify(foundUser));
-        resolve({ success: true, user: foundUser });
-      } else {
-        reject(new Error("Invalid email or password"));
-      }
-    }, 500);
+  // send login request to backend
+  const response = await fetch(`${API_URL}/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    // send email and password
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+    }),
   });
-};
 
+  // convert response
+  const result = await response.json();
+
+  // failed -> error
+  if (!response.ok || result.error) {
+    throw new Error(result.error || "Invalid credentials");
+  }
+
+  // success -> user data
+  return result;
+}
 
 export function logout() {
-  localStorage.removeItem('user');
-  window.dispatchEvent(new Event("storage"));
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
 }
