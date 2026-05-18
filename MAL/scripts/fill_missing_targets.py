@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+from sklearn.ensemble import ExtraTreesRegressor
+
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
@@ -123,6 +129,79 @@ def normalise_class_target(values: pd.Series, allowed_classes: set[int] | None =
         target = target.where(target.isin(allowed_classes))
     return target
 
+# New 
+class SmartForest(ExtraTreesRegressor):
+    def predict(self, X, return_std=False):
+        if not return_std:
+            return super().predict(X)
+
+        all_preds = np.stack([tree.predict(X) for tree in self.estimators_])
+        return np.mean(all_preds, axis=0), np.std(all_preds, axis=0)
+
+# Helper classes to fill in the missing noise and light
+def fill_missing_light_and_noise(df: pd.DataFrame) -> pd.DataFrame:
+    filled_df = df.copy()
+
+    # Same as in the notebook: these are used as clustering anchors,
+    # so rows missing one of them are removed first.
+    filled_df = filled_df.dropna(subset=["co2", "temperature", "humidity"]).copy()
+
+    anchors = ["temperature", "humidity", "co2"]
+    scaled_data = StandardScaler().fit_transform(filled_df[anchors])
+
+    model_kmeans = KMeans(n_clusters=4, random_state=42)
+    filled_df["room_type"] = model_kmeans.fit_predict(scaled_data)
+
+    impute_cols = ["co2", "noise", "temperature", "light", "humidity"]
+    imputed_chunks = []
+
+    for room_id in sorted(filled_df["room_type"].unique()):
+        chunk = filled_df[filled_df["room_type"] == room_id].copy()
+        original_backup = chunk.copy()
+
+        mice = IterativeImputer(
+            estimator=SmartForest(
+                n_estimators=20,
+                max_depth=15,
+                min_samples_leaf=5,
+                random_state=42,
+            ),
+            sample_posterior=True,
+            n_nearest_features=5,
+            random_state=42,
+        )
+
+        active_cols = [col for col in impute_cols if chunk[col].notna().any()]
+
+        imputed_values = mice.fit_transform(chunk[active_cols])
+        temp_df = pd.DataFrame(imputed_values, columns=active_cols, index=chunk.index)
+
+        if "light" in temp_df.columns:
+            temp_df["light"] = temp_df["light"].clip(lower=0)
+
+        if "noise" in temp_df.columns:
+            temp_df["noise"] = temp_df["noise"].clip(lower=0)
+
+        # Keep the original real values for the anchor columns.
+        for col in ["temperature", "humidity", "co2"]:
+            if col in temp_df.columns:
+                temp_df[col] = original_backup[col].values
+
+        # Put back all non-imputed columns.
+        for col in chunk.columns:
+            if col not in temp_df.columns:
+                temp_df[col] = original_backup[col].values
+
+        imputed_chunks.append(temp_df)
+
+    result_df = pd.concat(imputed_chunks).sort_index()
+
+    # Same fallback as the notebook for clusters where a sensor was 100% missing.
+    result_df["light"] = result_df["light"].fillna(filled_df["light"].median())
+    result_df["noise"] = result_df["noise"].fillna(filled_df["noise"].median())
+
+    result_df = result_df.drop(columns="room_type")
+    return result_df[df.columns]
 
 def train_student_models(
     labeled_df: pd.DataFrame,
@@ -468,6 +547,8 @@ def main() -> None:
         )
 
     df = pd.read_csv(args.input, low_memory=False)
+    df = fill_missing_light_and_noise(df) # new
+
     if args.respondent_comfort_mode:
         measurements_df = pd.read_csv(DEFAULT_ROOM_MEASUREMENTS_PATH, low_memory=False)
         comfort_df = pd.read_csv(DEFAULT_COMFORT_PERCEPTION_PATH, low_memory=False)
