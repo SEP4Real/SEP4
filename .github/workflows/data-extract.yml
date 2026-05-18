@@ -23,11 +23,9 @@ jobs:
 
       - name: Run Data Extraction Script
         env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MAL_API_BASE_URL: ${{ secrets.MAL_API_BASE_URL }}
+          MAL_API_EXPORT_TOKEN: ${{ secrets.MAL_API_EXPORT_TOKEN }}
+          MAL_API_EXPORT_LIMIT: ${{ secrets.MAL_API_EXPORT_LIMIT }}
         working-directory: MAL
         run: python scripts/extract_data.py
 
