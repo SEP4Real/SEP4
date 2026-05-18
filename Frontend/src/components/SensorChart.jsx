@@ -12,7 +12,7 @@ export default function SensorChart({ data }) {
     });
 
   return (
-    <div style={{ width: "100%", height: 400 }}>
+    <div className="chart-wrapper">
         <div className="chart-controls">
 
     <button

@@ -98,11 +98,11 @@ export default function Dashboard() {
   
   return (
     <div className="dashboard">
-
-      <h1>{t.dashboard}</h1>
       <SensorChart data={dashboardData} />
-      <SessionRating />
 
+      <div className="recommendation-card">
+        <h2>{t.recommendation}</h2>
+      </div>
     </div>
   );
 }
