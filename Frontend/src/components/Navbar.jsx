@@ -2,20 +2,35 @@ import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const user = localStorage.getItem("user");
+  const [user, setUser] = useState(localStorage.getItem("user"));
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
+  const { language, toggleLanguage, t } = useLanguage();
+ 
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setUser(localStorage.getItem("user"));
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    setUser(localStorage.getItem("user"));
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const { theme, toggleTheme } = useTheme();
-
-const { language, toggleLanguage, t } = useLanguage();
   return (
     <nav className="navbar">
       <div className="navbar-logo">

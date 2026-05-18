@@ -88,7 +88,6 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
             (body.session_id, cutoff),
         )
         temp_stats = await cur.fetchone()
-    print(f"{os.getenv("MAL_API_HOST_PORT")}/predict")
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{os.getenv("MAL_API_HOST_PORT")}/predict",
@@ -100,4 +99,14 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
             },
         )
 
-    return DataPointResponse(study_quality=response.json()["rating"])
+    predicted_quality = response.json()["rating"]
+
+    async with db.cursor() as cur:
+        print(row["id"])
+        await cur.execute(
+            "UPDATE data SET predicted_study_quality = %s WHERE id = %s",
+            (predicted_quality, row["id"]),
+        )
+    await db.commit()
+
+    return DataPointResponse(study_quality=predicted_quality)
