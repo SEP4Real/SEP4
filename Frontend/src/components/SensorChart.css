@@ -1,0 +1,29 @@
+.custom-tooltip {
+  background: #d37eb5dd;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: white;
+  min-width: 120px;
+  font-size: 12px;
+}
+
+.custom-tooltip table {
+  width: 100%;
+  border-spacing: 0 6px;
+}
+
+.custom-tooltip td:first-child {
+  padding-right: 18px;
+}
+
+.custom-tooltip hr {
+  border: none;
+  border-top: 1px solid white;
+  margin: 10px 0;
+}
+
+.custom-tooltip .tooltip-time {
+  border-bottom: 1px solid white;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
