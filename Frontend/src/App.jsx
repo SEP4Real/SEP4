@@ -5,33 +5,34 @@ import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
 import CalendarPage from "./pages/CalendarPage";
-import Profile from './pages/Profile';
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 
-
-
 function App() {
   return (
-    <>  
+    <>
       <Navbar />
 
       <Routes>
-        <Route path="/" element={
+        <Route
+          path="/"
+          element={
             <PublicRoute>
-            <LoginPage/>
-            </PublicRoute>} />
-        
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+
         <Route path="/integration-test" element={<IntegrationTest />} />
- 
-        {/* public routes */}
+
         <Route
           path="/register"
           element={
-              <PublicRoute>
+            <PublicRoute>
               <RegisterPage />
-              </PublicRoute>
-              }
+            </PublicRoute>
+          }
         />
 
         <Route
@@ -43,8 +44,15 @@ function App() {
           }
         />
 
-        {/* protected routes */}
-      
+        <Route
+          path="/student"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/profile"
           element={
@@ -53,6 +61,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/calendar"
           element={
@@ -72,7 +81,6 @@ function App() {
         />
 
         <Route path="*" element={<Navigate to="/dashboard" />} />
-        
       </Routes>
     </>
   );

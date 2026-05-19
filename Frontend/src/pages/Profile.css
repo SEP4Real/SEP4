@@ -219,12 +219,47 @@ h1 {
   padding: 8px 0;
 }
 
+.setting-label {
+  min-width: 80px;
+  text-align: left;
+}
+
 .profile-input {
   background: #f1fcf8;
   border: 1px solid #4caf50;
   border-radius: 6px;
   padding: 6px 10px;
   width: 150px;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.password-input-wrapper .profile-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 40px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.password-toggle-btn:hover {
+  color: #333;
 }
 
 .ai-bubble-new {

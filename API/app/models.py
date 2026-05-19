@@ -101,3 +101,4 @@ class DataPoint(BaseModel):
 
 class DataPointResponse(BaseModel):
     study_quality: int = Field(ge=1, le=5)
+

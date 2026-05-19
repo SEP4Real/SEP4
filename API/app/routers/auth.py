@@ -104,4 +104,3 @@ async def login(data: LoginRequest, db=Depends(get_db)):
             "email": user["email"]
         }
     }
-
