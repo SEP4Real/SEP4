@@ -102,7 +102,6 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
     predicted_quality = response.json()["rating"]
 
     async with db.cursor() as cur:
-        print(row["id"])
         await cur.execute(
             "UPDATE data SET predicted_study_quality = %s WHERE id = %s",
             (predicted_quality, row["id"]),

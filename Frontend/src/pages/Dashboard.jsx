@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import SensorCard from "../components/SensorCard";
 import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
-import SessionRating from "../components/SessionRating";
 import { getDashboardData } from "../services/DashboardService";
 import SensorChart from "../components/SensorChart";
 
 export default function Dashboard() {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState([]);
-  console.log(dashboardData);
+  const [hasDevice, setHasDevice] = useState(false);
   
-
+  //get the current user
+  const user = JSON.parse(localStorage.getItem("user"));
+  
   // temporary -- until db has data
   const placeholderData = [
     {
@@ -66,36 +66,52 @@ export default function Dashboard() {
 
   useEffect(() => {
 
-    const loadDashboardData = async () => {
+    const checkConnection = async () => {
+      const userDevices =
+        JSON.parse(localStorage.getItem("user_devices")) || [];
+
+      const connectedDevice =
+        userDevices.find(d => d.email === user?.email);
+
+      if (!connectedDevice) {
+        setHasDevice(false);
+        return;}
+
+      setHasDevice(true);
+
       try {
         const data = await getDashboardData();
-
-        // temporary -- will be replaced with setDashboardData(data);
         setDashboardData(
           data.length > 0 ? data : placeholderData
-        );
-
-        // 
-
-      } catch (e) {
+        );} 
+        catch (e) {
         console.error(e);
-
-        // temporary -- will be replaced with setDashboardData([]);
         setDashboardData(placeholderData);
       }
     };
+    checkConnection();
+  }, [user?.email]);
 
-    loadDashboardData();
+  if (!hasDevice) {
+    return (
+      <div className="dashboard">
+        <div className="recommendation-card">
+          <p>
+            ⚠️ You don't have any devices connected.
+            Go to Profile for setup
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  }, []);
-
-  
   const latestData =
-        dashboardData[dashboardData.length - 1];
-    if (!latestData) {return <p>{t.loading}</p>;}
+    dashboardData[dashboardData.length - 1];
 
-  
-  
+  if (!latestData) {
+    return <p>{t.loading}</p>;
+  }
+
   return (
     <div className="dashboard">
       <SensorChart data={dashboardData} />
