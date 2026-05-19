@@ -500,26 +500,26 @@ What automated checks ran on every PR? What gaps remained?]
 
 ## 3.11 IoT Tests
 
-*Authors: [Name, Name]*
+*Authors: [Jakub Maciej Baczek, Name]*
 
 ### 3.11.1 Testing Strategy for Embedded C
 
-[What aspects of the IoT application were unit-tested?
-What test framework was used? How were hardware-dependent parts handled
-(mock drivers, stub peripherals, hardware-in-the-loop)?]
+Unit testing for the IoT application focused on the two modules containing application logic: `wifi_http`, responsible for establishing TCP connections and constructing HTTP requests, and `server_api`, responsible for session management and server communication. Tests were written using the Unity unit test framework for C and compiled natively on the host using GCC, allowing them to run in CI without any physical hardware.
+
+Hardware-dependent components — TCP socket operations, Wi-Fi driver commands, and buzzer output — were replaced with fakes generated using the FFF (Fake Function Framework). FFF allows individual driver functions to be substituted with configurable stubs that record call counts, capture arguments, and inject return values or response payloads. This made it possible to test application logic such as session ID parsing, retry behaviour, and endpoint construction in full isolation from the underlying hardware.
+
+The remaining codebase consists of low-level peripheral drivers and the main application loop. Drivers are inherently hardware-dependent and cannot be meaningfully tested without the target device. The main loop contains no isolated logic of its own, acting purely as an orchestrator of the other modules. Neither lends itself to unit testing, and both were verified manually on the physical hardware.
 
 ### 3.11.2 Unit Test Results
 
-| Module               | Tests | Passed | Failed | Coverage |
-| :------------------- | :---- | :----- | :----- | :------- |
-| [Sensor driver X]    |       |        |        |          |
-| [Communication]      |       |        |        |          |
+| Module | Tests | Passed | Failed | Coverage |
+| :--- | :--- | :--- | :--- | :--- |
+| `wifi_http` | 14 | 14 | 0 | 93.9% |
+| `server_api` | 24 | 24 | 0 | 95.3% |
 
 ### 3.11.3 Integration and System-Level Tests
 
-[Describe any integration testing performed with actual hardware.
-How was end-to-end behaviour (sensor reading → cloud transmission) verified?
-What manual or automated system tests were run?]
+No automated integration testing was implemented, as the hardware constraints discussed in section 3.8.1 make this impractical without a dedicated hardware-in-the-loop setup. Integration and system-level verification was instead performed manually throughout development. This involved flashing the firmware onto the ATmega2560 and observing end-to-end behaviour: confirming that sensor readings were correctly acquired, formatted into the expected JSON payloads, transmitted to the server, and that session lifecycle events such as session start and pulse updates were handled correctly. While informal, this process provided confidence in the integrated behaviour of the system and complemented the unit-level coverage achieved through automated testing.
 
 ## 3.12 Frontend Tests
 
