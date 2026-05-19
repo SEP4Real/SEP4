@@ -54,3 +54,15 @@ CREATE TABLE IF NOT EXISTS calendar_events (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS ratings (
+    id BIGSERIAL PRIMARY KEY,
+    user_email VARCHAR(255) NOT NULL,
+    device_id VARCHAR(255) NOT NULL,
+    rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    
+    CONSTRAINT fk_ratings_user FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE,
+    CONSTRAINT fk_ratings_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
+);

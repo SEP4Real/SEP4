@@ -25,11 +25,6 @@ function App() {
         />
 
         <Route path="/integration-test" element={<IntegrationTest />} />
-        <Route path="/" element={<RegisterPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/student" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
 
         {/* public routes */}
         <Route
