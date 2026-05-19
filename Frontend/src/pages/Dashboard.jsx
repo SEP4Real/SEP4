@@ -128,12 +128,47 @@ export default function Dashboard() {
     );
   }
 
+    const getRecommendation = (quality) => {
+    if (quality >= 4) {
+      return {
+        status: "good",
+        icon: "🟢",
+        title: t.recommendationGoodTitle,
+        message: t.recommendationGoodMessage,
+      };
+    }
+
+    if (quality === 3) {
+      return {
+        status: "moderate",
+        icon: "🟡",
+        title: t.recommendationModerateTitle,
+        message: t.recommendationModerateMessage,
+      };
+    }
+
+    return {
+      status: "poor",
+      icon: "🔴",
+      title: t.recommendationPoorTitle,
+      message: t.recommendationPoorMessage,
+    };
+  };
+
+  const recommendation = getRecommendation(latestData.predicted_study_quality);
+
   return (
     <div className="dashboard">
       <SensorChart data={dashboardData} />
 
-      <div className="recommendation-card">
-        <h2>{t.recommendation}</h2>
+      <div className={`recommendation-card ${recommendation.status}`}>
+        <div className="recommendation-header">
+          <span className="recommendation-icon">{recommendation.icon}</span>
+          <h2>{t.recommendation}</h2>
+        </div>
+
+        <h3>{recommendation.title}</h3>
+        <p>{recommendation.message}</p>
       </div>
     </div>
   );

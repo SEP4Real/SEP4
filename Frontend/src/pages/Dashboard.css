@@ -222,3 +222,64 @@ body.dark-theme .recommendation-card h2 {
 body.dark-theme .recommendation-card p {
   color: #dddddd;
 }
+
+.recommendation-card {
+  margin-top: 30px;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.recommendation-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recommendation-icon {
+  font-size: 1.3rem;
+}
+
+.recommendation-card h2 {
+  margin: 0;
+}
+
+.recommendation-card h3 {
+  margin: 15px 0 8px;
+}
+
+.recommendation-card p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.recommendation-card.good {
+  background: linear-gradient(135deg, #caf7db, #b7e4c7);
+  color: #1b4332;
+}
+
+.recommendation-card.moderate {
+  background: linear-gradient(135deg, #fff4c2, #ffe08a);
+  color: #5c4500;
+}
+
+.recommendation-card.poor {
+  background: linear-gradient(135deg, #ffe5e5, #ffb3b3);
+  color: #5c1111;
+}
+
+body.dark-theme .recommendation-card.good {
+  background: #1f3d32;
+  color: #ffffff;
+}
+
+body.dark-theme .recommendation-card.moderate {
+  background: #4a3d1f;
+  color: #ffffff;
+}
+
+body.dark-theme .recommendation-card.poor {
+  background: #4a1f1f;
+  color: #ffffff;
+}
