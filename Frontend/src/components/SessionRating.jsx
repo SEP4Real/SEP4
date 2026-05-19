@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import "./SessionRating.css";
+import { submitRating } from "../services/RatingService";
 
 import {
   FaRegFrown,
@@ -8,7 +9,7 @@ import {
   FaRegSmile
 } from "react-icons/fa";
 
-export default function SessionRating() {
+export default function SessionRating({ onSuccess }) {
 
   const [rating, setRating] = useState(null);
   const [message, setMessage] = useState("");
@@ -43,16 +44,29 @@ export default function SessionRating() {
     }
   ];
 
-  function handleSubmit() {
+  async function handleSubmit() {
 
     if (!rating) {
       setMessage(t.selectRating);
       return;
     }
 
-    localStorage.setItem("sessionRating", rating);
+    try {
 
-    setMessage(t.ratingSaved);
+      await submitRating({
+        device_id: "device_1",
+        session_id: 1,
+        rating: rating,
+        comment: ""
+      });
+
+      setMessage(t.ratingSaved);
+      onSuccess();
+    } catch (e) {
+
+      console.error(e);
+      setMessage("Failed to save rating");
+    }
   }
 
   return (
@@ -106,6 +120,15 @@ export default function SessionRating() {
           {message}
         </p>
       )}
+
+      <button
+        className="rating-submit"
+        onClick={handleSubmit}
+      >
+        Submit & Logout
+      </button>
+
+      
 
     </div>
   );

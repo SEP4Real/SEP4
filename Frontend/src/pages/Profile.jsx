@@ -362,14 +362,7 @@ const Profile = () => {
         ×
       </button>
 
-      <SessionRating />
-
-      <button
-        className="update-btn-full"
-        onClick={completeLogout}
-      >
-        Submit & Logout
-      </button>
+      <SessionRating onSuccess={completeLogout} />
 
     </div>
 

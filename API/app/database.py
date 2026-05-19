@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 
 CREATE TABLE IF NOT EXISTS ratings (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
+    user_id UUID NOT NULL,
     device_id VARCHAR(255) NOT NULL,
     session_id BIGINT NOT NULL,
     rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
