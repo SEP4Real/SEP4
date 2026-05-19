@@ -1,74 +1,113 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { getEnvironmentDataa } from "../services/EnvironmentService";
+import { getDashboardData } from "../services/DashboardService";
+import { getProfile, updateProfile } from "../services/ProfileService";
 import "./Profile.css";
-import { logout } from "../services/AuthService";
-import { useLanguage } from "../context/LanguageContext";
+import SessionRating from "../components/SessionRating";
 import {
-  UserRoundKey,
-  Unplug,
-  LogOut,
-  ImageUp,
-  UserRoundPen,
-  History,
   Eye,
   EyeOff,
+  History,
+  ImageUp,
+  LogOut,
+  Unplug,
+  UserRoundKey,
+  UserRoundPen,
 } from "lucide-react";
+
+const readUser = () => {
+  const userData = localStorage.getItem("user");
+
+  if (!userData || userData === "undefined") {
+    return null;
+  }
+
+  try {
+    return JSON.parse(userData);
+  } catch (e) {
+    console.error("Error reading user from storage", e);
+    return null;
+  }
+};
 
 const Profile = () => {
   const navigate = useNavigate();
   const userData = localStorage.getItem("user");
-  const { t } = useLanguage();
-  let user = { email: "User", role: "Student" };
+  const user = readUser();
 
-  if (userData && userData !== "undefined") {
-    try {
-      user = JSON.parse(userData);
-    } catch (e) {
-      console.error("Error reading user from storage", e);
-    }
-  }
   const [recentHistory, setRecentHistory] = useState([]);
-  const [stats, setStats] = useState({ totalSessions: 0, lastActivity: "--" });
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "" });
   const [isEditing, setIsEditing] = useState(false);
-
+  const [showRatingModal, setShowRatingModal] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNextPassword, setShowNextPassword] = useState(false);
 
   const [studentInfo, setStudentInfo] = useState({
-    university: localStorage.getItem("stud_uni") || "",
-    StudyProgram: localStorage.getItem("stud_prog") || "",
-    year: localStorage.getItem("stud_year") || "",
-    goal: localStorage.getItem("stud_goal") || "",
-    profilePic: localStorage.getItem("stud_pic") || null,
+    university: "",
+    StudyProgram: "",
+    year: "",
+    goal: "",
+    profilePic: null,
+  });
+
+  const [prefs, setPreferences] = useState({
+    temp: 22,
+    co2: 800,
   });
 
   useEffect(() => {
-    if (!userData) return;
+    if (!userData) {
+      return;
+    }
+
+    const loadProfile = async () => {
+      try {
+        const result = await getProfile();
+
+        if (result.profile) {
+          setStudentInfo({
+            university: result.profile.university || "",
+            StudyProgram: result.profile.study_program || "",
+            year: result.profile.study_year || "",
+            goal: result.profile.study_goal || "",
+            profilePic: result.profile.profile_picture || null,
+          });
+
+          setPreferences({
+            temp: result.profile.preferred_temp || 22,
+            co2: result.profile.preferred_co2 || 800,
+          });
+        }
+      } catch (e) {
+        console.error("Error loading profile:", e);
+      }
+    };
+
     const loadData = async () => {
       try {
-        const data = await getEnvironmentDataa();
-        if (data && data.length > 0) {
-          setStats({
-            totalSessions: data.length,
-            lastActivity: new Date(
-              data[data.length - 1].sentAt,
-            ).toLocaleDateString(),
-          });
+        const data = await getDashboardData();
+        if (Array.isArray(data) && data.length > 0) {
           setRecentHistory([...data].reverse().slice(0, 3));
         }
       } catch (e) {
         console.error("Error loading history:", e);
       }
     };
+
     loadData();
+    loadProfile();
   }, [userData]);
 
-  if (!userData) return <Navigate to="/login" replace />;
+  if (!userData || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const displayName =
+    [user.name, user.last_name || user.lastName].filter(Boolean).join(" ") ||
+    user.email;
 
   const calculateProgress = () => {
-    let fields = [
+    const fields = [
       user?.name,
       studentInfo.university,
       studentInfo.StudyProgram,
@@ -76,50 +115,69 @@ const Profile = () => {
       studentInfo.goal,
       studentInfo.profilePic,
     ];
-    let completed = fields.filter((f) => f && f !== "").length;
+    const completed = fields.filter((field) => field && field !== "").length;
     return Math.round((completed / fields.length) * 100);
   };
 
-  const handleSaveStudent = () => {
-    localStorage.setItem("stud_uni", studentInfo.university);
-    localStorage.setItem("stud_prog", studentInfo.StudyProgram);
-    localStorage.setItem("stud_year", studentInfo.year);
-    localStorage.setItem("stud_goal", studentInfo.goal);
-    setIsEditing(false);
-    alert("Information has been saved!");
-  };
+  const handleSaveStudent = async () => {
+    try {
+      await updateProfile({
+        university: studentInfo.university,
+        study_program: studentInfo.StudyProgram,
+        study_year: studentInfo.year,
+        study_goal: studentInfo.goal,
+        preferred_temp: prefs.temp,
+        preferred_co2: prefs.co2,
+        profile_picture: studentInfo.profilePic,
+      });
 
-  const handleSaveAll = () => {
-    handleSaveStudent();
-    alert("Profile updated!");
+      setIsEditing(false);
+      alert("Information has been saved!");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save profile");
+    }
   };
 
   const handleConnectDevice = () => {
     const id = document.getElementById("deviceIdInput").value;
-    if (!id) return alert("Please enter an ID");
+    if (!id) {
+      alert("Please enter an ID");
+      return;
+    }
 
     const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+    const alreadyConnected = userDevices.find(
+      (device) => device.email === user.email && device.deviceId === id,
+    );
 
-    if (!userDevices.find((d) => d.email === user.email)) {
-      userDevices.push({ email: user.email, deviceId: id });
-      localStorage.setItem("user_devices", JSON.stringify(userDevices));
-      alert("Device " + id + " connected!");
-    } else {
-      alert("You already have a connected device!");
+    if (alreadyConnected) {
+      alert("This device is already connected to your account!");
+      return;
     }
+
+    userDevices.push({ email: user.email, deviceId: id });
+    localStorage.setItem("user_devices", JSON.stringify(userDevices));
+    window.dispatchEvent(new Event("storage"));
+    alert("Device " + id + " connected to your account!");
   };
 
   const handleUpdatePassword = () => {
     const { current, next } = passwordForm;
-    const user = JSON.parse(localStorage.getItem("user"));
+    const storedUser = JSON.parse(localStorage.getItem("user"));
     const allUsers = JSON.parse(localStorage.getItem("users")) || [];
 
-    if (!user) {
+    if (!storedUser) {
       alert("You are not logged in! Please log in again.");
       return;
     }
 
-    if (!user || user.password !== current) {
+    if (!storedUser.password) {
+      alert("Password updates are not available yet.");
+      return;
+    }
+
+    if (storedUser.password !== current) {
       alert("Current password is incorrect!");
       return;
     }
@@ -129,10 +187,10 @@ const Profile = () => {
       return;
     }
 
-    const updatedUser = { ...user, password: next };
+    const updatedUser = { ...storedUser, password: next };
     localStorage.setItem("user", JSON.stringify(updatedUser));
 
-    const userIdx = allUsers.findIndex((u) => u.email === user.email);
+    const userIdx = allUsers.findIndex((item) => item.email === storedUser.email);
     if (userIdx !== -1) {
       allUsers[userIdx].password = next;
       localStorage.setItem("users", JSON.stringify(allUsers));
@@ -154,9 +212,9 @@ const Profile = () => {
     }
   };
 
-  const handleLogout = () => {
+  const completeLogout = () => {
     localStorage.removeItem("user");
-    //localStorage.removeItem("token");
+    localStorage.removeItem("token");
     window.dispatchEvent(new Event("storage"));
     navigate("/login", { replace: true });
   };
@@ -165,14 +223,12 @@ const Profile = () => {
     <div className="profile-page-container">
       <div className="profile-card-wrapper">
         <h1>User Profile</h1>
-        <h1>Welcome, {user?.name} !</h1>
+        <h1>Welcome, {user?.name}</h1>
 
-        {/* PROGRESS */}
         <div className="completion-container">
           <div className="completion-text">
             <span>
-              {" "}
-              <UserRoundPen /> Profile Completion
+              <UserRoundPen size={18} /> Profile Completion
             </span>
             <strong>{calculateProgress()}%</strong>
           </div>
@@ -184,7 +240,6 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* INFO */}
         <div className="profile-section student-header-box">
           <div className="profile-header-new">
             <div className="avatar-side">
@@ -192,13 +247,12 @@ const Profile = () => {
                 {studentInfo.profilePic ? (
                   <img src={studentInfo.profilePic} alt="Profile" />
                 ) : (
-                  userData?.name?.charAt(0).toUpperCase()
+                  (user?.name || user?.email || "U").charAt(0).toUpperCase()
                 )}
               </div>
               <label className="upload-label">
                 <span>
-                  {" "}
-                  <ImageUp /> Change Photo
+                  <ImageUp size={16} /> Change Photo
                 </span>
                 <input type="file" onChange={handleImageChange} hidden />
               </label>
@@ -206,15 +260,16 @@ const Profile = () => {
 
             <div className="info-side">
               <div className="profile-name-header">
-                <h2>
-                  {userData.name} {userData.lastName}
-                </h2>
-                <button className="logout-btn-top" onClick={handleLogout}>
-                  <LogOut /> Logout
+                <h2>{displayName}</h2>
+                <button
+                  className="logout-btn-top"
+                  onClick={() => setShowRatingModal(true)}
+                >
+                  <LogOut size={16} /> Logout
                 </button>
               </div>
 
-              <p className="user-email-display">{userData.email}</p>
+              <p className="user-email-display">{user?.email}</p>
 
               <div className="student-details-grid">
                 <div className="detail-item">
@@ -279,10 +334,7 @@ const Profile = () => {
 
               <div className="header-action-btns">
                 {isEditing ? (
-                  <button
-                    className="update-btn-full"
-                    onClick={handleSaveStudent}
-                  >
+                  <button className="update-btn-full" onClick={handleSaveStudent}>
                     Save Changes
                   </button>
                 ) : (
@@ -298,12 +350,10 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* SECURITY */}
         <div className="profile-row-grid">
           <div className="profile-section">
             <h3>
-              {" "}
-              <UserRoundKey /> Password & Security{" "}
+              <UserRoundKey size={18} /> Password & Security
             </h3>
             <div className="setting-row">
               <span className="setting-label">Current:</span>
@@ -324,15 +374,10 @@ const Profile = () => {
                   className="password-toggle-btn"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 >
-                  {showCurrentPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
+                  {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
-
             <div className="setting-row">
               <span className="setting-label">New:</span>
               <div className="password-input-wrapper">
@@ -360,8 +405,7 @@ const Profile = () => {
 
           <div className="profile-section">
             <h3>
-              {" "}
-              <Unplug /> Connect Device
+              <Unplug size={18} /> Connect Device
             </h3>
             <div className="setting-row">
               <span>Device ID:</span>
@@ -372,64 +416,64 @@ const Profile = () => {
                 id="deviceIdInput"
               />
             </div>
-            <button
-              className="update-btn-full"
-              onClick={() => {
-                const id = document.getElementById("deviceIdInput").value;
-                if (!id) return alert("Please enter an ID");
-
-                const userDevices =
-                  JSON.parse(localStorage.getItem("user_devices")) || [];
-
-                const alreadyConnected = userDevices.find(
-                  (d) => d.email === user.email && d.deviceId === id,
-                );
-
-                if (!alreadyConnected) {
-                  userDevices.push({ email: user.email, deviceId: id });
-                  localStorage.setItem(
-                    "user_devices",
-                    JSON.stringify(userDevices),
-                  );
-
-                  window.dispatchEvent(new Event("storage"));
-
-                  alert("Device " + id + " connected to your account!");
-                } else {
-                  alert("This device is already connected to your account!");
-                }
-              }}
-            >
+            <button className="update-btn-full" onClick={handleConnectDevice}>
               Connect Now
             </button>
           </div>
         </div>
 
-        <div className="profile-section">
-          <h3>
-            {" "}
-            <History /> History (Last 3)
-          </h3>
-          <table className="history-table-compact">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Temp</th>
-                <th>CO2</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentHistory.map((item, idx) => (
-                <tr key={idx}>
-                  <td>{new Date(item.sentAt).toLocaleDateString()}</td>
-                  <td>{item.temperature}°C</td>
-                  <td>{item.co2Level}</td>
+        <div className="profile-row-grid">
+          <div className="profile-section">
+            <h3>AI Insights (MAL)</h3>
+            <div className="ai-bubble-new">
+              Suggestion: Maintain {prefs.temp}C for better focus.
+            </div>
+          </div>
+
+          <div className="profile-section">
+            <h3>
+              <History size={18} /> History (Last 3)
+            </h3>
+            <table className="history-table-compact">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Temp</th>
+                  <th>CO2</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {recentHistory.map((item, idx) => (
+                  <tr key={idx}>
+                    <td>{new Date(item.sent_at).toLocaleDateString()}</td>
+                    <td>{item.temperature}C</td>
+                    <td>{item.co2_level}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+
+      {showRatingModal && (
+        <div className="rating-modal">
+          <div className="rating-modal-content">
+            <button
+              className="close-rating-modal"
+              onClick={() => setShowRatingModal(false)}
+            >
+              x
+            </button>
+
+            <SessionRating />
+
+            <button className="update-btn-full" onClick={completeLogout}>
+              Submit & Logout
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

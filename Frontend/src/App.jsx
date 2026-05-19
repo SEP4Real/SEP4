@@ -26,7 +26,6 @@ function App() {
 
         <Route path="/integration-test" element={<IntegrationTest />} />
 
-        {/* public routes */}
         <Route
           path="/register"
           element={
@@ -45,7 +44,6 @@ function App() {
           }
         />
 
-        {/* protected routes */}
         <Route
           path="/student"
           element={
@@ -54,6 +52,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/profile"
           element={
@@ -62,6 +61,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/calendar"
           element={
@@ -71,7 +71,16 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/student" />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </>
   );

@@ -55,6 +55,20 @@ CREATE TABLE IF NOT EXISTS calendar_events (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+
+    university VARCHAR(255),
+    study_program VARCHAR(255),
+    study_year VARCHAR(50),
+    study_goal TEXT,
+
+    preferred_temp INT DEFAULT 22,
+    preferred_co2 INT DEFAULT 800,
+
+    profile_picture TEXT
+);
+
 CREATE TABLE IF NOT EXISTS ratings (
     id BIGSERIAL PRIMARY KEY,
     user_email VARCHAR(255) NOT NULL,
@@ -62,7 +76,7 @@ CREATE TABLE IF NOT EXISTS ratings (
     rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    
+
     CONSTRAINT fk_ratings_user FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE,
     CONSTRAINT fk_ratings_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
 );
