@@ -9,7 +9,7 @@ on:
       - "API/**"
 
 jobs:
-  test:
+  api-test:
     runs-on: ubuntu-latest
 
     env:
