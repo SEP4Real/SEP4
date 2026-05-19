@@ -1,6 +1,27 @@
 import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from "recharts";
 import { useState } from "react";
 import "./SensorChart.css";
+import {FaRegFrown,FaRegMeh,FaRegSmile} from "react-icons/fa";
+
+const renderPredictionTick = ({ x, y, payload }) => {
+  const icons = {
+    1: <FaRegFrown color="#ef5350" />,
+    2: <FaRegFrown color="#ffa726" />,
+    3: <FaRegMeh color="#fdd835" />,
+    4: <FaRegSmile color="#9ccc65" />,
+    5: <FaRegSmile color="#4caf50" />
+  };
+
+  return (
+    <g transform={`translate(${x + 12},${y})`}>
+      <foreignObject x={-10} y={-10} width={24} height={24}>
+        <div style={{ fontSize: "18px" }}>
+          {icons[payload.value]}
+        </div>
+      </foreignObject>
+    </g>
+  );
+};
 
 export default function SensorChart({ data }) {
 
@@ -88,12 +109,33 @@ export default function SensorChart({ data }) {
             }
             />
 
-          <YAxis />
+          <YAxis
+            yAxisId="sensors"
+            label={{
+              value: "Sensor Values",
+              angle: -90,
+              position: "insideLeft"
+            }}
+          />
+
+          <YAxis
+            yAxisId="prediction"
+            orientation="right"
+            domain={[1, 5]}
+            ticks={[1, 2, 3, 4, 5]}
+            tick={renderPredictionTick}
+            label={{
+              value: "Study Quality",
+              angle: 90,
+              position: "insideRight"
+            }}
+          />
 
           <Tooltip content={<CustomTooltip />} />
 
           {visibleLines.temperature && (
         <Line
+          yAxisId="sensors"
             type="monotone"
             dataKey="temperature"
             name="Temperature"
@@ -105,6 +147,7 @@ export default function SensorChart({ data }) {
 
         {visibleLines.humidity && (
         <Line
+            yAxisId="sensors"
             type="monotone"
             dataKey="humidity"
             name="Humidity"
@@ -116,6 +159,7 @@ export default function SensorChart({ data }) {
 
         {visibleLines.co2_level && (
         <Line
+            yAxisId="sensors"
             type="monotone"
             dataKey="co2_level"
             name="CO₂"
@@ -127,6 +171,7 @@ export default function SensorChart({ data }) {
 
         {visibleLines.light_level && (
         <Line
+            yAxisId="sensors"
             type="monotone"
             dataKey="light_level"
             name="Light"
@@ -137,6 +182,7 @@ export default function SensorChart({ data }) {
         )}
 
         <Line
+        yAxisId="prediction"
         type="monotone"
         dataKey="predicted_study_quality"
         name="State"
