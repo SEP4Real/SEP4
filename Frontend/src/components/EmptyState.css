@@ -1,0 +1,38 @@
+.empty-state {
+  margin: 40px auto;
+  padding: 35px;
+  max-width: 520px;
+  text-align: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #caf7db, #b7e4c7);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.empty-state-icon {
+  font-size: 44px;
+  margin-bottom: 12px;
+}
+
+.empty-state h2 {
+  margin: 0 0 10px;
+  color: #1b4332;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #2d6a4f;
+  font-size: 16px;
+}
+
+body.dark-theme .empty-state {
+  background: #2a2a2a;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+body.dark-theme .empty-state h2 {
+  color: white;
+}
+
+body.dark-theme .empty-state p {
+  color: rgb(188, 255, 226);
+}

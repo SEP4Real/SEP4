@@ -106,6 +106,13 @@ export default function SessionRating() {
           {message}
         </p>
       )}
+      <button
+  type="button"
+  className="rating-submit-btn"
+  onClick={handleSubmit}
+>
+  {t.submitRating}
+</button>
 
     </div>
   );

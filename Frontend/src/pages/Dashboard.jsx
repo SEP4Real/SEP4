@@ -3,16 +3,17 @@ import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
 import { getDashboardData } from "../services/DashboardService";
 import SensorChart from "../components/SensorChart";
+import EmptyState from "../components/EmptyState";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function Dashboard() {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState([]);
   const [hasDevice, setHasDevice] = useState(false);
-  
-  //get the current user
+  const [loading, setLoading] = useState(true);
+
   const user = JSON.parse(localStorage.getItem("user"));
-  
-  // temporary -- until db has data
+
   const placeholderData = [
     {
       temperature: 22,
@@ -20,7 +21,7 @@ export default function Dashboard() {
       co2_level: 500,
       light_level: 300,
       predicted_study_quality: 4,
-      sent_at: "2026-05-18T10:00:00"
+      sent_at: "2026-05-18T10:00:00",
     },
     {
       temperature: 23,
@@ -28,7 +29,7 @@ export default function Dashboard() {
       co2_level: 650,
       light_level: 290,
       predicted_study_quality: 4,
-      sent_at: "2026-05-18T10:05:00"
+      sent_at: "2026-05-18T10:05:00",
     },
     {
       temperature: 24,
@@ -36,7 +37,7 @@ export default function Dashboard() {
       co2_level: 850,
       light_level: 260,
       predicted_study_quality: 3,
-      sent_at: "2026-05-18T10:10:00"
+      sent_at: "2026-05-18T10:10:00",
     },
     {
       temperature: 25,
@@ -44,7 +45,7 @@ export default function Dashboard() {
       co2_level: 1200,
       light_level: 220,
       predicted_study_quality: 3,
-      sent_at: "2026-05-18T10:15:00"
+      sent_at: "2026-05-18T10:15:00",
     },
     {
       temperature: 27,
@@ -52,7 +53,7 @@ export default function Dashboard() {
       co2_level: 1700,
       light_level: 180,
       predicted_study_quality: 2,
-      sent_at: "2026-05-18T10:20:00"
+      sent_at: "2026-05-18T10:20:00",
     },
     {
       temperature: 30,
@@ -60,56 +61,71 @@ export default function Dashboard() {
       co2_level: 2200,
       light_level: 120,
       predicted_study_quality: 1,
-      sent_at: "2026-05-18T10:25:00"
-    }
+      sent_at: "2026-05-18T10:25:00",
+    },
   ];
 
   useEffect(() => {
-
     const checkConnection = async () => {
+      setLoading(true);
+
       const userDevices =
         JSON.parse(localStorage.getItem("user_devices")) || [];
 
-      const connectedDevice =
-        userDevices.find(d => d.email === user?.email);
+      const connectedDevice = userDevices.find(
+        (device) => device.email === user?.email
+      );
 
       if (!connectedDevice) {
         setHasDevice(false);
-        return;}
+        setLoading(false);
+        return;
+      }
 
       setHasDevice(true);
 
       try {
         const data = await getDashboardData();
-        setDashboardData(
-          data.length > 0 ? data : placeholderData
-        );} 
-        catch (e) {
-        console.error(e);
+        setDashboardData(data.length > 0 ? data : placeholderData);
+      } catch (error) {
+        console.error(error);
         setDashboardData(placeholderData);
+      } finally {
+        setLoading(false);
       }
     };
+
     checkConnection();
   }, [user?.email]);
+
+  if (loading) {
+    return <LoadingSpinner text={t.loading} />;
+  }
 
   if (!hasDevice) {
     return (
       <div className="dashboard">
-        <div className="recommendation-card">
-          <p>
-            ⚠️ You don't have any devices connected.
-            Go to Profile for setup
-          </p>
-        </div>
+        <EmptyState
+          icon="📡"
+          title={t.noDeviceTitle}
+          message={t.noDeviceMessage}
+        />
       </div>
     );
   }
 
-  const latestData =
-    dashboardData[dashboardData.length - 1];
+  const latestData = dashboardData[dashboardData.length - 1];
 
   if (!latestData) {
-    return <p>{t.loading}</p>;
+    return (
+      <div className="dashboard">
+        <EmptyState
+          icon="📂"
+          title={t.noDashboardDataTitle}
+          message={t.noDashboardDataMessage}
+        />
+      </div>
+    );
   }
 
   return (
