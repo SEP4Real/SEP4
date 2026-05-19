@@ -5,7 +5,7 @@ import os
 script_dir = Path(__file__).resolve().parent
 project_root = script_dir.parent
 
-base_dir = project_root / 'data' / 'raw' / 'KETI'
+base_dir = project_root / 'data' / 'raw' / 'data_3' / 'KETI'
 
 interim_dir = project_root / 'data' / 'interim'
 output_file = interim_dir / 'combined_keti_sensor_data.csv'

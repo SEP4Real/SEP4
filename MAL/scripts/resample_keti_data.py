@@ -5,7 +5,7 @@ import pandas as pd
 script_dir = Path(__file__).resolve().parent
 project_root = script_dir.parent
 
-raw_dir = project_root / 'data' / 'raw' / 'KETI'
+raw_dir = project_root / 'data' / 'raw' / 'data_3' / 'KETI'
 output_file = project_root / 'data' / 'interim' / 'keti_1min_resampled.csv'
 quality_report_file = project_root / 'data' / 'interim' / 'keti_1min_quality_report.csv'
 

@@ -40,9 +40,9 @@ DEFAULT_STUDENT_TARGET_OUTPUT_PATH = (
 DEFAULT_RESPONDENT_TARGET_OUTPUT_PATH = (
     DATA_DIR / "processed" / "unified_environment_respondent_focus_score_filled.csv"
 )
-DEFAULT_STUDENT_TRAINING_PATH = DATA_DIR / "raw" / "agile_teaching_dataset.csv"
-DEFAULT_ROOM_MEASUREMENTS_PATH = DATA_DIR / "raw" / "1_room_measurements.csv"
-DEFAULT_COMFORT_PERCEPTION_PATH = DATA_DIR / "raw" / "4_comfort_perception.csv"
+DEFAULT_STUDENT_TRAINING_PATH = DATA_DIR / "raw" / "DATA_2" / "agile_teaching_dataset.csv"
+DEFAULT_ROOM_MEASUREMENTS_PATH = DATA_DIR / "raw" / "DATA_8" / "smart-campus-comfort-data" / "1_room_measurements.csv"
+DEFAULT_COMFORT_PERCEPTION_PATH = DATA_DIR / "raw" / "DATA_8" / "smart-campus-comfort-data" / "4_comfort_perception.csv"
 DEFAULT_RESPONDENT_TRAINING_OUTPUT_PATH = (
     DATA_DIR / "processed" / "respondent_comfort_training_dataset.csv"
 )
