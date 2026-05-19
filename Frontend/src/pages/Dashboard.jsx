@@ -6,6 +6,57 @@ import SensorChart from "../components/SensorChart";
 import EmptyState from "../components/EmptyState";
 import LoadingSpinner from "../components/LoadingSpinner";
 
+const placeholderData = [
+  {
+    temperature: 22,
+    humidity: 45,
+    co2_level: 500,
+    light_level: 300,
+    predicted_study_quality: 4,
+    sent_at: "2026-05-18T10:00:00",
+  },
+  {
+    temperature: 23,
+    humidity: 44,
+    co2_level: 650,
+    light_level: 290,
+    predicted_study_quality: 4,
+    sent_at: "2026-05-18T10:05:00",
+  },
+  {
+    temperature: 24,
+    humidity: 42,
+    co2_level: 850,
+    light_level: 260,
+    predicted_study_quality: 3,
+    sent_at: "2026-05-18T10:10:00",
+  },
+  {
+    temperature: 25,
+    humidity: 38,
+    co2_level: 1200,
+    light_level: 220,
+    predicted_study_quality: 3,
+    sent_at: "2026-05-18T10:15:00",
+  },
+  {
+    temperature: 27,
+    humidity: 30,
+    co2_level: 1700,
+    light_level: 180,
+    predicted_study_quality: 2,
+    sent_at: "2026-05-18T10:20:00",
+  },
+  {
+    temperature: 30,
+    humidity: 24,
+    co2_level: 2200,
+    light_level: 120,
+    predicted_study_quality: 1,
+    sent_at: "2026-05-18T10:25:00",
+  },
+];
+
 export default function Dashboard() {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState([]);
@@ -13,57 +64,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const user = JSON.parse(localStorage.getItem("user"));
-
-  const placeholderData = [
-    {
-      temperature: 22,
-      humidity: 45,
-      co2_level: 500,
-      light_level: 300,
-      predicted_study_quality: 4,
-      sent_at: "2026-05-18T10:00:00",
-    },
-    {
-      temperature: 23,
-      humidity: 44,
-      co2_level: 650,
-      light_level: 290,
-      predicted_study_quality: 4,
-      sent_at: "2026-05-18T10:05:00",
-    },
-    {
-      temperature: 24,
-      humidity: 42,
-      co2_level: 850,
-      light_level: 260,
-      predicted_study_quality: 3,
-      sent_at: "2026-05-18T10:10:00",
-    },
-    {
-      temperature: 25,
-      humidity: 38,
-      co2_level: 1200,
-      light_level: 220,
-      predicted_study_quality: 3,
-      sent_at: "2026-05-18T10:15:00",
-    },
-    {
-      temperature: 27,
-      humidity: 30,
-      co2_level: 1700,
-      light_level: 180,
-      predicted_study_quality: 2,
-      sent_at: "2026-05-18T10:20:00",
-    },
-    {
-      temperature: 30,
-      humidity: 24,
-      co2_level: 2200,
-      light_level: 120,
-      predicted_study_quality: 1,
-      sent_at: "2026-05-18T10:25:00",
-    },
-  ];
 
   useEffect(() => {
     const checkConnection = async () => {
@@ -128,11 +128,10 @@ export default function Dashboard() {
     );
   }
 
-    const getRecommendation = (quality) => {
+  const getRecommendation = (quality) => {
     if (quality >= 4) {
       return {
         status: "good",
-        icon: "🟢",
         title: t.recommendationGoodTitle,
         message: t.recommendationGoodMessage,
       };
@@ -141,7 +140,6 @@ export default function Dashboard() {
     if (quality === 3) {
       return {
         status: "moderate",
-        icon: "🟡",
         title: t.recommendationModerateTitle,
         message: t.recommendationModerateMessage,
       };
@@ -149,7 +147,6 @@ export default function Dashboard() {
 
     return {
       status: "poor",
-      icon: "🔴",
       title: t.recommendationPoorTitle,
       message: t.recommendationPoorMessage,
     };
@@ -162,11 +159,7 @@ export default function Dashboard() {
       <SensorChart data={dashboardData} />
 
       <div className={`recommendation-card ${recommendation.status}`}>
-        <div className="recommendation-header">
-          <span className="recommendation-icon">{recommendation.icon}</span>
-          <h2>{t.recommendation}</h2>
-        </div>
-
+        <h2>{t.recommendation}</h2>
         <h3>{recommendation.title}</h3>
         <p>{recommendation.message}</p>
       </div>
