@@ -105,13 +105,7 @@ const Navbar = () => {
                 Calendar
               </Link>
             </li>
-
-            <li>
-              <Link to="/history" onClick={() => setIsMenuOpen(false)}>
-                History
-              </Link>
-            </li>
-
+            
             <li>
               <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
                 Dashboard

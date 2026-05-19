@@ -1,97 +1,124 @@
 import { useEffect, useState } from "react";
-import { getEnvironmentDataa } from "../services/EnvironmentService";
-import SensorCard from "../components/SensorCard";
 import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
-import SessionRating from "../components/SessionRating";
+import { getDashboardData } from "../services/DashboardService";
+import SensorChart from "../components/SensorChart";
 
 export default function Dashboard() {
-  const [data, setData] = useState(null);
-  const [hasDevice, setHasDevice] = useState(false);
   const { t } = useLanguage();
+  const [dashboardData, setDashboardData] = useState([]);
+  const [hasDevice, setHasDevice] = useState(false);
+  
   //get the current user
   const user = JSON.parse(localStorage.getItem("user"));
   
-  useEffect(() => {
-  const checkConnection = () => {
-     // take the list of associations ("user devices")
-    const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
-     //check if the logged in user has at least one device connected
-    const connectedDevice = userDevices.find(d => d.email === user?.email);
-
-    if (connectedDevice) {
-      setHasDevice(true);
-      // We only request the data if we found a device
-      getEnvironmentDataa().then((res) => {
-        setData(res);
-      });
-    } else {
-      setHasDevice(false);
-      setData("no_device");
+  // temporary -- until db has data
+  const placeholderData = [
+    {
+      temperature: 22,
+      humidity: 45,
+      co2_level: 500,
+      light_level: 300,
+      predicted_study_quality: 4,
+      sent_at: "2026-05-18T10:00:00"
+    },
+    {
+      temperature: 23,
+      humidity: 44,
+      co2_level: 650,
+      light_level: 290,
+      predicted_study_quality: 4,
+      sent_at: "2026-05-18T10:05:00"
+    },
+    {
+      temperature: 24,
+      humidity: 42,
+      co2_level: 850,
+      light_level: 260,
+      predicted_study_quality: 3,
+      sent_at: "2026-05-18T10:10:00"
+    },
+    {
+      temperature: 25,
+      humidity: 38,
+      co2_level: 1200,
+      light_level: 220,
+      predicted_study_quality: 3,
+      sent_at: "2026-05-18T10:15:00"
+    },
+    {
+      temperature: 27,
+      humidity: 30,
+      co2_level: 1700,
+      light_level: 180,
+      predicted_study_quality: 2,
+      sent_at: "2026-05-18T10:20:00"
+    },
+    {
+      temperature: 30,
+      humidity: 24,
+      co2_level: 2200,
+      light_level: 120,
+      predicted_study_quality: 1,
+      sent_at: "2026-05-18T10:25:00"
     }
-  };
+  ];
 
-  checkConnection();
-  window.addEventListener("storage", checkConnection);
+  useEffect(() => {
 
-  return () => {
-    window.removeEventListener("storage", checkConnection);
-  };
+    const checkConnection = async () => {
+      const userDevices =
+        JSON.parse(localStorage.getItem("user_devices")) || [];
+
+      const connectedDevice =
+        userDevices.find(d => d.email === user?.email);
+
+      if (!connectedDevice) {
+        setHasDevice(false);
+        return;}
+
+      setHasDevice(true);
+
+      try {
+        const data = await getDashboardData();
+        setDashboardData(
+          data.length > 0 ? data : placeholderData
+        );} 
+        catch (e) {
+        console.error(e);
+        setDashboardData(placeholderData);
+      }
+    };
+    checkConnection();
   }, [user?.email]);
 
-  // If there is no device connected, we display a warning message
-  if (!hasDevice || data === "no_device") {
+  if (!hasDevice) {
     return (
       <div className="dashboard">
-        <h1>{t.dashboard}</h1>
         <div className="recommendation-card">
-          <p>⚠️ You don't have any devices connected. Go to Profile for setup</p>
+          <p>
+            ⚠️ You don't have any devices connected.
+            Go to Profile for setup
+          </p>
         </div>
       </div>
     );
   }
 
-  
-  if (!data) {
+  const latestData =
+    dashboardData[dashboardData.length - 1];
+
+  if (!latestData) {
     return <p>{t.loading}</p>;
   }
 
   return (
     <div className="dashboard">
-      <h1>{t.dashboard}</h1>
+      <SensorChart data={dashboardData} />
 
-      <div className="dashboard-grid">
-
-        <SensorCard title={t.temperature} value={data.temperature + " °C"} />
-        <SensorCard title={t.humidity} value={data.humidity + " %"} />
-        <SensorCard title={t.co2Level} value={data.co2Level + " ppm"} />
-        <SensorCard title={t.lightLevel} value={data.lightLevel + " lx"} />
-        <SensorCard 
-        title={t.suitabilityLevel}
-        value={(data.suitabilityLevel * 100).toFixed(0) + "%"}/>
-        <SensorCard
-        title={t.predictedSuitability}
-        value={(data.predictedSuitabilityLevel * 100).toFixed(0) + "%"}/>
-        <SensorCard
-        title={t.trend}
-        value={data.predictedTrend === 1
-            ? t.improving
-            : t.declining}/>
-        <SensorCard
-        title={t.environmentStatus}
-        value={data.environmentStatus === 1 ? t.good : t.bad}/>
-
+      <div className="recommendation-card">
+        <h2>{t.recommendation}</h2>
       </div>
-
-<div className="recommendation-card">
-  <h2>{t.recommendation}</h2>
-
-  <p>
-    {data.recommendation}
-  </p>
-</div>
-<SessionRating />
-
     </div>
   );
 }

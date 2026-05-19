@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import './CalendarPage.css';
+import {
+  getCalendarEvents,
+  createCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent
+} from "../services/CalendarService";
 
 const CalendarPage = () => {
 
@@ -16,6 +22,35 @@ const CalendarPage = () => {
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [timeInfo, setTimeInfo] = useState(null);
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const data = await getCalendarEvents();
+
+        const formattedEvents = data.map(event => ({
+          id: event.id,
+          title: event.title,
+          start: event.start_time,
+          end: event.end_time,
+          allDay: event.all_day,
+
+          extendedProps: {
+            note: event.note
+          }
+        }));
+
+        setEvents(formattedEvents);
+
+      } catch (e) {
+        console.error("Error loading calendar events:", e);
+      }
+    };
+
+    loadEvents();
+
+  }, []);
 
   // user selects a time range → open popup for new event
   const handleSelect = (info) => {
@@ -57,29 +92,99 @@ const CalendarPage = () => {
 
     if (selectedEvent) {
       // update existing event
-      selectedEvent.setProp("title", title);
-      selectedEvent.setExtendedProp("note", note);
-    } else {
-      // create new event
-      timeInfo.view.calendar.addEvent({
+      const editEvent = async () => {
+  try {
+    const updatedEvent = await updateCalendarEvent(
+      selectedEvent.id,
+      {
         title,
-        start: timeInfo.start,
-        end: timeInfo.end,
-        allDay: timeInfo.allDay,
-        extendedProps: { note }
-      });
-    }
+        note,
+        start_time: selectedEvent.start.toLocaleString("sv-SE").replace(" ", "T"),
+        end_time: selectedEvent.end.toLocaleString("sv-SE").replace(" ", "T"),    
+        all_day: selectedEvent.allDay
+      }
+    );
 
-    setPopupOpen(false);
-  };
+    setEvents(prev =>
+      prev.map(event =>
+        event.id === updatedEvent.id
+          ? {
+            id: updatedEvent.id,
+            title: updatedEvent.title,
+            start: updatedEvent.start_time,
+            end: updatedEvent.end_time,
+            allDay: updatedEvent.all_day,
+
+              extendedProps: {
+                note: updatedEvent.note
+              }
+            }
+          : event
+      )
+    );
+
+  } catch (e) {
+    console.error(e);
+  }};
+
+  editEvent();
+      } else {
+        // create new event
+        const createEvent = async () => {
+        try {
+          const createdEvent = await createCalendarEvent({
+            title,
+            note,
+            start_time: timeInfo.startStr,
+            end_time: timeInfo.endStr,
+            all_day: timeInfo.allDay
+          });
+
+          setEvents(prev => [
+            ...prev,
+            {
+              id: createdEvent.id,
+              title: createdEvent.title,
+              start: createdEvent.start_time,
+              end: createdEvent.end_time,
+              allDay: createdEvent.all_day,
+
+              extendedProps: {
+                note: createdEvent.note
+              }
+            }
+          ]);
+
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      createEvent();
+      }
+
+      setPopupOpen(false);
+    };
 
   // delete event
   const handleDelete = () => {
     if (selectedEvent) {
-      selectedEvent.remove();
+      const deleteEvent = async () => {
+    try {
+      await deleteCalendarEvent(selectedEvent.id);
+
+      setEvents(prev =>
+        prev.filter(event => event.id !== selectedEvent.id)
+      );
+
+    } catch (e) {
+      console.error(e);
     }
-    setPopupOpen(false);
   };
+
+  deleteEvent();
+      }
+      setPopupOpen(false);
+    };
 
   // popup position
   const popupWidth = 260;
@@ -109,6 +214,8 @@ const CalendarPage = () => {
         select={handleSelect} // create event
         editable={true} // drag + resize
         eventDurationEditable={true}
+        events={events}
+        timeZone="local"
         eventClick={handleEventClick} // edit event
         slotLabelFormat={{
           hour: '2-digit',

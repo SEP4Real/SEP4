@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { getEnvironmentDataa } from "../services/EnvironmentService";
+import { getProfile, updateProfile } from "../services/ProfileService";
 import './Profile.css';
 import { logout } from '../services/AuthService';
 import { useLanguage } from "../context/LanguageContext";
+import SessionRating from "../components/SessionRating";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -22,22 +24,48 @@ const Profile = () => {
   const [stats, setStats] = useState({ totalSessions: 0, lastActivity: "--" });
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "" });
   const [isEditing, setIsEditing] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   const [studentInfo, setStudentInfo] = useState({
-    university: localStorage.getItem('stud_uni') || "",
-    StudyProgram: localStorage.getItem('stud_prog') || "",
-    year: localStorage.getItem('stud_year') || "",
-    goal: localStorage.getItem('stud_goal') || "",
-    profilePic: localStorage.getItem('stud_pic') || null
+    university: "",
+    StudyProgram: "",
+    year: "",
+    goal: "",
+    profilePic: null
   });
 
   const [prefs, setPreferences] = useState({
-    temp: localStorage.getItem('pref_temp') || 22,
-    co2: localStorage.getItem('pref_co2') || 800,
+    temp: 22,
+    co2: 800,
   });
 
   useEffect(() => {
     if (!userData) return;
+
+    const loadProfile = async () => {
+  try {
+    const result = await getProfile();
+
+        if (result.profile) {
+          setStudentInfo({
+            university: result.profile.university || "",
+            StudyProgram: result.profile.study_program || "",
+            year: result.profile.study_year || "",
+            goal: result.profile.study_goal || "",
+            profilePic: result.profile.profile_picture || null
+          });
+
+          setPreferences({
+            temp: result.profile.preferred_temp || 22,
+            co2: result.profile.preferred_co2 || 800
+          });
+        }
+
+      } catch (e) {
+        console.error("Error loading profile:", e);
+      }
+    };
+    
     const loadData = async () => {
       try {
         const data = await getEnvironmentDataa();
@@ -51,6 +79,7 @@ const Profile = () => {
       } catch (e) { console.error("Error loading history:", e); }
     };
     loadData();
+    loadProfile();
   }, [userData]);
 
   if (!userData) return <Navigate to="/login" replace />;
@@ -61,19 +90,32 @@ const Profile = () => {
     return Math.round((completed / fields.length) * 100);
   };
 
-  const handleSaveStudent = () => {
-    localStorage.setItem('stud_uni', studentInfo.university);
-    localStorage.setItem('stud_prog', studentInfo.StudyProgram);
-    localStorage.setItem('stud_year', studentInfo.year);
-    localStorage.setItem('stud_goal', studentInfo.goal);
-    setIsEditing(false); 
-    alert("Information has been saved!");
+  const handleSaveStudent = async () => {
+    try {
+      await updateProfile({
+        university: studentInfo.university,
+        study_program: studentInfo.StudyProgram,
+        study_year: studentInfo.year,
+        study_goal: studentInfo.goal,
+
+        preferred_temp: prefs.temp,
+        preferred_co2: prefs.co2,
+
+        profile_picture: studentInfo.profilePic
+      });
+
+      setIsEditing(false);
+
+      alert("Information has been saved!");
+
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save profile");
+    }
   };
 
   const handleSaveAll = () => {
     handleSaveStudent();
-    localStorage.setItem('pref_temp', prefs.temp);
-    localStorage.setItem('pref_co2', prefs.co2);
     alert("Profile and Preferences updated!");
   };
 
@@ -146,11 +188,16 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
+    setShowRatingModal(true);
+  };
+
+  const completeLogout = () => {
     localStorage.removeItem("user");
-    //localStorage.removeItem("token");
-    window.dispatchEvent(new Event("storage"));
-    navigate('/login', { replace: true });
     localStorage.removeItem("token");
+
+    window.dispatchEvent(new Event("storage"));
+
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -302,6 +349,32 @@ const Profile = () => {
       </div>
     </div>
   </div>
+
+  {showRatingModal && (
+  <div className="rating-modal">
+
+    <div className="rating-modal-content">
+
+      <button
+        className="close-rating-modal"
+        onClick={() => setShowRatingModal(false)}
+      >
+        ×
+      </button>
+
+      <SessionRating />
+
+      <button
+        className="update-btn-full"
+        onClick={completeLogout}
+      >
+        Submit & Logout
+      </button>
+
+    </div>
+
+  </div>
+)}
 </div>
   );
 };

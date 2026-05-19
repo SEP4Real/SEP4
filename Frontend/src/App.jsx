@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
-import History from "./pages/History";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
@@ -45,14 +44,7 @@ function App() {
         />
 
         {/* protected routes */}
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute>
-              <History />
-            </ProtectedRoute>
-          }
-        />
+      
         <Route
           path="/profile"
           element={
