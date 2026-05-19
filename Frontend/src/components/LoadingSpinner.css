@@ -1,0 +1,46 @@
+.loading-spinner-container {
+  min-height: calc(100vh - 70px);
+  padding-top: 70px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 16px;
+
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.emoji-spinner {
+  font-size: 44px;
+  animation: hourglass-flip 2s steps(1) infinite;
+}
+
+@keyframes hourglass-flip {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  49% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(180deg);
+  }
+
+  99% {
+    transform: rotate(180deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+body.dark-theme .loading-spinner-container {
+  color: #ffffff;
+}

@@ -4,6 +4,7 @@ import SensorCard from "../components/SensorCard";
 import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
 import SessionRating from "../components/SessionRating";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -45,7 +46,7 @@ export default function Dashboard() {
       <div className="dashboard">
         <h1>{t.dashboard}</h1>
         <div className="recommendation-card">
-          <p>⚠️ You don't have any devices connected. Go to Profile for setup</p>
+          <p> You don't have any devices connected. Go to Profile for setup</p>
         </div>
       </div>
     );
@@ -53,8 +54,8 @@ export default function Dashboard() {
 
   
   if (!data) {
-    return <p>{t.loading}</p>;
-  }
+  return <LoadingSpinner text={t.loading} />;
+}
 
   return (
     <div className="dashboard">
