@@ -22,21 +22,6 @@
   gap: 20px;
 }
 
-.sensor-card {
-  background: linear-gradient(135deg, #caf7db, #b7e4c7);
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.sensor-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
 .sensor-title {
   font-size: 1rem;
   font-weight: 600;
@@ -120,10 +105,6 @@
     grid-template-columns: 1fr !important;
   }
 
-  .sensor-card {
-    padding: 16px;
-  }
-
   .sensor-value {
     font-size: 1.25rem !important;
   }
@@ -153,10 +134,6 @@
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .sensor-card {
-    padding: 18px;
-  }
 }
 
 /*Large screens (≥ 1024px)   */
@@ -180,11 +157,6 @@ body.dark-theme .dashboard h1 {
   color: #ffffff;
 }
 
-body.dark-theme .sensor-card {
-  background: #2b2b2b;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-}
 
 body.dark-theme .sensor-title {
   color: #ffffff;
