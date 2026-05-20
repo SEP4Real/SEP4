@@ -17,13 +17,13 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
 try:
-    from build_unified_environment_dataset import (
+    from MAL.notebooks.archive.scripts_related_archive.build_unified_environment_dataset import (
         DEFAULT_OUTPUT_PATH as DEFAULT_UNIFIED_DATASET_PATH,
         DEFAULT_REPORT_PATH as DEFAULT_UNIFIED_REPORT_PATH,
         build_unified_dataset,
     )
 except ImportError:
-    from scripts.build_unified_environment_dataset import (
+    from MAL.notebooks.archive.scripts_related_archive.build_unified_environment_dataset import (
         DEFAULT_OUTPUT_PATH as DEFAULT_UNIFIED_DATASET_PATH,
         DEFAULT_REPORT_PATH as DEFAULT_UNIFIED_REPORT_PATH,
         build_unified_dataset,

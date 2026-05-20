@@ -6,7 +6,7 @@ import pandas as pd
 MAL_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(MAL_DIR))
 
-from scripts.build_unified_environment_dataset import (
+from MAL.notebooks.archive.scripts_related_archive.build_unified_environment_dataset import (
     SourceSpec,
     build_unified_dataset,
     make_location_ids,

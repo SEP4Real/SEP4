@@ -25,20 +25,20 @@ class SourceSpec:
 
 
 DEFAULT_SOURCES: tuple[SourceSpec, ...] = (
+    # Data 6
     SourceSpec("keti_1min_resampled", DATA_DIR / "interim" / "keti_1min_resampled.csv"),
+    
+    # Data 1
     SourceSpec("room_conditions", DATA_DIR / "raw" / "DATA_1" / "room_conditions.csv"),
+            
+    # Data 7 
+    SourceSpec("homecoach_combined", DATA_DIR / "interim" / "HomeCoach_combined.csv"),
+    
+    # Data 8 
     SourceSpec(
-        "room_measurements",
-        DATA_DIR
-        / "raw"
-        / "DATA_8"
-        / "smart-campus-comfort-data"
-        / "1_room_measurements.csv",
+        "smart_campus_room_measurements",
+        DATA_DIR / "raw" / "data_8" / "smart-campus-comfort-data" / "1_room_measurements.csv",
     ),
-    SourceSpec("homecoach_5min_2023", DATA_DIR / "raw" / "DATA_7" / "HomeCoach_5min_2023.csv"),
-    SourceSpec("homecoach_5min_2024", DATA_DIR / "raw" / "DATA_7" / "HomeCoach_5min_2024.csv"),
-    SourceSpec("homecoach_5min_2025", DATA_DIR / "raw" / "DATA_7" / "HomeCoach_5min_2025.csv"),
-    SourceSpec("homecoach_5min_2026", DATA_DIR / "raw" / "DATA_7" / "HomeCoach_5min_2026.csv"),
 )
 
 OUTPUT_COLUMNS = [
@@ -264,10 +264,15 @@ def standardise_source(spec: SourceSpec) -> tuple[pd.DataFrame, dict[str, object
         },
         index=raw_df.index,
     )
-    empty_rows = information[INFORMATION_COLUMNS].isna().all(axis=1)
-    dropped_empty_rows = int(empty_rows.sum())
+    # --- We no longer drop rows with missing environmental data ---
+    # empty_rows = information[INFORMATION_COLUMNS].isna().all(axis=1)
+    # dropped_empty_rows = int(empty_rows.sum())
+    
+    dropped_empty_rows = 0
+    
+    # raw_df = raw_df.loc[~empty_rows].copy()
+    # -----------------------------------------------------------------------
 
-    raw_df = raw_df.loc[~empty_rows].copy()
     timestamps = timestamps.loc[raw_df.index]
     timestamp_strings = timestamp_strings.loc[raw_df.index]
     location_ids = location_ids.loc[raw_df.index]
