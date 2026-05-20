@@ -4,6 +4,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { getDashboardData } from "../services/DashboardService";
 import SensorChart from "../components/SensorChart";
 import SessionRating from "../components/SessionRating";
+import LoadingSpinner from "../components/LoadingSpinner";
 import SensorCard from "../components/SensorCard";
 import {
   CalendarRange,
@@ -194,6 +195,7 @@ export default function Dashboard() {
       <div className="dashboard">
         <h1>{t.dashboard}</h1>
         <div className="recommendation-card">
+          <p> You don't have any devices connected. Go to Profile for setup</p>
           <p>
             <TriangleAlert /> You don't have any devices connected. Go to
             Profile for setup
@@ -203,9 +205,10 @@ export default function Dashboard() {
     );
   }
 
-  if (!latestData) {
-    return <p>{t.loading}</p>;
-  }
+  
+  if (!data) {
+  return <LoadingSpinner text={t.loading} />;
+}
 
   return (
     <div className="dashboard">
