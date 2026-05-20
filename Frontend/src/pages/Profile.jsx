@@ -602,6 +602,7 @@ const Profile = () => {
             </table>
           </div>
         </div>
+       </div>
 
       {showRatingModal && (
         <div className="rating-modal">
@@ -610,14 +611,10 @@ const Profile = () => {
               className="close-rating-modal"
               onClick={() => setShowRatingModal(false)}
             >
-              x
+              ×
             </button>
 
-            <SessionRating />
-
-            <button className="update-btn-full" onClick={completeLogout}>
-              Submit & Logout
-            </button>
+            <SessionRating onSuccess={completeLogout} />
           </div>
         </div>
       )}
