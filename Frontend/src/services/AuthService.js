@@ -1,9 +1,10 @@
-import { apiFetch } from "./apiConfig";
+import { API_URL } from "./apiConfig";
 
 export async function register(data) {
   // send request to backend
-  const response = await apiFetch("/register", {
+  const response = await fetch(`${API_URL}/register`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -30,8 +31,9 @@ export async function register(data) {
 
 export async function login(data) {
   // send login request to backend
-  const response = await apiFetch("/login", {
+  const response = await fetch(`${API_URL}/login`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -56,7 +58,10 @@ export async function login(data) {
 }
 
 export async function logout() {
-  await apiFetch("/logout", { method: "POST" });
+  await fetch(`${API_URL}/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
   localStorage.removeItem("user");
   window.dispatchEvent(new Event("storage"));
 }

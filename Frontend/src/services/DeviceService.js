@@ -1,7 +1,9 @@
-import { apiFetch } from "./apiConfig";
+import { API_URL } from "./apiConfig";
 
 export async function getDeviceById(deviceId) {
-  const response = await apiFetch(`/device/${encodeURIComponent(deviceId)}`);
+  const response = await fetch(`${API_URL}/device/${encodeURIComponent(deviceId)}`, {
+    credentials: "include",
+  });
 
   if (response.status === 404) {
     throw new Error("Device not found in the database.");

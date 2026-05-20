@@ -44,7 +44,6 @@ services:
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
       AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
     expose:
       - "8080"
     depends_on:

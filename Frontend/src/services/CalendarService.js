@@ -1,7 +1,9 @@
-import { apiFetch } from "./apiConfig";
+import { API_URL } from "./apiConfig";
 
 export async function getCalendarEvents() {
-  const response = await apiFetch("/calendar-events");
+  const response = await fetch(`${API_URL}/calendar-events`, {
+    credentials: "include",
+  });
 
   if (!response.ok) {
     throw new Error("Failed to fetch calendar events");
@@ -11,8 +13,9 @@ export async function getCalendarEvents() {
 }
 
 export async function createCalendarEvent(eventData) {
-  const response = await apiFetch("/calendar-events", {
+  const response = await fetch(`${API_URL}/calendar-events`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -28,8 +31,9 @@ export async function createCalendarEvent(eventData) {
 }
 
 export async function updateCalendarEvent(eventId, eventData) {
-  const response = await apiFetch(`/calendar-events/${eventId}`, {
+  const response = await fetch(`${API_URL}/calendar-events/${eventId}`, {
     method: "PUT",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -45,8 +49,9 @@ export async function updateCalendarEvent(eventId, eventData) {
 }
 
 export async function deleteCalendarEvent(eventId) {
-  const response = await apiFetch(`/calendar-events/${eventId}`, {
+  const response = await fetch(`${API_URL}/calendar-events/${eventId}`, {
     method: "DELETE",
+    credentials: "include",
   });
 
   if (!response.ok) {

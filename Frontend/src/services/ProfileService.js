@@ -1,7 +1,9 @@
-import { apiFetch } from "./apiConfig";
+import { API_URL } from "./apiConfig";
 
 export async function getProfile() {
-  const response = await apiFetch("/profile");
+  const response = await fetch(`${API_URL}/profile`, {
+    credentials: "include",
+  });
 
   if (!response.ok) {
     throw new Error("Failed to fetch profile");
@@ -11,8 +13,9 @@ export async function getProfile() {
 }
 
 export async function updateProfile(profileData) {
-  const response = await apiFetch("/profile", {
+  const response = await fetch(`${API_URL}/profile`, {
     method: "PUT",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
