@@ -41,13 +41,11 @@ services:
       DB_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       MAL_API_HOST_PORT: ${MAL_API_HOST_PORT:?MAL_API_HOST_PORT must be set}
-    ports:
-      - "8080:8080"
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
       AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
-    expose:
-      - "8080"
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
