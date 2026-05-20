@@ -122,7 +122,7 @@ void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8
 
 void server_send_onetime_measurement(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec, uint16_t light_raw, uint16_t co2_ppm){
     char body[150];
-    snprintf(body, sizeof(body), "{\"sessionId\":1,\"temperature\":%d.%d,\"humidity\":%d.%d,\"lightLevel\":%u,\"co2Level\":%u}", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
+    snprintf(body, sizeof(body),"{\"sessionId\":1,\"temperature\":%d.%d,\"humidity\":%d.%d,\"lightLevel\":%u,\"co2Level\":%u}", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
     printf("[ONETIME] Sending data to alternate the endpoint...\n");
     http_post("/predict", body, tcp_rx_buf, sizeof(tcp_rx_buf));
     char *quality_ptr = strstr(tcp_rx_buf, "\"study_quality\"");
