@@ -4,7 +4,19 @@ import { useLanguage } from "../context/LanguageContext";
 import { getDashboardData } from "../services/DashboardService";
 import SensorChart from "../components/SensorChart";
 import SessionRating from "../components/SessionRating";
-import { CalendarRange, CirclePlay, Clock3, MonitorX } from "lucide-react";
+import SensorCard from "../components/SensorCard";
+import {
+  CalendarRange,
+  CheckCircle2,
+  CirclePlay,
+  Clock3,
+  MonitorX,
+  TriangleAlert,
+  Thermometer,
+  Droplets,
+  Fan,
+  Lightbulb,
+} from "lucide-react";
 
 const placeholderData = [
   {
@@ -57,6 +69,43 @@ const placeholderData = [
   },
 ];
 
+const normalizeDashboardRecord = (item = {}) => {
+  const predictedStudyQuality =
+    item.predictedStudyQuality ?? item.predicted_study_quality ?? 0;
+  const suitabilityLevel =
+    item.suitabilityLevel ?? (predictedStudyQuality ? predictedStudyQuality / 5 : 0);
+
+  return {
+    id: item.id,
+    temperature: item.temperature ?? 0,
+    humidity: item.humidity ?? 0,
+    co2Level: item.co2Level ?? item.co2_level ?? 0,
+    lightLevel: item.lightLevel ?? item.light_level ?? 0,
+    suitabilityLevel,
+    predictedTrend: item.predictedTrend ?? 0,
+    predictedStudyQuality,
+    sentAt: item.sentAt ?? item.sent_at,
+  };
+};
+
+const prepareDashboardRecord = (item = {}) => {
+  const record = normalizeDashboardRecord(item);
+
+  return {
+    ...item,
+    co2_level: record.co2Level,
+    light_level: record.lightLevel,
+    predicted_study_quality: record.predictedStudyQuality,
+    sent_at: record.sentAt,
+    co2Level: record.co2Level,
+    lightLevel: record.lightLevel,
+    suitabilityLevel: record.suitabilityLevel,
+    predictedTrend: record.predictedTrend,
+    predictedStudyQuality: record.predictedStudyQuality,
+    sentAt: record.sentAt,
+  };
+};
+
 export default function Dashboard() {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState([]);
@@ -70,18 +119,17 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     try {
       const data = await getDashboardData();
-      setDashboardData(data.length > 0 ? data : placeholderData);
+      const records = Array.isArray(data) && data.length > 0 ? data : placeholderData;
+      setDashboardData(records.map(prepareDashboardRecord));
     } catch (e) {
       console.error(e);
-      setDashboardData(placeholderData);
+      setDashboardData(placeholderData.map(prepareDashboardRecord));
     }
   };
 
   useEffect(() => {
     const checkConnection = async () => {
-      const userDevices =
-        JSON.parse(localStorage.getItem("user_devices")) || [];
-
+      const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
       const connectedDevice = userDevices.find((d) => d.email === user?.email);
 
       if (!connectedDevice) {
@@ -115,6 +163,11 @@ export default function Dashboard() {
   }, [hasDevice, isSessionActive]);
 
   const latestData = dashboardData[dashboardData.length - 1];
+  const latestMetrics = normalizeDashboardRecord(latestData);
+  const recommendationText =
+    latestMetrics.predictedStudyQuality >= 4
+      ? "Conditions look good for studying. Keep monitoring the room while the session is active."
+      : "Conditions are getting weaker. Try adjusting light, airflow, or room temperature before continuing.";
 
   const filteredHistory = useMemo(() => {
     if (!filterDate) {
@@ -122,11 +175,13 @@ export default function Dashboard() {
     }
 
     return dashboardData.filter((item) => {
-      if (!item.sent_at) {
+      const { sentAt } = normalizeDashboardRecord(item);
+
+      if (!sentAt) {
         return false;
       }
 
-      return new Date(item.sent_at).toISOString().slice(0, 10) === filterDate;
+      return new Date(sentAt).toISOString().slice(0, 10) === filterDate;
     });
   }, [dashboardData, filterDate]);
 
@@ -137,8 +192,12 @@ export default function Dashboard() {
   if (!hasDevice) {
     return (
       <div className="dashboard">
+        <h1>{t.dashboard}</h1>
         <div className="recommendation-card">
-          <p>Warning: you do not have any devices connected. Go to Profile for setup.</p>
+          <p>
+            <TriangleAlert /> You don't have any devices connected. Go to
+            Profile for setup
+          </p>
         </div>
       </div>
     );
@@ -180,11 +239,58 @@ export default function Dashboard() {
         )}
       </div>
 
-      <SensorChart data={dashboardData} />
+      <div className="dashboard-overview">
+        <div className="dashboard-grid">
+          <SensorCard
+            title={t.temperature}
+            value={`${latestMetrics.temperature} °C`}
+            icon={<Thermometer className="sensor-icon" />}
+          />
+          <SensorCard
+            title={t.humidity}
+            value={`${latestMetrics.humidity} %`}
+            icon={<Droplets className="sensor-icon" />}
+          />
+          <SensorCard
+            title={t.co2Level}
+            value={`${latestMetrics.co2Level} ppm`}
+            icon={<Fan className="sensor-icon" />}
+          />
+          <SensorCard
+            title={t.lightLevel}
+            value={`${latestMetrics.lightLevel} lx`}
+            icon={<Lightbulb className="sensor-icon" />}
+          />
+          <SensorCard
+            title={t.suitabilityLevel}
+            value={`${(latestMetrics.suitabilityLevel * 100).toFixed(0)}%`}
+          />
+          <SensorCard
+            title={t.trend}
+            value={latestMetrics.predictedTrend === 1 ? t.improving : t.declining}
+          />
+        </div>
 
-      <div className="recommendation-card">
-        <h2>{t.recommendation}</h2>
-        <p>Latest predicted study quality: {latestData.predicted_study_quality}/5</p>
+        <div className="recommendation-card overview-recommendation">
+          <span className="recommendation-icon">
+            <CheckCircle2 size={22} />
+          </span>
+          <div>
+            <h2>{t.recommendation}</h2>
+            <p>{recommendationText}</p>
+            <strong>
+              Study quality: {latestMetrics.predictedStudyQuality}/5
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="chart-card">
+        <div className="chart-card-header">
+          <h2>{t.historyTitle || "Environmental Monitoring"}</h2>
+          <span>Live sensor evolution</span>
+        </div>
+        <SensorChart data={dashboardData} />
       </div>
 
       <SessionRating />
@@ -200,53 +306,52 @@ export default function Dashboard() {
         </div>
 
         <div className="accordion-list">
-          {filteredHistory.map((item) => (
-            <div
-              key={item.id || item.sent_at}
-              className={`accordion-row ${expandedId === item.id ? "active" : ""}`}
-            >
-              <div
-                className="row-main"
-                onClick={() => toggleAccordion(item.id || item.sent_at)}
-              >
-                <span className="row-title">
-                  <CalendarRange size={16} />{" "}
-                  {new Date(item.sent_at).toLocaleDateString()} |{" "}
-                  <Clock3 size={16} />{" "}
-                  {new Date(item.sent_at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-                <span className="arrow">
-                  {expandedId === (item.id || item.sent_at) ? "^" : "v"}
-                </span>
-              </div>
+          {filteredHistory.map((item) => {
+            const record = normalizeDashboardRecord(item);
+            const rowId = record.id || record.sentAt;
 
-              {expandedId === (item.id || item.sent_at) && (
-                <div className="row-content">
-                  <div className="sensor-details-grid">
-                    <div className="sensor-detail-item">
-                      {t.tempShort}: <strong>{item.temperature} °C</strong>
-                    </div>
-                    <div className="sensor-detail-item">
-                      {t.humShort}: <strong>{item.humidity} %</strong>
-                    </div>
-                    <div className="sensor-detail-item">
-                      CO2: <strong>{item.co2_level} ppm</strong>
-                    </div>
-                    <div className="sensor-detail-item">
-                      {t.light}: <strong>{item.light_level} lx</strong>
-                    </div>
-                    <div className="sensor-detail-item">
-                      Study quality:{" "}
-                      <strong>{item.predicted_study_quality}/5</strong>
+            return (
+              <div
+                key={rowId}
+                className={`accordion-row ${expandedId === rowId ? "active" : ""}`}
+              >
+                <div className="row-main" onClick={() => toggleAccordion(rowId)}>
+                  <span className="row-title">
+                    <CalendarRange size={16} />{" "}
+                    {new Date(record.sentAt).toLocaleDateString()} |{" "}
+                    <Clock3 size={16} />{" "}
+                    {new Date(record.sentAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                  <span className="arrow">{expandedId === rowId ? "^" : "v"}</span>
+                </div>
+
+                {expandedId === rowId && (
+                  <div className="row-content">
+                    <div className="sensor-details-grid">
+                      <div className="sensor-detail-item">
+                        {t.tempShort}: <strong>{record.temperature} °C</strong>
+                      </div>
+                      <div className="sensor-detail-item">
+                        {t.humShort}: <strong>{record.humidity} %</strong>
+                      </div>
+                      <div className="sensor-detail-item">
+                        CO2: <strong>{record.co2Level} ppm</strong>
+                      </div>
+                      <div className="sensor-detail-item">
+                        {t.light}: <strong>{record.lightLevel} lx</strong>
+                      </div>
+                      <div className="sensor-detail-item">
+                        Study quality: <strong>{record.predictedStudyQuality}/5</strong>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
 
           {filteredHistory.length === 0 && (
             <p className="no-records-text">

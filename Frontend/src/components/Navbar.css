@@ -22,6 +22,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
   flex-shrink: 0;
 }
 
@@ -111,6 +112,24 @@
   .navbar-logo {
     font-size: 1.1rem;
     gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0 14px;
+  }
+
+  .navbar-logo {
+    font-size: 0.95rem;
+    max-width: calc(100% - 54px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nav-links {
+    padding: 20px 14px;
   }
 }
 

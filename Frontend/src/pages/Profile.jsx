@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getDashboardData } from "../services/DashboardService";
+import { getDeviceById } from "../services/DeviceService";
 import { getProfile, updateProfile } from "../services/ProfileService";
 import "./Profile.css";
 import SessionRating from "../components/SessionRating";
@@ -30,6 +31,8 @@ const readUser = () => {
   }
 };
 
+const DEFAULT_DEVICE_ID = "arduino-device-01";
+
 const Profile = () => {
   const navigate = useNavigate();
   const userData = localStorage.getItem("user");
@@ -37,10 +40,18 @@ const Profile = () => {
 
   const [recentHistory, setRecentHistory] = useState([]);
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "" });
+  const [forgotPasswordForm, setForgotPasswordForm] = useState({
+    email: user?.email || "",
+    next: "",
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNextPassword, setShowNextPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showForgotNextPassword, setShowForgotNextPassword] = useState(false);
+  const [deviceId, setDeviceId] = useState(DEFAULT_DEVICE_ID);
+  const [connectedDeviceId, setConnectedDeviceId] = useState("");
 
   const [studentInfo, setStudentInfo] = useState({
     university: "",
@@ -94,9 +105,35 @@ const Profile = () => {
       }
     };
 
+    const loadConnectedDevice = () => {
+      const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+      const connectedDevice = userDevices.find(
+        (device) => device.email === user?.email,
+      );
+      const otherDevices = userDevices.filter(
+        (device) => device.email !== user?.email,
+      );
+      const normalizedDevice = {
+        email: user?.email,
+        deviceId: DEFAULT_DEVICE_ID,
+      };
+
+      if (!connectedDevice || connectedDevice.deviceId !== DEFAULT_DEVICE_ID) {
+        localStorage.setItem(
+          "user_devices",
+          JSON.stringify([...otherDevices, normalizedDevice]),
+        );
+        window.dispatchEvent(new Event("storage"));
+      }
+
+      setConnectedDeviceId(DEFAULT_DEVICE_ID);
+      setDeviceId(DEFAULT_DEVICE_ID);
+    };
+
     loadData();
     loadProfile();
-  }, [userData]);
+    loadConnectedDevice();
+  }, [userData, user?.email]);
 
   if (!userData || !user) {
     return <Navigate to="/login" replace />;
@@ -139,10 +176,18 @@ const Profile = () => {
     }
   };
 
-  const handleConnectDevice = () => {
-    const id = document.getElementById("deviceIdInput").value;
+  const handleConnectDevice = async () => {
+    const id = deviceId.trim();
     if (!id) {
       alert("Please enter an ID");
+      return;
+    }
+
+    try {
+      await getDeviceById(id);
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
       return;
     }
 
@@ -158,6 +203,8 @@ const Profile = () => {
 
     userDevices.push({ email: user.email, deviceId: id });
     localStorage.setItem("user_devices", JSON.stringify(userDevices));
+    setConnectedDeviceId(id);
+    setDeviceId(id);
     window.dispatchEvent(new Event("storage"));
     alert("Device " + id + " connected to your account!");
   };
@@ -198,6 +245,42 @@ const Profile = () => {
 
     alert("Password changed successfully!");
     setPasswordForm({ current: "", next: "" });
+  };
+
+  const handleForgotPasswordReset = () => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const allUsers = JSON.parse(localStorage.getItem("users")) || [];
+    const email = forgotPasswordForm.email.trim().toLowerCase();
+
+    if (!storedUser) {
+      alert("You are not logged in! Please log in again.");
+      return;
+    }
+
+    if (email !== storedUser.email?.toLowerCase()) {
+      alert("The email does not match your current account.");
+      return;
+    }
+
+    if (forgotPasswordForm.next.length < 8) {
+      alert("New password too short!");
+      return;
+    }
+
+    const updatedUser = { ...storedUser, password: forgotPasswordForm.next };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+
+    const userIdx = allUsers.findIndex(
+      (item) => item.email?.toLowerCase() === email,
+    );
+    if (userIdx !== -1) {
+      allUsers[userIdx].password = forgotPasswordForm.next;
+      localStorage.setItem("users", JSON.stringify(allUsers));
+    }
+
+    alert("Password reset successfully!");
+    setForgotPasswordForm({ email: storedUser.email || "", next: "" });
+    setShowForgotPassword(false);
   };
 
   const handleImageChange = (e) => {
@@ -401,34 +484,99 @@ const Profile = () => {
             <button className="update-btn-full" onClick={handleUpdatePassword}>
               Update Password
             </button>
+
+            <button
+              type="button"
+              className="forgot-password-toggle"
+              onClick={() => setShowForgotPassword(!showForgotPassword)}
+            >
+              Forgot password?
+            </button>
+
+            {showForgotPassword && (
+              <div className="forgot-password-box">
+                <p>
+                  Reset your password by confirming the email connected to this
+                  profile.
+                </p>
+                <div className="setting-row">
+                  <span className="setting-label">Email:</span>
+                  <input
+                    type="email"
+                    value={forgotPasswordForm.email}
+                    onChange={(e) =>
+                      setForgotPasswordForm({
+                        ...forgotPasswordForm,
+                        email: e.target.value,
+                      })
+                    }
+                    className="profile-input"
+                  />
+                </div>
+                <div className="setting-row">
+                  <span className="setting-label">New:</span>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showForgotNextPassword ? "text" : "password"}
+                      value={forgotPasswordForm.next}
+                      onChange={(e) =>
+                        setForgotPasswordForm({
+                          ...forgotPasswordForm,
+                          next: e.target.value,
+                        })
+                      }
+                      className="profile-input"
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() =>
+                        setShowForgotNextPassword(!showForgotNextPassword)
+                      }
+                    >
+                      {showForgotNextPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <button
+                  className="update-btn-full reset-password-btn"
+                  onClick={handleForgotPasswordReset}
+                >
+                  Reset Password
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="profile-section">
             <h3>
               <Unplug size={18} /> Connect Device
             </h3>
+            {connectedDeviceId && (
+              <p className="connected-device-status">
+                Connected device: <strong>{connectedDeviceId}</strong>
+              </p>
+            )}
             <div className="setting-row">
               <span>Device ID:</span>
               <input
                 type="text"
-                placeholder="Ex: DEV-123"
+                value={deviceId}
+                onChange={(e) => setDeviceId(e.target.value)}
+                placeholder={DEFAULT_DEVICE_ID}
                 className="profile-input"
                 id="deviceIdInput"
               />
             </div>
             <button className="update-btn-full" onClick={handleConnectDevice}>
-              Connect Now
+              {connectedDeviceId ? "Save Device" : "Connect Now"}
             </button>
           </div>
         </div>
-
-        <div className="profile-row-grid">
-          <div className="profile-section">
-            <h3>AI Insights (MAL)</h3>
-            <div className="ai-bubble-new">
-              Suggestion: Maintain {prefs.temp}C for better focus.
-            </div>
-          </div>
 
           <div className="profile-section">
             <h3>
@@ -454,7 +602,6 @@ const Profile = () => {
             </table>
           </div>
         </div>
-      </div>
 
       {showRatingModal && (
         <div className="rating-modal">

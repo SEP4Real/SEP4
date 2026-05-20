@@ -18,22 +18,68 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 16px;
+}
+
+.dashboard-overview {
+  display: grid;
+  gap: 28px;
+  margin-bottom: 30px;
+}
+
+.sensor-card {
+  min-height: 118px;
+  padding: 20px 22px;
+  border: 1px solid rgba(45, 106, 79, 0.08);
+  border-radius: 8px;
+  background: #bce9c9;
+  box-shadow: 0 8px 16px rgba(27, 67, 50, 0.12);
+  box-sizing: border-box;
+  cursor: pointer;
+  outline: none;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.sensor-card:hover,
+.sensor-card:focus-visible {
+  background: #c4f0d0;
+  box-shadow: 0 12px 22px rgba(27, 67, 50, 0.18);
+  transform: translateY(-4px);
+}
+
+.sensor-card:active {
+  box-shadow: 0 5px 12px rgba(27, 67, 50, 0.16);
+  transform: translateY(2px) scale(0.98);
 }
 
 .sensor-title {
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #1b4332;
-  letter-spacing: 0.5px;
+}
+
+.sensor-icon {
+  width: 20px;
+  height: 20px;
+  color: #2d6a4f;
+  flex: 0 0 auto;
 }
 
 .sensor-value {
-  margin-top: 10px;
-  font-size: 1.6rem;
-  font-weight: 600;
+  margin-top: 14px;
+  font-size: clamp(1.7rem, 2.6vw, 2.35rem);
+  font-weight: 700;
   color: #2d6a4f;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .dashboard-message {
@@ -54,26 +100,78 @@
 }
 
 .recommendation-card {
-  margin-top: 30px;
-  padding: 25px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #caf7db, #b7e4c7);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 26px;
+  border-radius: 8px;
+  background: #bce9c9;
+  box-shadow: 0 8px 16px rgba(27, 67, 50, 0.12);
+}
+
+.overview-recommendation {
+  display: flex;
+  gap: 14px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.recommendation-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.62);
+  color: #1b4332;
+  flex: 0 0 auto;
 }
 
 .recommendation-card h2 {
   margin-top: 0;
+  margin-bottom: 10px;
   color: #1b4332;
 }
 
 .recommendation-card p {
+  margin: 0 0 12px 0;
   font-size: 1.1rem;
   color: #2d6a4f;
   line-height: 1.5;
 }
 
+.recommendation-card strong {
+  color: #1b4332;
+}
+
+.chart-card {
+  margin-top: 10px;
+  padding: 22px;
+  border: 1px solid rgba(45, 106, 79, 0.1);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(27, 67, 50, 0.08);
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chart-card-header h2 {
+  margin: 0;
+  color: #1b4332;
+}
+
+.chart-card-header span {
+  color: #52796f;
+  font-weight: 600;
+}
+
 .session-control-card {
   display: flex;
+  flex-wrap: wrap;
   gap: 15px;
   margin-bottom: 20px;
   align-items: center;
@@ -161,6 +259,7 @@
 
 .details-card-header {
   display: flex;
+  gap: 12px;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
@@ -199,6 +298,7 @@
 
 .row-title {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   font-weight: 500;
@@ -260,12 +360,34 @@
 /*Small screens (≤ 480px)    */
 
 @media (max-width: 480px) {
+  .dashboard {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .dashboard-overview {
+    grid-template-columns: 1fr;
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr !important;
   }
 
   .sensor-value {
-    font-size: 1.25rem !important;
+    font-size: 1.6rem !important;
+  }
+
+  .session-control-card,
+  .details-card-header,
+  .row-main {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .session-btn,
+  .calendar-input {
+    width: 100%;
+    justify-content: center;
   }
 
   .admin-actions {
@@ -281,18 +403,37 @@
   }
   .recommendation-card,
   .dashboard-message,
-  .details-card-container {
+  .details-card-container,
+  .chart-card {
     width: 100% !important;
     box-sizing: border-box !important;
     padding: 15px !important;
+  }
+
+  .chart-card-header {
+    display: block;
+  }
+
+  .sensor-details-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 /*Tablets (≤ 768px)          */
 
 @media (max-width: 768px) {
+  .dashboard-overview {
+    grid-template-columns: 1fr;
+  }
+
   .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-overview {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -324,6 +465,11 @@ body.dark-theme .sensor-title {
 
 body.dark-theme .sensor-value {
   color: rgb(188, 255, 226);
+}
+
+body.dark-theme .sensor-card {
+  background: #2b2b2b;
+  border-color: #333;
 }
 
 body.dark-theme .status-good {
