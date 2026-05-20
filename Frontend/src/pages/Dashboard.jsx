@@ -111,6 +111,24 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState([]);
   const [hasDevice, setHasDevice] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      setLoading(true);
+
+      const userDevices =
+        JSON.parse(localStorage.getItem("user_devices")) || [];
+
+      const connectedDevice = userDevices.find(
+        (device) => device.email === user?.email
+      );
+
+      if (!connectedDevice) {
+        setHasDevice(false);
+        setLoading(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
@@ -140,6 +158,16 @@ export default function Dashboard() {
       }
 
       setHasDevice(true);
+
+      try {
+        const data = await getDashboardData();
+        setDashboardData(data.length > 0 ? data : placeholderData);
+      } catch (error) {
+        console.error(error);
+        setDashboardData(placeholderData);
+      } finally {
+        setLoading(false);
+      }
       await loadDashboardData();
     };
 
@@ -151,6 +179,9 @@ export default function Dashboard() {
     };
   }, [user?.email]);
 
+  if (loading) {
+    return <LoadingSpinner text={t.loading} />;
+  }
   useEffect(() => {
     if (!hasDevice || !isSessionActive) {
       return undefined;
@@ -193,6 +224,11 @@ export default function Dashboard() {
   if (!hasDevice) {
     return (
       <div className="dashboard">
+        <EmptyState
+          icon="📡"
+          title={t.noDeviceTitle}
+          message={t.noDeviceMessage}
+        />
         <h1>{t.dashboard}</h1>
         <div className="recommendation-card">
           <p> You don't have any devices connected. Go to Profile for setup</p>
@@ -205,10 +241,47 @@ export default function Dashboard() {
     );
   }
 
-  
-  if (!data) {
-  return <LoadingSpinner text={t.loading} />;
-}
+  const latestData = dashboardData[dashboardData.length - 1];
+
+  if (!latestData) {
+    return (
+      <div className="dashboard">
+        <EmptyState
+          icon="📂"
+          title={t.noDashboardDataTitle}
+          message={t.noDashboardDataMessage}
+        />
+      </div>
+    );
+  }
+
+  const getRecommendation = (quality) => {
+    if (quality >= 4) {
+     return {
+  status: "good",
+  emoji: "😁",
+  title: t.recommendationGoodTitle,
+  message: t.recommendationGoodMessage,
+};
+    }
+
+    if (quality === 3) {
+      return {
+  status: "moderate",
+  emoji: "😐",
+  title: t.recommendationModerateTitle,
+  message: t.recommendationModerateMessage,
+};
+    }
+return {
+  status: "poor",
+  emoji: "😭",
+  title: t.recommendationPoorTitle,
+  message: t.recommendationPoorMessage,
+};
+  };
+
+  const recommendation = getRecommendation(latestData.predicted_study_quality);
 
   return (
     <div className="dashboard">
@@ -298,6 +371,19 @@ export default function Dashboard() {
 
       <SessionRating />
 
+      <div className={`recommendation-card ${recommendation.status}`}>
+
+  <div className="recommendation-emoji">
+    {recommendation.emoji}
+  </div>
+
+  <h2>{t.recommendation}</h2>
+
+  <h3>{recommendation.title}</h3>
+
+  <p>{recommendation.message}</p>
+
+</div>
       <div className="details-card-container">
         <div className="details-card-header">
           <h2>{t.detailedHistory}</h2>
