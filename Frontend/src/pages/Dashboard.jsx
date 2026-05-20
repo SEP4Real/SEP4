@@ -4,6 +4,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { getDashboardData } from "../services/DashboardService";
 import SensorChart from "../components/SensorChart";
 import SessionRating from "../components/SessionRating";
+import LoadingSpinner from "../components/LoadingSpinner";
 import SensorCard from "../components/SensorCard";
 import {
   CalendarRange,
@@ -110,16 +111,23 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState([]);
   const [hasDevice, setHasDevice] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
 
-  const user = JSON.parse(localStorage.getItem("user"));
-
   const loadDashboardData = async () => {
     try {
       const data = await getDashboardData();
-      const records = Array.isArray(data) && data.length > 0 ? data : placeholderData;
+
+      const records =
+        Array.isArray(data) && data.length > 0
+          ? data
+          : placeholderData;
+
       setDashboardData(records.map(prepareDashboardRecord));
     } catch (e) {
       console.error(e);
@@ -127,29 +135,39 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
     const checkConnection = async () => {
-      const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
-      const connectedDevice = userDevices.find((d) => d.email === user?.email);
+      setLoading(true);
+
+      const userDevices =
+        JSON.parse(localStorage.getItem("user_devices")) || [];
+
+      const connectedDevice = userDevices.find(
+        (device) => device.email === user?.email
+      );
 
       if (!connectedDevice) {
         setHasDevice(false);
         setDashboardData([]);
+        setLoading(false);
         return;
       }
 
       setHasDevice(true);
+
       await loadDashboardData();
+
+      setLoading(false);
     };
 
     checkConnection();
+
     window.addEventListener("storage", checkConnection);
 
     return () => {
       window.removeEventListener("storage", checkConnection);
     };
   }, [user?.email]);
-
   useEffect(() => {
     if (!hasDevice || !isSessionActive) {
       return undefined;
@@ -192,8 +210,14 @@ export default function Dashboard() {
   if (!hasDevice) {
     return (
       <div className="dashboard">
+        <EmptyState
+          icon="📡"
+          title={t.noDeviceTitle}
+          message={t.noDeviceMessage}
+        />
         <h1>{t.dashboard}</h1>
         <div className="recommendation-card">
+          <p> You don't have any devices connected. Go to Profile for setup</p>
           <p>
             <TriangleAlert /> You don't have any devices connected. Go to
             Profile for setup
@@ -204,8 +228,44 @@ export default function Dashboard() {
   }
 
   if (!latestData) {
-    return <p>{t.loading}</p>;
+    return (
+      <div className="dashboard">
+        <EmptyState
+          icon="📂"
+          title={t.noDashboardDataTitle}
+          message={t.noDashboardDataMessage}
+        />
+      </div>
+    );
   }
+
+  const getRecommendation = (quality) => {
+    if (quality >= 4) {
+     return {
+  status: "good",
+  emoji: "😁",
+  title: t.recommendationGoodTitle,
+  message: t.recommendationGoodMessage,
+};
+    }
+
+    if (quality === 3) {
+      return {
+  status: "moderate",
+  emoji: "😐",
+  title: t.recommendationModerateTitle,
+  message: t.recommendationModerateMessage,
+};
+    }
+return {
+  status: "poor",
+  emoji: "😭",
+  title: t.recommendationPoorTitle,
+  message: t.recommendationPoorMessage,
+};
+  };
+
+  const recommendation = getRecommendation(latestData.predicted_study_quality);
 
   return (
     <div className="dashboard">
@@ -295,6 +355,19 @@ export default function Dashboard() {
 
       <SessionRating />
 
+      <div className={`recommendation-card ${recommendation.status}`}>
+
+  <div className="recommendation-emoji">
+    {recommendation.emoji}
+  </div>
+
+  <h2>{t.recommendation}</h2>
+
+  <h3>{recommendation.title}</h3>
+
+  <p>{recommendation.message}</p>
+
+</div>
       <div className="details-card-container">
         <div className="details-card-header">
           <h2>{t.detailedHistory}</h2>
