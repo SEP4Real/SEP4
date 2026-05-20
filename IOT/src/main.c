@@ -12,6 +12,7 @@
 #include "co2.h"
 #include "timer.h"
 #include "server_api.h"
+#include "button.h"
 
 static void delay_s(uint8_t seconds)
 {
@@ -42,7 +43,7 @@ static void on_data_timer(uint8_t id)
 int main(void)
 {
     sei();
-
+    button_init();
     uart_stdio_init(115200);
 
     printf("\n=== Device boot ===\n");
@@ -100,10 +101,42 @@ int main(void)
         printf("[ERROR] Timer creation failed\n");
     }
 
-    printf("[MAIN] Entering main loop\n");
+    static uint8_t button2_last_state = 0;
 
     while (1)
     {
+        uint8_t button2_current_state = button_get(2);
+
+        if (button2_last_state == 0 && button2_current_state == 1 && !request_in_progress)
+        {
+            _delay_ms(50);
+
+            if (button_get(2))
+            {
+                request_in_progress = 1;
+                printf("[ONETIME] Button 2 pressed — taking instant measurement\n");
+
+                uint8_t t_int = 0, t_dec = 0, h_int = 0, h_dec = 0;
+                uint16_t light = light_measure_raw();
+                uint16_t co2   = latest_co2_ppm;
+
+                co2_read_ppm(&co2);
+
+                if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK)
+                {
+                    server_send_onetime_measurement(t_int, t_dec, h_int, h_dec, light, co2);
+                }
+                else
+                {
+                    printf("[ERROR] DHT11 failed during instant measurement\n");
+                }
+
+                request_in_progress = 0;
+            }
+        }
+
+        button2_last_state = button2_current_state;
+
         if (!request_in_progress && pulse_due)
         {
             pulse_due = 0;
