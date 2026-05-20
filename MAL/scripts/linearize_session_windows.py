@@ -21,7 +21,6 @@ DEFAULT_TIMESTAMP_COLUMN = "timestamp"
 DEFAULT_WINDOW_MINUTES = 30
 DEFAULT_SESSION_GAP_MINUTES = 30
 
-ROLLING_STATS = ["mean", "min", "max", "std", "count"]
 METADATA_COLUMNS = [
     "linear_session_id",
     "source",
@@ -105,61 +104,75 @@ def build_linearized_windows(
         timestamp_column=timestamp_column,
         session_gap_minutes=session_gap_minutes,
     )
-    window = f"{window_minutes}min"
-    output_parts: list[pd.DataFrame] = []
+    window_duration = pd.Timedelta(minutes=window_minutes)
+    output_rows: list[dict] = []
+
+    def last_valid(series: pd.Series) -> object:
+        valid = series.dropna()
+        if valid.empty:
+            return pd.NA
+        return valid.iloc[-1]
 
     for session_id, session_df in sessionized.groupby("linear_session_id", sort=False):
         session_df = session_df.sort_values("_parsed_timestamp", kind="mergesort").copy()
-        session_indexed = session_df.set_index("_parsed_timestamp", drop=False)
+        session_start = session_df["_parsed_timestamp"].iloc[0]
 
-        output = pd.DataFrame(
-            {
+        elapsed_minutes = (
+            (session_df["_parsed_timestamp"] - session_start).dt.total_seconds() / 60
+        )
+        window_index = (elapsed_minutes // window_minutes).astype(int)
+        session_df["_window_start"] = session_start + pd.to_timedelta(
+            window_index * window_minutes,
+            unit="min",
+        )
+        session_df["_window_end"] = session_df["_window_start"] + window_duration
+
+        for window_start, window_df in session_df.groupby("_window_start", sort=False):
+            window_end = window_df["_window_end"].iloc[0]
+            target_latest = last_valid(pd.to_numeric(window_df[target_column], errors="coerce"))
+
+            row = {
                 "linear_session_id": session_id,
-                "source": session_df["source"].to_numpy() if "source" in session_df else pd.NA,
-                "location_id": session_df["location_id"].to_numpy()
-                if "location_id" in session_df
+                "source": last_valid(window_df["source"]) if "source" in window_df else pd.NA,
+                "location_id": last_valid(window_df["location_id"])
+                if "location_id" in window_df
                 else pd.NA,
-                "window_end": session_df["_parsed_timestamp"].dt.strftime(
-                    "%Y-%m-%dT%H:%M:%SZ"
-                ).to_numpy(),
-                "target_latest": pd.to_numeric(session_df[target_column], errors="coerce").to_numpy(),
-            },
-            index=session_df.index,
-        )
+                "window_end": window_end.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "target_latest": target_latest,
+                "window_start": window_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "session_elapsed_minutes": (window_end - session_start).total_seconds() / 60,
+            }
 
-        if "session_id" in session_df.columns:
-            output["source_session_id"] = session_df["session_id"].to_numpy()
-        if "record_id" in session_df.columns:
-            output["source_record_id"] = session_df["record_id"].to_numpy()
+            if "session_id" in window_df.columns:
+                row["source_session_id"] = last_valid(window_df["session_id"])
+            if "record_id" in window_df.columns:
+                row["source_record_id"] = last_valid(window_df["record_id"])
 
-        first_timestamp = session_df["_parsed_timestamp"].iloc[0]
-        window_start = session_df["_parsed_timestamp"] - pd.Timedelta(minutes=window_minutes)
-        output["window_start"] = window_start.clip(lower=first_timestamp).dt.strftime(
-            "%Y-%m-%dT%H:%M:%SZ"
-        )
-        output["session_elapsed_minutes"] = (
-            (session_df["_parsed_timestamp"] - first_timestamp).dt.total_seconds() / 60
-        ).to_numpy()
+            for feature in feature_columns:
+                numeric = pd.to_numeric(window_df[feature], errors="coerce")
+                latest_value = last_valid(numeric)
+                mean_value = numeric.mean()
+                min_value = numeric.min()
+                max_value = numeric.max()
+                std_value = numeric.std()
+                count_value = int(numeric.count())
 
-        for feature in feature_columns:
-            numeric = pd.to_numeric(session_indexed[feature], errors="coerce")
-            rolling = numeric.rolling(window=window, min_periods=1).agg(ROLLING_STATS)
-            rolling = rolling.reset_index(drop=True)
+                row[f"{feature}_latest"] = latest_value
+                row[f"{feature}_mean"] = mean_value
+                row[f"{feature}_min"] = min_value
+                row[f"{feature}_max"] = max_value
+                row[f"{feature}_std"] = 0 if pd.isna(std_value) else std_value
+                row[f"{feature}_count"] = count_value
+                row[f"{feature}_range"] = (
+                    max_value - min_value if pd.notna(max_value) and pd.notna(min_value) else pd.NA
+                )
 
-            output[f"{feature}_latest"] = numeric.reset_index(drop=True).to_numpy()
-            output[f"{feature}_mean"] = rolling["mean"].to_numpy()
-            output[f"{feature}_min"] = rolling["min"].to_numpy()
-            output[f"{feature}_max"] = rolling["max"].to_numpy()
-            output[f"{feature}_std"] = rolling["std"].fillna(0).to_numpy()
-            output[f"{feature}_count"] = rolling["count"].astype("Int64").to_numpy()
-            output[f"{feature}_range"] = (rolling["max"] - rolling["min"]).to_numpy()
+            output_rows.append(row)
 
-        output_parts.append(output.reset_index(drop=True))
-
-    if not output_parts:
+    if not output_rows:
         raise RuntimeError("No timestamped rows were available for linearization.")
 
-    linearized_with_metadata = pd.concat(output_parts, ignore_index=True)
+    linearized_with_metadata = pd.DataFrame(output_rows)
     linearized_with_metadata["focus_score"] = (
         linearized_with_metadata["target_latest"].round().astype("Int64")
     )
@@ -199,8 +212,8 @@ def build_linearized_windows(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Split environmental rows into gap-based sessions and compress overlapping "
-            "time windows into one ML-ready row per window end."
+            "Split environmental rows into gap-based sessions and compress non-overlapping "
+            "time windows into one ML-ready row per window."
         )
     )
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT_PATH)
