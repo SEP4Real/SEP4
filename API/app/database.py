@@ -63,6 +63,11 @@ CREATE TABLE IF NOT EXISTS data (
     CONSTRAINT fk_data_session FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE RESTRICT
 );
 
+-- MIGRATION PATCH: Safely add missing columns to existing tables
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS is_ended BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS last_pulse_at TIMESTAMPTZ;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS study_quality INT CHECK (study_quality BETWEEN 1 AND 5);
+
 ALTER TABLE sessions DROP CONSTRAINT IF EXISTS sessions_device_id_fkey;
 ALTER TABLE data DROP CONSTRAINT IF EXISTS data_session_id_fkey;
 
