@@ -1,13 +1,7 @@
-const API_URL = "http://localhost:8080";
+import { apiFetch } from "./apiConfig";
 
 export async function getCalendarEvents() {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/calendar-events`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await apiFetch("/calendar-events");
 
   if (!response.ok) {
     throw new Error("Failed to fetch calendar events");
@@ -17,13 +11,10 @@ export async function getCalendarEvents() {
 }
 
 export async function createCalendarEvent(eventData) {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/calendar-events`, {
+  const response = await apiFetch("/calendar-events", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
 
     body: JSON.stringify(eventData),
@@ -37,13 +28,10 @@ export async function createCalendarEvent(eventData) {
 }
 
 export async function updateCalendarEvent(eventId, eventData) {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/calendar-events/${eventId}`, {
+  const response = await apiFetch(`/calendar-events/${eventId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
 
     body: JSON.stringify(eventData),
@@ -57,13 +45,8 @@ export async function updateCalendarEvent(eventId, eventData) {
 }
 
 export async function deleteCalendarEvent(eventId) {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/calendar-events/${eventId}`, {
+  const response = await apiFetch(`/calendar-events/${eventId}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   if (!response.ok) {

@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { getDashboardData } from "../services/DashboardService";
 import { getDeviceById } from "../services/DeviceService";
 import { getProfile, updateProfile } from "../services/ProfileService";
+import { logout } from "../services/AuthService";
 import "./Profile.css";
 import SessionRating from "../components/SessionRating";
 import {
@@ -295,9 +296,14 @@ const Profile = () => {
     }
   };
 
-  const completeLogout = () => {
+  const completeLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Error clearing auth cookie:", error);
+    }
+
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
     window.dispatchEvent(new Event("storage"));
     navigate("/login", { replace: true });
   };

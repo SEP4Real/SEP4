@@ -62,7 +62,6 @@ export default function RegisterPage() {
       });
 
       localStorage.setItem("user", JSON.stringify(userData.user));
-      localStorage.setItem("token", userData.access_token);
 
       setSuccess(t.registeredSuccessfully);
 

@@ -1,8 +1,8 @@
-const API_URL = "http://localhost:8080";
+import { apiFetch } from "./apiConfig";
 
 export async function register(data) {
   // send request to backend
-  const response = await fetch(`${API_URL}/register`, {
+  const response = await apiFetch("/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -26,22 +26,11 @@ export async function register(data) {
 
   // success -> backend response
   return response.json();
-} 
-
-  /*export async function register(data) {
-  console.log("direct logg...");
-  
-  localStorage.setItem("user", JSON.stringify({ email: data.email, name: data.name }));
-  localStorage.setItem("jwt", "mock-token-prezentare-rapida"); 
-
-  window.dispatchEvent(new Event("storage"));
-
-  return { message: "Success" };
-}*/
+}
 
 export async function login(data) {
   // send login request to backend
-  const response = await fetch(`${API_URL}/login`, {
+  const response = await apiFetch("/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -59,18 +48,16 @@ export async function login(data) {
 
   // failed -> error
   if (!response.ok || result.error) {
-    throw new Error(result.error || "Invalid credentials");
+    throw new Error(result.detail || result.error || "Invalid credentials");
   }
-  localStorage.setItem("user", JSON.stringify({ email: data.email }));
-  localStorage.setItem("jwt", result.token || "mock-token-autentificare");
   window.dispatchEvent(new Event("storage"));
 
   return result;
 }
 
-export function logout() {
+export async function logout() {
+  await apiFetch("/logout", { method: "POST" });
   localStorage.removeItem("user");
-  localStorage.removeItem('jwt');
   window.dispatchEvent(new Event("storage"));
 }
 

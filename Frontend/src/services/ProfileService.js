@@ -1,13 +1,7 @@
-const API_URL = "http://localhost:8080";
+import { apiFetch } from "./apiConfig";
 
 export async function getProfile() {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/profile`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await apiFetch("/profile");
 
   if (!response.ok) {
     throw new Error("Failed to fetch profile");
@@ -17,13 +11,10 @@ export async function getProfile() {
 }
 
 export async function updateProfile(profileData) {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${API_URL}/profile`, {
+  const response = await apiFetch("/profile", {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
 
     body: JSON.stringify(profileData),
