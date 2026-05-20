@@ -4,6 +4,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+import psycopg
+
 REAL_SENSOR_HISTORY_PATH = Path("data/sensor_history.csv")
 
 
