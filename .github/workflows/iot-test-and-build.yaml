@@ -5,8 +5,6 @@ on:
     branches:
       - main
       - dev
-    paths:
-      - 'IOT/**'
 
 jobs:
   iot-test:
@@ -17,10 +15,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for IoT changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            iot:
+              - 'IOT/**'
+
       - name: Install lcov
+        if: steps.changes.outputs.iot == 'true'
         run: sudo apt-get install -y lcov
 
       - name: Create secrets.ini
+        if: steps.changes.outputs.iot == 'true'
         run: |
           cat > secrets.ini << EOF
           [secrets]
@@ -32,9 +40,11 @@ jobs:
           EOF
 
       - name: Run tests with coverage
+        if: steps.changes.outputs.iot == 'true'
         run: make coverage
 
       - name: Upload HTML report as artifact
+        if: steps.changes.outputs.iot == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
@@ -49,16 +59,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for IoT changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            iot:
+              - 'IOT/**'
+
       - name: Cache PlatformIO
+        if: steps.changes.outputs.iot == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-pio-${{ hashFiles('IOT/platformio.ini') }}
 
       - name: Install PlatformIO
+        if: steps.changes.outputs.iot == 'true'
         run: pip install platformio
 
       - name: Create secrets.ini
+        if: steps.changes.outputs.iot == 'true'
         run: |
           cat > secrets.ini << EOF
           [secrets]
@@ -70,9 +91,11 @@ jobs:
           EOF
 
       - name: Build
+        if: steps.changes.outputs.iot == 'true'
         run: pio run -e megaatmega2560
 
       - name: Upload .hex artifact
+        if: steps.changes.outputs.iot == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: firmware
