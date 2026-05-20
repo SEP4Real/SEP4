@@ -28,8 +28,12 @@ DEFAULT_SOURCES: tuple[SourceSpec, ...] = (
     SourceSpec("keti_1min_resampled", DATA_DIR / "interim" / "keti_1min_resampled.csv"),
     SourceSpec("room_conditions", DATA_DIR / "raw" / "DATA_1" / "room_conditions.csv"),
     SourceSpec(
-        "room_measurements_with_comfort",
-        DATA_DIR / "processed" / "1_room_measurements_with_comfort.csv",
+        "room_measurements",
+        DATA_DIR
+        / "raw"
+        / "DATA_8"
+        / "smart-campus-comfort-data"
+        / "1_room_measurements.csv",
     ),
     SourceSpec("homecoach_5min_2023", DATA_DIR / "raw" / "DATA_7" / "HomeCoach_5min_2023.csv"),
     SourceSpec("homecoach_5min_2024", DATA_DIR / "raw" / "DATA_7" / "HomeCoach_5min_2024.csv"),
