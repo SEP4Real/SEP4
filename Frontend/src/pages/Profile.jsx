@@ -602,7 +602,7 @@ const Profile = () => {
             </table>
           </div>
         </div>
-       </div>
+       
 
       {showRatingModal && (
         <div className="rating-modal">
