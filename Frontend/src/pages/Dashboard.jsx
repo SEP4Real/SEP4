@@ -5,6 +5,7 @@ import { getDashboardData } from "../services/DashboardService";
 import SensorChart from "../components/SensorChart";
 import SessionRating from "../components/SessionRating";
 import LoadingSpinner from "../components/LoadingSpinner";
+import EmptyState from "../components/EmptyState";
 import SensorCard from "../components/SensorCard";
 import {
   CalendarRange,
