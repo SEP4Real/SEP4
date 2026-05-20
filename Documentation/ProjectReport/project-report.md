@@ -405,7 +405,7 @@ These constraints were acknowledged from the outset, and the CI/CD strategy was 
 
 ### 3.8.2 Tools and Pipeline
 
-The CI pipeline is implemented using GitHub Actions and is defined in a single workflow file. It is triggered on pull requests targeting the `main` and `dev` branches, and only when files within the `IOT/` directory are modified, avoiding unnecessary runs when unrelated parts of the repository change.
+The CI pipeline is implemented using GitHub Actions and is defined in a single workflow file. It is triggered on pull requests targeting the `main` and `dev` branches. To avoid unnecessary work when unrelated parts of the repository change, the pipeline checks for modifications within the `IOT/` directory at runtime and skips the build and test steps if none are found.
 
 The pipeline is divided into two sequential jobs:
 
