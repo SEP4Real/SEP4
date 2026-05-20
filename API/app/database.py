@@ -137,14 +137,16 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 
 CREATE TABLE IF NOT EXISTS ratings (
     id BIGSERIAL PRIMARY KEY,
-    user_email VARCHAR(255) NOT NULL,
+    user_id UUID NOT NULL,
     device_id VARCHAR(255) NOT NULL,
+    session_id BIGINT NOT NULL,
     rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
-    CONSTRAINT fk_ratings_user FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE,
-    CONSTRAINT fk_ratings_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
+    
+    CONSTRAINT fk_ratings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ratings_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ratings_session FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 """
 
