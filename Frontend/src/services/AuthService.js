@@ -1,47 +1,51 @@
-export const register = async (userData) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // save the received data in localStorage under the key "user"
-      const allUsers = JSON.parse(localStorage.getItem("users")) || [];
-      allUsers.push(userData);
-      localStorage.setItem("users", JSON.stringify(allUsers));
+const API_URL = "http://localhost:8080";
 
-      localStorage.setItem("user", JSON.stringify(userData));
-      resolve({ success: true, user: userData });
-    }, 500);
+export async function register(data) {
+  const response = await fetch(`${API_URL}/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: data.name,
+      last_name: data.lastName,
+      email: data.email,
+      password: data.password,
+    }),
   });
-};
 
-export const login = async (email, password) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const rawData = localStorage.getItem("users");
-      let allUsers = [];
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.log(errorData);
+    throw new Error(errorData.detail || "Registration failed");
+  }
 
-      try {
-        const parsedData = JSON.parse(rawData);
-        // Forțăm allUsers să fie un array, chiar dacă datele sunt corupte
-        allUsers = Array.isArray(parsedData) ? parsedData : [];
-      } catch (e) {
-        allUsers = [];
-      }
+  return response.json();
+}
 
-      const foundUser = allUsers.find(
-        (u) => u.email === email && String(u.password) === String(password)
-      );
-
-      if (foundUser) {
-        localStorage.setItem("user", JSON.stringify(foundUser));
-        resolve({ success: true, user: foundUser });
-      } else {
-        reject(new Error("Invalid email or password"));
-      }
-    }, 500);
+export async function login(data) {
+  const response = await fetch(`${API_URL}/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+    }),
   });
-};
 
+  const result = await response.json();
+
+  if (!response.ok || result.error) {
+    throw new Error(result.error || "Invalid credentials");
+  }
+
+  return result;
+}
 
 export function logout() {
-  localStorage.removeItem('user');
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
   window.dispatchEvent(new Event("storage"));
 }

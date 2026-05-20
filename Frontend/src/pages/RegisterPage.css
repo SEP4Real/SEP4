@@ -1,8 +1,11 @@
-
 .card {
-  width: 820px;
-  padding-top: 82px;
+  width: 100%;
+  max-width: 820px;
+  padding-top: 95px;
+  padding-left: 20px;
+  padding-right: 20px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .card h1 {
@@ -43,7 +46,7 @@
   outline: none;
 }
 
-.student-admin-row {
+.dashboard-admin-row {
   grid-column: 2 / 4;
 
   display: grid;
@@ -52,7 +55,7 @@
   align-items: end;
 }
 
-.student-admin-row span {
+.dashboard-admin-row span {
   align-self: center;
   font-size: 18px;
   padding-top: 26px;
@@ -71,7 +74,8 @@
   cursor: pointer;
 }
 
-.error, .success {
+.error,
+.success {
   grid-column: 1 / 4;
   margin: 0;
   text-align: center;
@@ -112,7 +116,7 @@ body.dark-theme .card h2 {
 }
 
 body.dark-theme .form label,
-body.dark-theme .student-admin-row span {
+body.dark-theme .dashboard-admin-row span {
   color: #ffffff;
 }
 
@@ -130,4 +134,60 @@ body.dark-theme button {
 body.dark-theme .auth-link,
 body.dark-theme .auth-link a {
   color: rgb(188, 255, 226);
+}
+
+/*1024px și 480px */
+
+@media (max-width: 1024px) {
+  .form {
+    column-gap: 40px !important;
+    row-gap: 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card h1 {
+    font-size: 26px;
+  }
+
+  .card h2 {
+    font-size: 20px;
+    margin-bottom: 40px;
+  }
+
+  .form {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    width: 100% !important;
+  }
+
+  .form label,
+  .form input {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .form input {
+    height: 35px;
+  }
+
+  .student-admin-row {
+    grid-column: 1 !important;
+    grid-template-columns: 1fr auto 1fr !important;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .error,
+  .success {
+    grid-column: 1 !important;
+  }
+
+  .form button {
+    grid-column: 1 !important;
+    width: 100% !important;
+    max-width: 200px;
+    height: 42px;
+    margin-top: 15px;
+  }
 }

@@ -32,23 +32,13 @@ export default function LoginPage() {
       setError(t.enterEmailPassword);
       return;
     }
-    /*const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const result = await login(email, password); 
-      if (result.success) {
-        navigate("/student");
-      }
-    } catch (error) {
-      alert(error.message); 
-    }
-    };*/
 
     try {
-      const result = await login(form.email, form.password);
+      const result = await login(form);
+      console.log(result);
       localStorage.setItem("user", JSON.stringify(result.user));
-      window.dispatchEvent(new Event("storage")); 
-      navigate("/student");
+      localStorage.setItem("token", result.access_token);
+      navigate("/dashboard");
     } catch {
       setError(t.loginFailed);
     }
