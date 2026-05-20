@@ -100,7 +100,7 @@ const CalendarPage = () => {
         title,
         note,
         start_time: selectedEvent.start.toLocaleString("sv-SE").replace(" ", "T"),
-        end_time: selectedEvent.end.toLocaleString("sv-SE").replace(" ", "T"),    
+        end_time: selectedEvent.end.toLocaleString("sv-SE").replace(" ", "T"),
         all_day: selectedEvent.allDay
       }
     );

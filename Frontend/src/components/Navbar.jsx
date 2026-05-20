@@ -11,7 +11,7 @@ const Navbar = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { language, toggleLanguage, t } = useLanguage();
- 
+
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -105,7 +105,7 @@ const Navbar = () => {
                 Calendar
               </Link>
             </li>
-            
+
             <li>
               <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
                 Dashboard
