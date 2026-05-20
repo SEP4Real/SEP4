@@ -1,3 +1,4 @@
+import os
 from jose import jwt
 from datetime import datetime, timedelta
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -5,7 +6,7 @@ from jose import JWTError
 from fastapi import Cookie, Depends, HTTPException
 from app.database import get_db
 
-SECRET_KEY = "your_secret_key_here"
+SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 AUTH_COOKIE_NAME = "access_token"
