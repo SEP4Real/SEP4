@@ -115,7 +115,27 @@ export default function Dashboard() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  useEffect(() => {
+  const [isSessionActive, setIsSessionActive] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
+  const [filterDate, setFilterDate] = useState("");
+
+  const loadDashboardData = async () => {
+    try {
+      const data = await getDashboardData();
+
+      const records =
+        Array.isArray(data) && data.length > 0
+          ? data
+          : placeholderData;
+
+      setDashboardData(records.map(prepareDashboardRecord));
+    } catch (e) {
+      console.error(e);
+      setDashboardData(placeholderData.map(prepareDashboardRecord));
+    }
+  };
+
+useEffect(() => {
     const checkConnection = async () => {
       setLoading(true);
 
@@ -128,60 +148,26 @@ export default function Dashboard() {
 
       if (!connectedDevice) {
         setHasDevice(false);
-        setLoading(false);
-  const [isSessionActive, setIsSessionActive] = useState(false);
-  const [expandedId, setExpandedId] = useState(null);
-  const [filterDate, setFilterDate] = useState("");
-
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  const loadDashboardData = async () => {
-    try {
-      const data = await getDashboardData();
-      const records = Array.isArray(data) && data.length > 0 ? data : placeholderData;
-      setDashboardData(records.map(prepareDashboardRecord));
-    } catch (e) {
-      console.error(e);
-      setDashboardData(placeholderData.map(prepareDashboardRecord));
-    }
-  };
-
-  useEffect(() => {
-    const checkConnection = async () => {
-      const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
-      const connectedDevice = userDevices.find((d) => d.email === user?.email);
-
-      if (!connectedDevice) {
-        setHasDevice(false);
         setDashboardData([]);
+        setLoading(false);
         return;
       }
 
       setHasDevice(true);
 
-      try {
-        const data = await getDashboardData();
-        setDashboardData(data.length > 0 ? data : placeholderData);
-      } catch (error) {
-        console.error(error);
-        setDashboardData(placeholderData);
-      } finally {
-        setLoading(false);
-      }
       await loadDashboardData();
+
+      setLoading(false);
     };
 
     checkConnection();
+
     window.addEventListener("storage", checkConnection);
 
     return () => {
       window.removeEventListener("storage", checkConnection);
     };
   }, [user?.email]);
-
-  if (loading) {
-    return <LoadingSpinner text={t.loading} />;
-  }
   useEffect(() => {
     if (!hasDevice || !isSessionActive) {
       return undefined;
@@ -240,8 +226,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const latestData = dashboardData[dashboardData.length - 1];
 
   if (!latestData) {
     return (
