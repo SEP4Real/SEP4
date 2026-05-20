@@ -75,6 +75,8 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.16);
   transition: transform 0.2s ease, background 0.3s ease;
+    position: relative;
+  overflow: hidden;
 }
 
 .recommendation-card:hover {
@@ -129,6 +131,21 @@
 .recommendation-card.poor h3,
 .recommendation-card.poor p {
   color: #fff5f5;
+}
+
+.recommendation-emoji {
+  position: absolute;
+
+  right: 18px;
+  bottom: 12px;
+
+  font-size: 3.8rem;
+
+  opacity: 0.22;
+
+  pointer-events: none;
+
+  user-select: none;
 }
 
 /* ADMIN BUTTONS */

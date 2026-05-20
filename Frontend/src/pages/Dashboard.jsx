@@ -130,26 +130,28 @@ export default function Dashboard() {
 
   const getRecommendation = (quality) => {
     if (quality >= 4) {
-      return {
-        status: "good",
-        title: t.recommendationGoodTitle,
-        message: t.recommendationGoodMessage,
-      };
+     return {
+  status: "good",
+  emoji: "😁",
+  title: t.recommendationGoodTitle,
+  message: t.recommendationGoodMessage,
+};
     }
 
     if (quality === 3) {
       return {
-        status: "moderate",
-        title: t.recommendationModerateTitle,
-        message: t.recommendationModerateMessage,
-      };
+  status: "moderate",
+  emoji: "😐",
+  title: t.recommendationModerateTitle,
+  message: t.recommendationModerateMessage,
+};
     }
-
-    return {
-      status: "poor",
-      title: t.recommendationPoorTitle,
-      message: t.recommendationPoorMessage,
-    };
+return {
+  status: "poor",
+  emoji: "😭",
+  title: t.recommendationPoorTitle,
+  message: t.recommendationPoorMessage,
+};
   };
 
   const recommendation = getRecommendation(latestData.predicted_study_quality);
@@ -159,10 +161,18 @@ export default function Dashboard() {
       <SensorChart data={dashboardData} />
 
       <div className={`recommendation-card ${recommendation.status}`}>
-        <h2>{t.recommendation}</h2>
-        <h3>{recommendation.title}</h3>
-        <p>{recommendation.message}</p>
-      </div>
+
+  <div className="recommendation-emoji">
+    {recommendation.emoji}
+  </div>
+
+  <h2>{t.recommendation}</h2>
+
+  <h3>{recommendation.title}</h3>
+
+  <p>{recommendation.message}</p>
+
+</div>
     </div>
   );
 }
