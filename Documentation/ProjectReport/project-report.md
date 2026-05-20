@@ -383,7 +383,7 @@ Provide the live URL if applicable.]
 
 ## 3.8 IoT CI/CD
 
-*Authors: [Name, Name]*
+*Authors: [Jakub Maciej Baczek, Name]*
 
 <!-- DevOps checklist — address all four points:
      1. General DevOps considerations and planning
@@ -393,28 +393,49 @@ Provide the live URL if applicable.]
 
 ### 3.8.1 DevOps Considerations for Embedded Development
 
-[What challenges are unique to CI/CD for embedded C on ATmega2560?
-(No easy emulation, hardware-dependent peripherals, cross-compilation toolchain.)
-How did you plan around these constraints from the start?]
+Integrating CI/CD into an embedded C project targeting the ATmega2560 microcontroller presents challenges that are fundamentally different from those encountered in typical software projects. The most significant of these is the absence of practical emulation: unlike web or desktop applications, firmware for an AVR microcontroller cannot be meaningfully run on a standard x86 Linux host without significant behavioural divergence. This makes end-to-end automated testing on real hardware largely impractical in a CI context, as it would require physical hardware attached to the runner or a dedicated hardware-in-the-loop setup.
+
+A further challenge is that much of the codebase is tightly coupled to
+hardware-dependent peripherals — UART, Wi-Fi modules, and similar — whose behaviour cannot be exercised without the target hardware. The cross-compilation toolchain adds additional complexity: building firmware for the ATmega2560 requires the AVR-GCC toolchain and PlatformIO, neither of which are part of a standard CI environment, and both of which must be installed and cached correctly to produce a reproducible build.
+
+Automatic deployment presents a similar problem. In a conventional software project,a CD pipeline can push a build artifact directly to its destination — a server, a container registry, a package repository. For embedded firmware, deployment means physically flashing the binary onto the microcontroller, which cannot be done without direct access to the hardware. Fully automated deployment is therefore not feasible in this context. The practical solution adopted here is to treat the compiled firmware as the deployable artifact: the pipeline produces a flashable `.hex` file and uploadsit as a GitHub Actions artifact on every successful build, ready to be downloaded and flashed to the board manually.
+
+These constraints were acknowledged from the outset, and the CI/CD strategy was designed accordingly. Rather than attempting to run firmware on the target or simulate peripherals fully, the CI side of the pipeline focuses on two concerns: automated unit testing of hardware-independent logic, compiled and run natively on the CI runner using GCC, and a firmware build step using PlatformIO to verify that the codebase compiles correctly for the ATmega2560 target. The CD side is reduced to producing and publishing the `.hex` artifact, deferring the final flashing step to the developer. This separation allowed meaningful automation despite the inherent limitations of embedded CI/CD.
+
 
 ### 3.8.2 Tools and Pipeline
 
-[Describe the CI pipeline for the IoT codebase:
-- CI platform used (GitHub Actions, GitLab CI) and configuration
-- Pipeline stages: what happens on each commit/PR? (build, lint, unit tests)
-- Unit test framework for embedded C (Unity, CMock, custom harness)
-- How hardware-dependent code is mocked or stubbed for automated testing
-- Container setup for the cross-compilation build environment]
+The CI pipeline is implemented using GitHub Actions and is defined in a single workflow file. It is triggered on pull requests targeting the `main` and `dev` branches. To avoid unnecessary work when unrelated parts of the repository change, the pipeline checks for modifications within the `IOT/` directory at runtime and skips the build and test steps if none are found.
+
+The pipeline is divided into two sequential jobs:
+
+**`iot-test` — Testing and Coverage**
+
+The first job runs on an `ubuntu-latest` runner and is responsible for compiling and executing the unit test suite natively. Hardware-dependent subsystems — such as UART drivers, SPI communication, and Wi-Fi module interaction — cannot run on a host machine and were therefore isolated behind fakes and stubs using the [FFF (Fake Function Framework)](https://github.com/meekrosoft/fff). These fakes are placed under `test/fakes/` and are included at compile time via the `-I./test/fakes` flag, replacing real peripheral drivers with non-operational or configurable substitutes. This allows the logic within modules such as `wifi_http.c` and `server_api.c` to be tested in isolation without any hardware dependency.
+
+Tests are written using the [Unity](https://github.com/ThrowTheSwitch/Unity) unit test framework for C, with test files compiled and linked against the source under test and the Unity runner. The `make coverage` target compiles all test binaries with GCC's `--coverage` flag (gcov instrumentation), executes them, and then uses `lcov` and `genhtml` to produce an HTML coverage report. Third-party and test infrastructure paths (`fakes/`, `unity/`, `test/`, `/usr/`) are excluded from the coverage data to ensure only production source is measured. The resulting HTML report is uploaded as a GitHub Actions artifact for inspection after each run.
+
+The job also requires a `secrets.ini` file containing build flags for credentials such as Wi-Fi SSID and server host. Since these cannot be stored in the repository, the file is generated dynamically in the pipeline using placeholder values sufficient for compilation and testing.
+
+**`iot-build` — Firmware Compilation**
+
+The second job runs only if `iot-test` succeeds and is responsible for verifying that the firmware compiles correctly for the ATmega2560 target using PlatformIO. PlatformIO is installed via `pip`, with the `~/.platformio` directory cached using `actions/cache` keyed on the hash of `platformio.ini` to avoid redundant downloads across runs. The build targets the `megaatmega2560` PlatformIO environment, and the resulting `firmware.hex` file — ready to be flashed to the microcontroller — is uploaded as a build artifact. This provides a verifiable, reproducible binary for every pull request that passes testing.
 
 ### 3.8.3 Integration into Workflow
 
-[How was the CI pipeline used day-to-day?
-Were PRs blocked on failing tests? Who was responsible for fixing broken builds?]
+The CI pipeline was integrated directly into the pull request workflow on GitHub. All pull requests targeting `main` or `dev` were required to pass both pipeline jobs before merging was permitted — a failing test run or a broken firmware build would block the PR. This ensured that neither regressions in testable logic nor compilation failures could be introduced into the protected branches.
+
+Responsibility for fixing a broken build was straightforward: the author of the pull request that caused the failure was expected to resolve it. This kept accountability clear and avoided a situation where broken builds were left for others to diagnose. In practice, outright compilation failures were rare, as code was manually verified on the Arduino before being pushed. The most common failure mode was instead test failures arising from changes to modules covered by the Unity test suite.
 
 ### 3.8.4 Outcomes and Evaluation
 
-[To what extent was DevOps successfully integrated into IoT development?
-What worked well? What was difficult or impractical to automate, and why?]
+The DevOps integration was largely successful within the constraints imposed by embedded development. The two-job pipeline structure — separating native unit testing from cross-compiled firmware verification — proved to be a practical and effective approach. Compilation errors targeting the ATmega2560 were caught automatically on every PR, and the unit tests provided a degree of confidence in the correctness of the hardware-independent application logic.
+
+The use of FFF for faking peripheral dependencies worked well in practice: modules could be tested in isolation without requiring any hardware, and the fake implementations were straightforward to write and maintain. The Unity framework similarly integrated cleanly with the native GCC compilation path and the lcov coverage toolchain.
+
+The most significant limitation of the pipeline is the scope of what could be tested automatically. Because tests run natively on an x86 host, only code that could be cleanly decoupled from hardware-specific behaviour was testable in CI. Driver-level code — responsible for directly interfacing with UART, SPI, or the Wi-Fi module — was excluded from automated testing entirely, as no meaningful substitute for actual hardware execution exists at that level. Full integration testing, including end-to-end verification of sensor readings and server communication over a real network, remained a manual process conducted on physical hardware.
+
+Overall, the pipeline added clear value to the development workflow by catching build and logic errors early, enforcing a baseline standard for all contributions, and producing a deployable firmware artifact on every successful PR. The inability to automate hardware-level testing is an inherent property of the embedded domain rather than a gap in the implementation, and the pipeline was scoped accordingly.
 
 ## 3.9 Machine Learning — Models
 
@@ -479,26 +500,26 @@ What automated checks ran on every PR? What gaps remained?]
 
 ## 3.11 IoT Tests
 
-*Authors: [Name, Name]*
+*Authors: [Jakub Maciej Baczek, Name]*
 
 ### 3.11.1 Testing Strategy for Embedded C
 
-[What aspects of the IoT application were unit-tested?
-What test framework was used? How were hardware-dependent parts handled
-(mock drivers, stub peripherals, hardware-in-the-loop)?]
+Unit testing for the IoT application focused on the two modules containing application logic: `wifi_http`, responsible for establishing TCP connections and constructing HTTP requests, and `server_api`, responsible for session management and server communication. Tests were written using the Unity unit test framework for C and compiled natively on the host using GCC, allowing them to run in CI without any physical hardware.
+
+Hardware-dependent components — TCP socket operations, Wi-Fi driver commands, and buzzer output — were replaced with fakes generated using the FFF (Fake Function Framework). FFF allows individual driver functions to be substituted with configurable stubs that record call counts, capture arguments, and inject return values or response payloads. This made it possible to test application logic such as session ID parsing, retry behaviour, and endpoint construction in full isolation from the underlying hardware.
+
+The remaining codebase consists of low-level peripheral drivers and the main application loop. Drivers are inherently hardware-dependent and cannot be meaningfully tested without the target device. The main loop contains no isolated logic of its own, acting purely as an orchestrator of the other modules. Neither lends itself to unit testing, and both were verified manually on the physical hardware.
 
 ### 3.11.2 Unit Test Results
 
-| Module               | Tests | Passed | Failed | Coverage |
-| :------------------- | :---- | :----- | :----- | :------- |
-| [Sensor driver X]    |       |        |        |          |
-| [Communication]      |       |        |        |          |
+| Module | Tests | Passed | Failed | Coverage |
+| :--- | :--- | :--- | :--- | :--- |
+| `wifi_http` | 14 | 14 | 0 | 93.9% |
+| `server_api` | 24 | 24 | 0 | 95.3% |
 
 ### 3.11.3 Integration and System-Level Tests
 
-[Describe any integration testing performed with actual hardware.
-How was end-to-end behaviour (sensor reading → cloud transmission) verified?
-What manual or automated system tests were run?]
+No automated integration testing was implemented, as the hardware constraints discussed in section 3.8.1 make this impractical without a dedicated hardware-in-the-loop setup. Integration and system-level verification was instead performed manually throughout development. This involved flashing the firmware onto the ATmega2560 and observing end-to-end behaviour: confirming that sensor readings were correctly acquired, formatted into the expected JSON payloads, transmitted to the server, and that session lifecycle events such as session start and pulse updates were handled correctly. While informal, this process provided confidence in the integrated behaviour of the system and complemented the unit-level coverage achieved through automated testing.
 
 ## 3.12 Frontend Tests
 
