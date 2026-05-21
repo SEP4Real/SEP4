@@ -54,6 +54,8 @@ services:
       context: ./Frontend
     ports:
       - "80:80"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:
