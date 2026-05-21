@@ -1,12 +1,15 @@
 import csv
+import io
 import os
 import urllib.error
 import urllib.request
+import zipfile
 from pathlib import Path
 
 import psycopg
 
 REAL_SENSOR_HISTORY_PATH = Path("data/sensor_history.csv")
+SESSIONS_PATH = Path("data/sessions.csv")
 
 
 def _collect_from_api(api_base_url: str) -> None:
@@ -38,8 +41,12 @@ def _collect_from_api(api_base_url: str) -> None:
         raise RuntimeError(f"API request failed with status {exc.code}: {body}") from exc
 
     REAL_SENSOR_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    REAL_SENSOR_HISTORY_PATH.write_bytes(payload)
-    print(f"Success: Saved data to {REAL_SENSOR_HISTORY_PATH}")
+    with zipfile.ZipFile(io.BytesIO(payload)) as zf:
+        with zf.open("sensor_history.csv") as f:
+            REAL_SENSOR_HISTORY_PATH.write_bytes(f.read())
+        with zf.open("sessions.csv") as f:
+            SESSIONS_PATH.write_bytes(f.read())
+    print(f"Success: Extracted sensor_history.csv and sessions.csv from zip")
 
 
 def _collect_from_db() -> None:
@@ -61,30 +68,48 @@ def _collect_from_db() -> None:
             password=db_password,
         ) as conn:
             with conn.cursor() as cur:
-                print("Executing query...")
-                query = """
+                # --- sensor history (data table) ---
+                print("Querying data table...")
+                cur.execute("""
                     SELECT *
                     FROM data
                     ORDER BY sent_at DESC
                     LIMIT 2000
-                """
-                cur.execute(query)
-                rows = cur.fetchall()
-                colnames = [desc[0] for desc in cur.description]
+                """)
+                data_rows = cur.fetchall()
+                data_cols = [desc[0] for desc in cur.description]
 
-        if not rows:
-            print("No data found in database.")
-            return
+                # --- sessions table ---
+                print("Querying sessions table...")
+                cur.execute("""
+                    SELECT *
+                    FROM sessions
+                    ORDER BY started_at DESC
+                """)
+                session_rows = cur.fetchall()
+                session_cols = [desc[0] for desc in cur.description]
 
-        print("Saving to CSV...")
         REAL_SENSOR_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-        with REAL_SENSOR_HISTORY_PATH.open(mode="w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(colnames)
-            writer.writerows(rows)
+        if not data_rows:
+            print("No rows found in data table.")
+        else:
+            print("Saving sensor history to CSV...")
+            with REAL_SENSOR_HISTORY_PATH.open(mode="w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(data_cols)
+                writer.writerows(data_rows)
+            print(f"Success: Saved {len(data_rows)} rows to {REAL_SENSOR_HISTORY_PATH}")
 
-        print(f"Success: Saved {len(rows)} rows to {REAL_SENSOR_HISTORY_PATH}")
+        if not session_rows:
+            print("No rows found in sessions table.")
+        else:
+            print("Saving sessions to CSV...")
+            with SESSIONS_PATH.open(mode="w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(session_cols)
+                writer.writerows(session_rows)
+            print(f"Success: Saved {len(session_rows)} rows to {SESSIONS_PATH}")
 
     except Exception as exc:
         print(f"Error during extraction: {exc}")
