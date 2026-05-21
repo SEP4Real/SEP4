@@ -27,6 +27,7 @@ static void delay_s(uint8_t seconds)
 
 static volatile uint8_t pulse_due = 0;
 static volatile uint8_t data_due = 0;
+static volatile uint8_t session_button_cooldown_active = 0;
 static uint8_t request_in_progress = 0;
 
 static void on_pulse_timer(uint8_t id)
@@ -38,6 +39,12 @@ static void on_data_timer(uint8_t id)
 {
     (void)id;
     data_due = 1;
+}
+
+static void on_session_button_cooldown_timer(uint8_t id)
+{
+    session_button_cooldown_active = 0;
+    timer_pause(id);
 }
 
 int main(void)
@@ -91,21 +98,73 @@ int main(void)
 
     server_register_device();
     delay_s(1);
-    server_start_session();
+    printf("[SESSION] Waiting for Button 1 to start session\n");
 
     int8_t pulse_timer = timer_create_sw(on_pulse_timer, 5000);
     int8_t data_timer = timer_create_sw(on_data_timer, 30000);
+    int8_t session_button_cooldown_timer = timer_create_sw(on_session_button_cooldown_timer, 20000);
 
-    if (pulse_timer < 0 || data_timer < 0)
+    if (pulse_timer < 0 || data_timer < 0 || session_button_cooldown_timer < 0)
     {
         printf("[ERROR] Timer creation failed\n");
     }
+    else
+    {
+        timer_pause(session_button_cooldown_timer);
+    }
 
+    static uint8_t session_active = 0;
+    static uint8_t button1_last_state = 0;
     static uint8_t button2_last_state = 0;
 
     while (1)
     {
+        uint8_t button1_current_state = button_get(1);
         uint8_t button2_current_state = button_get(2);
+
+        if (button1_last_state == 0 && button1_current_state == 1 && !request_in_progress)
+        {
+            _delay_ms(50);
+
+            if (button_get(1))
+            {
+                if (session_button_cooldown_active)
+                {
+                    printf("[SESSION] Ignored - wait 20s between start/stop actions\n");
+                    button1_last_state = button1_current_state;
+                    continue;
+                }
+
+                session_button_cooldown_active = 1;
+                if (session_button_cooldown_timer > 0)
+                {
+                    timer_resume(session_button_cooldown_timer);
+                }
+
+                request_in_progress = 1;
+
+                if (session_active)
+                {
+                    printf("[SESSION] Button 1 pressed - ending session\n");
+                    session_active = 0;
+                    server_reset();
+                    pulse_due = 0;
+                    data_due = 0;
+                    printf("[SESSION] Session ended - pulse/data stopped\n");
+                }
+                else
+                {
+                    printf("[SESSION] Button 1 pressed - starting session\n");
+                    server_start_session();
+                    session_active = 1;
+                    pulse_due = 0;
+                    data_due = 0;
+                    printf("[SESSION] Session started by button\n");
+                }
+
+                request_in_progress = 0;
+            }
+        }
 
         if (button2_last_state == 0 && button2_current_state == 1 && !request_in_progress)
         {
@@ -135,9 +194,10 @@ int main(void)
             }
         }
 
+        button1_last_state = button1_current_state;
         button2_last_state = button2_current_state;
 
-        if (!request_in_progress && pulse_due)
+        if (session_active && !request_in_progress && pulse_due)
         {
             pulse_due = 0;
             request_in_progress = 1;
@@ -145,7 +205,7 @@ int main(void)
             request_in_progress = 0;
         }
 
-        if (!request_in_progress && data_due)
+        if (session_active && !request_in_progress && data_due)
         {
             data_due = 0;
             request_in_progress = 1;
