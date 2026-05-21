@@ -6,7 +6,6 @@ course: "SEP4"
 semester: "4th Semester"
 institution: "VIA University College"
 ---
-
 <!-- ============================================================
   PROJECT REPORT — VIA Engineering Guidelines 2024 + SEP4 Requirements
   
@@ -79,6 +78,7 @@ missing or suboptimal, and what a successful solution would look like.]
 and Discussion. Tie them to the three system components where relevant.
 
 Example format:
+
 - The IoT device shall measure [sensors] and transmit data to the cloud backend.
 - The cloud backend shall store sensor data and expose a RESTful API.
 - The ML component shall predict/classify [outcome] using sensor data.
@@ -118,23 +118,23 @@ Justify the key modelling decisions.]
 <!-- Present ALL user stories as a single shared backlog.
      Format: "As a [role], I want to [action], so that [benefit]." -->
 
-| ID   | User Story                                                  | Priority   | Component      |
-| :--- | :---------------------------------------------------------- | :--------- | :------------- |
-| US01 | As a [user], I want to [action], so that [benefit].         | Must have  | IoT / Cloud    |
-| US02 | As a [user], I want to [action], so that [benefit].         | Should     | Frontend       |
-| US03 | As a [user], I want to [action], so that [benefit].         | Could      | ML             |
+| ID   | User Story                                          | Priority  | Component   |
+| :--- | :-------------------------------------------------- | :-------- | :---------- |
+| US01 | As a [user], I want to [action], so that [benefit]. | Must have | IoT / Cloud |
+| US02 | As a [user], I want to [action], so that [benefit]. | Should    | Frontend    |
+| US03 | As a [user], I want to [action], so that [benefit]. | Could     | ML          |
 
 ## 2.3 System Requirements
 
 [Derive functional and non-functional requirements from the user stories.
 Cross-cutting requirements (security, DevOps, performance) belong here.]
 
-| ID    | Requirement Description                                      | Type            | Source |
-| :---- | :----------------------------------------------------------- | :-------------- | :----- |
-| FR01  | [Functional requirement]                                     | Functional      | US01   |
-| NFR01 | IoT–cloud communication shall be encrypted.                  | Non-functional  | Security |
-| NFR02 | The frontend shall be responsive at 576px, 768px, 1200px.   | Non-functional  | US02   |
-| NFR03 | The system shall be deployed using containers.               | Non-functional  | DevOps |
+| ID    | Requirement Description                                   | Type           | Source   |
+| :---- | :-------------------------------------------------------- | :------------- | :------- |
+| FR01  | [Functional requirement]                                  | Functional     | US01     |
+| NFR01 | IoT–cloud communication shall be encrypted.              | Non-functional | Security |
+| NFR02 | The frontend shall be responsive at 576px, 768px, 1200px. | Non-functional | US02     |
+| NFR03 | The system shall be deployed using containers.            | Non-functional | DevOps   |
 
 ## 2.4 System Sequence Diagrams
 
@@ -168,6 +168,7 @@ communicate (protocols, data formats), and how data flows end-to-end.]
 <!-- Required by SEP4: must use public cloud hosting, containers, and serverless. -->
 
 [Describe the cloud infrastructure:
+
 - **Hosting provider**: which provider and why (AWS, Azure, GCP, etc.)?
 - **Containerisation**: how are services packaged and deployed (Docker, Compose, K8s)?
 - **Serverless workloads**: which parts run as serverless functions, and why those parts?
@@ -180,6 +181,7 @@ communicate (protocols, data formats), and how data flows end-to-end.]
      and JWT (or equivalent) protection for frontend-facing API endpoints. -->
 
 [Describe the security architecture:
+
 - **IoT–cloud encryption**: which scheme was chosen (TLS, AES, RSA) and why?
 - **API authentication**: how are endpoints protected (JWT, API keys)?
 - **Key and certificate management**: how are secrets handled in the project?
@@ -192,6 +194,7 @@ communicate (protocols, data formats), and how data flows end-to-end.]
      Pair-programming commits must list both names in the commit message. -->
 
 [Describe the overall DevOps plan:
+
 - **Git workflow**: branching model (e.g. Gitflow, trunk-based), tagging conventions,
   commit message standard, pair-programming naming convention.
 - **CI/CD overview**: what events trigger pipelines, what gates exist before merging.
@@ -214,22 +217,23 @@ Reference a hardware block diagram:]
 
 <!-- ![Hardware Block Diagram](../../Documentation/Design/IoT/hardware_block.svg) -->
 
-| Component             | Interface  | Purpose                         |
-| :-------------------- | :--------- | :------------------------------ |
-| Air temperature sensor| [I2C/ADC]  | [What is measured]              |
-| Air humidity sensor   | [I2C/ADC]  | [What is measured]              |
-| Soil humidity sensor  | [ADC]      | [What is measured]              |
-| Light sensor          | [ADC]      | [What is measured]              |
-| Proximity sensor      | [...]      | [What is detected]              |
-| PIR sensor            | [GPIO]     | [What is detected]              |
-| Servo motor           | [PWM]      | [What it controls]              |
-| Water pump            | [GPIO]     | [What it controls]              |
-| 7-segment display     | [...]      | [What it displays]              |
-| LEDs                  | [GPIO]     | [Indicator purpose]             |
+| Component              | Interface | Purpose             |
+| :--------------------- | :-------- | :------------------ |
+| Air temperature sensor | [I2C/ADC] | [What is measured]  |
+| Air humidity sensor    | [I2C/ADC] | [What is measured]  |
+| Soil humidity sensor   | [ADC]     | [What is measured]  |
+| Light sensor           | [ADC]     | [What is measured]  |
+| Proximity sensor       | [...]     | [What is detected]  |
+| PIR sensor             | [GPIO]    | [What is detected]  |
+| Servo motor            | [PWM]     | [What it controls]  |
+| Water pump             | [GPIO]    | [What it controls]  |
+| 7-segment display      | [...]     | [What it displays]  |
+| LEDs                   | [GPIO]    | [Indicator purpose] |
 
 ### 3.2.2 Embedded Software Architecture
 
 [Describe the software architecture of the C application:
+
 - Module/task decomposition
 - Communication protocol chosen for cloud uplink (MQTT, HTTP) and justification
 - Data serialisation format for sensor payloads
@@ -245,27 +249,25 @@ Reference a hardware block diagram:]
 
 ### 3.3.1 Data Sources and Collection Strategy
 
-[What data is used? Where does it come from (live IoT feed, public dataset, synthetic)?
-What sensor readings are features? What is the prediction/classification target?
-How much data is available, and over what time period?]
+The initial search for data focused on the relationship between environmental noise and cognitive focus. We explored combining datasets describing focus-related effects of background noise with labeled sound categories from WAV files, extracting frequencies and loudness. However, as the project evolved, we narrowed the ML objective from direct focus prediction to predicting a user-provided **Study Suitability Rating**. This shift was necessary because "focus" is a subjective internal state that cannot be directly measured by our sensors. By using a user-provided rating, we anchored our target variable in observable environmental conditions and explicit user feedback. [...]
 
 ### 3.3.2 Exploratory Data Analysis
 
-[Describe findings from exploring the raw data:
-- Data shape and volume
-- Feature distributions (reference plots)
-- Missing values and outliers identified
-- Correlations between features and target variable]
+During the exploratory phase, several candidate datasets were evaluated. We identified and eliminated datasets that appeared synthetic or "too perfect" to be realistic sensor data. For example, in datasets labeled as "Data 2" and "Data 4," the distributions of humidity, noise, and light were suspiciously uniform or perfectly bell-shaped, lacking the stochastic noise typical of real-world environments.
 
-<!-- ![Feature Distributions](../../Documentation/Design/ML/eda_distributions.png) -->
+![Feature Distributions of Suspicious Datasets](../ProcessReport/image/process-report/1778581492077.png)
+
+*Figure 3.x: Suspiciously perfect feature distributions in candidate datasets.*
+
+Correlation analysis further revealed insights into data quality. Healthy datasets exhibited natural correlations between temperature, CO2, and humidity. Conversely, some "suspicious" datasets showed near-zero correlation across all features, suggesting high randomness or artificial generation.
+
+![Healthy vs Suspicious Correlation Matrices](../ProcessReport/image/process-report/1778581896856.png)
+
+*Figure 3.y: Correlation matrices showing healthy physical relationships (left) vs suspicious randomness (right).*
 
 ### 3.3.3 ML Problem Formulation
 
-[Precisely define the ML task:
-- Classification, regression, or clustering — and why?
-- What is the target variable?
-- What input features are selected as relevant?
-- What does a useful/successful prediction look like in this context?]
+The ML task is formulated as a supervised learning problem aimed at predicting the Study Suitability Rating. [...]
 
 ## 3.4 Frontend Design
 
@@ -276,6 +278,7 @@ How much data is available, and over what time period?]
 ### 3.4.1 UI/UX Design
 
 [Describe the user interface design:
+
 - Target users and their primary tasks
 - Navigation structure and information architecture
 - Key screens/views and their purpose]
@@ -296,6 +299,7 @@ How does the app communicate with the backend API (fetch, axios, React Query)?]
 <!-- Required: must adapt well to 576px, 768px, and 1200px screen widths. -->
 
 [Describe the responsive design approach:
+
 - CSS framework or approach (Tailwind, Bootstrap, CSS Grid/Flexbox)
 - Breakpoints used and how layouts reflow at each
 - Specifically address the three mandatory widths: 576px, 768px, 1200px]
@@ -330,25 +334,25 @@ and network transmission are orchestrated. How are timing requirements met?]
 
 *Authors: [Name, Name]*
 
-### 3.6.1 Data Cleaning
+### 3.6.1 Data Cleaning and Imputation
 
-[Describe all preprocessing steps applied to raw sensor data:
-- Handling missing values (imputation strategy or row removal)
-- Outlier detection method and treatment
-- Feature engineering (derived features, rolling averages, time-based features)
-- Normalisation or standardisation applied, and why]
+A significant challenge was merging disparate datasets, which often resulted in missing columns for specific sensors (e.g., noise or light). To handle these missing values while preserving natural variance, we implemented a sophisticated imputation strategy using the **Multivariate Imputation by Chained Equations (MICE)** framework.
+
+Rather than using simple means or linear regression, we adopted a cluster-based approach:
+
+1. **Room TypeTODO Clustering**: We used k-means clustering to group data points into "room typesTODO" based on features that were fully present (Temperature, CO2, Humidity). This accounts for different physical environments (e.g., sun-exposed rooms vs. windowless labs) where sensor correlations might differ.
+2. **ExtraTrees Estimator**: Within the MICE framework, we utilized an ExtraTrees estimator to model non-linear relationships.
+3. **Variance Preservation**: We modified the imputation logic to include natural distribution variance based on the average standard deviation from the trees, preventing the "flat average" effect.
+
+If a cluster suffered from extreme sparsity (e.g., completely missing a feature like noise), a global median was used as a fallback to prevent model bias.
 
 ### 3.6.2 Feature Selection
 
-[Which features were selected for the model and on what basis?
-Were feature selection techniques applied (correlation threshold, importance ranking)?
-What was excluded and why?]
+[...]
 
 ### 3.6.3 Data Split and Validation Strategy
 
-[How was data split into train/validation/test sets?
-What cross-validation approach is used?
-How was data leakage prevented (especially important for time-series sensor data)?]
+[...]
 
 ## 3.7 Frontend Implementation
 
@@ -357,6 +361,7 @@ How was data leakage prevented (especially important for time-series sensor data
 ### 3.7.1 Core Features Implementation
 
 [Describe how the key features were built:
+
 - Fetching, parsing, and displaying live sensor data from the REST API
 - Historical data visualisation (charts/graphs — which library: Recharts, Chart.js, D3?)
 - User interactions and controls for managing the system
@@ -401,7 +406,6 @@ hardware-dependent peripherals — UART, Wi-Fi modules, and similar — whose be
 Automatic deployment presents a similar problem. In a conventional software project,a CD pipeline can push a build artifact directly to its destination — a server, a container registry, a package repository. For embedded firmware, deployment means physically flashing the binary onto the microcontroller, which cannot be done without direct access to the hardware. Fully automated deployment is therefore not feasible in this context. The practical solution adopted here is to treat the compiled firmware as the deployable artifact: the pipeline produces a flashable `.hex` file and uploadsit as a GitHub Actions artifact on every successful build, ready to be downloaded and flashed to the board manually.
 
 These constraints were acknowledged from the outset, and the CI/CD strategy was designed accordingly. Rather than attempting to run firmware on the target or simulate peripherals fully, the CI side of the pipeline focuses on two concerns: automated unit testing of hardware-independent logic, compiled and run natively on the CI runner using GCC, and a firmware build step using PlatformIO to verify that the codebase compiles correctly for the ATmega2560 target. The CD side is reduced to producing and publishing the `.hex` artifact, deferring the final flashing step to the developer. This separation allowed meaningful automation despite the inherent limitations of embedded CI/CD.
-
 
 ### 3.8.2 Tools and Pipeline
 
@@ -458,10 +462,10 @@ Use tables and visualisations (confusion matrix, learning curves, residual plots
 
 <!-- ![Confusion Matrix](../../Documentation/Design/ML/confusion_matrix.png) -->
 
-| Model              | Metric 1  | Metric 2  | Metric 3  |
-| :----------------- | :-------- | :-------- | :-------- |
-| Baseline           |           |           |           |
-| [Chosen model]     |           |           |           |
+| Model          | Metric 1 | Metric 2 | Metric 3 |
+| :------------- | :------- | :------- | :------- |
+| Baseline       |          |          |          |
+| [Chosen model] |          |          |          |
 
 ### 3.9.4 Result Export
 
@@ -483,6 +487,7 @@ How were code ownership and review responsibilities organised?]
 ### 3.10.2 Tools and Pipeline
 
 [Describe the CI/CD pipeline for the frontend:
+
 - Linting and formatting (ESLint, Prettier)
 - Unit and component tests (Jest, React Testing Library)
 - E2E tests if applicable (Cypress, Playwright)
@@ -512,10 +517,10 @@ The remaining codebase consists of low-level peripheral drivers and the main app
 
 ### 3.11.2 Unit Test Results
 
-| Module | Tests | Passed | Failed | Coverage |
-| :--- | :--- | :--- | :--- | :--- |
-| `wifi_http` | 14 | 14 | 0 | 93.9% |
-| `server_api` | 24 | 24 | 0 | 95.3% |
+| Module         | Tests | Passed | Failed | Coverage |
+| :------------- | :---- | :----- | :----- | :------- |
+| `wifi_http`  | 14    | 14     | 0      | 93.9%    |
+| `server_api` | 24    | 24     | 0      | 95.3%    |
 
 ### 3.11.3 Integration and System-Level Tests
 
@@ -532,15 +537,55 @@ No automated integration testing was implemented, as the hardware constraints di
 
 ### 3.12.2 Test Results
 
-| Test Suite           | Tests | Passed | Failed | Coverage |
-| :------------------- | :---- | :----- | :----- | :------- |
-| Component tests      |       |        |        |          |
-| Integration tests    |       |        |        |          |
+| Test Suite        | Tests | Passed | Failed | Coverage |
+| :---------------- | :---- | :----- | :----- | :------- |
+| Component tests   |       |        |        |          |
+| Integration tests |       |        |        |          |
 
 ### 3.12.3 Responsiveness Testing
 
 [How was responsive behaviour verified at the three required breakpoints
 (576px, 768px, 1200px)? Include screenshots if helpful.]
+
+## 3.13 Machine Learning DevOps (MLOps)
+
+*Authors: [Piotr, Name]*
+
+<!-- DevOps checklist for MAL:
+     1. General MLOps considerations
+     2. Tools and Pipeline (mlops.yaml)
+     3. Integration into workflow
+     4. Outcomes and Evaluation -->
+
+### 3.13.1 MLOps Considerations
+
+The Machine Learning and API (MAL) component requires a specialized DevOps approach, often referred to as MLOps. The primary challenge is ensuring that the FastAPI backend is always served with a valid, high-performing model artifact and that changes to the data processing logic or model architecture do not break the API contract. Unlike traditional software, the "build" artifact in MLOps includes both the code and the serialized model weights.
+
+### 3.13.2 Tools and Pipeline
+
+The MLOps pipeline is implemented using GitHub Actions (`mlops.yaml`). It is triggered by changes to the `MAL/` directory or the core datasets used for training.
+
+**`test-and-train` Job**
+
+The pipeline automates several critical verification steps:
+
+1. **Environment Setup**: Python 3.10 is configured with cached dependencies from `requirements.txt`.
+2. **Database Service**: A PostgreSQL container is spun up as a sidecar service to provide a realistic environment for integration testing.
+3. **Model Verification**: The pipeline explicitly checks for the presence of the trained model artifact (`rf_model.pkl`). This enforces a workflow where models are trained locally or in dedicated environments and then committed as versioned artifacts. TODO: after we implement the manual training triggering pipeline this should be updated (or all this paragraph basically))
+4. **API Integration Testing**:
+   * The FastAPI service is started within the CI runner.
+   * `pytest` is used to run integration tests against the live endpoint (e.g., `test_prediction_api.py`), ensuring the model correctly processes requests and returns predictions in the expected schema.
+5. **Containerization and CD**:
+   * On successful merges to `main`, the pipeline builds a Docker image for the MAL service.
+   * The image, containing the code and the validated model artifact, is pushed to the GitHub Container Registry (GHCR).
+
+### 3.13.3 Integration into Workflow
+
+The MLOps pipeline acts as a quality gate for all MAL-related changes. Pull requests are required to pass the API integration tests and model verification steps before they can be merged. This ensures that any change to the preprocessing logic (in `ml_pipeline/`) is immediately verified against the prediction API.
+
+### 3.13.4 Outcomes and Evaluation
+
+The automated pipeline significantly reduced the risk of deploying "broken" models or incompatible API changes. By verifying the model artifact at build time and running live integration tests with a real database service, we achieved a high level of confidence in the MAL component's reliability. The use of Docker images for deployment ensures that the exact environment used during CI is replicated in production.
 
 # 4. Results and Discussion
 
@@ -561,8 +606,8 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
-| Objective     | Status                   | Evidence                  |
-| :------------ | :----------------------- | :------------------------ |
+| Objective     | Status                       | Evidence                    |
+| :------------ | :--------------------------- | :-------------------------- |
 | [Objective 1] | ✔ Met / ⟳ Partial / ✗ Not | [Test results / screenshot] |
 
 ## 4.3 IoT Performance
@@ -598,6 +643,7 @@ Address limitations per component where the issues differ significantly.]
 *Authors: [Name, Name, Name]*
 
 [Summarise the project in 3–5 paragraphs:
+
 1. Restate the problem and the three-part approach taken
 2. What was achieved — per component and as an integrated system
 3. Did the system solve the stated problem, and to what degree?
@@ -635,12 +681,12 @@ Be specific and actionable.
 
 ## Appendix A — Source Code
 
-| Component  | Repository URL          |
-| :--------- | :---------------------- |
-| IoT        | [GitHub/GitLab URL]     |
-| Cloud      | [GitHub/GitLab URL]     |
-| ML         | [GitHub/GitLab URL]     |
-| Frontend   | [GitHub/GitLab URL]     |
+| Component | Repository URL      |
+| :-------- | :------------------ |
+| IoT       | [GitHub/GitLab URL] |
+| Cloud     | [GitHub/GitLab URL] |
+| ML        | [GitHub/GitLab URL] |
+| Frontend  | [GitHub/GitLab URL] |
 
 ## Appendix B — API Documentation
 
