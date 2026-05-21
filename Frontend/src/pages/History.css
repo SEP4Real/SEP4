@@ -1,6 +1,4 @@
-
 .history-page {
-  
   padding: 40px;
   display: flex;
   flex-direction: column;
@@ -8,10 +6,12 @@
 }
 
 .history-card {
-  width: 900px; 
-  background: rgba(255, 255, 255, 0.8);     
+  width: 100%;
+  max-width: 900px;
+  background: rgba(255, 255, 255, 0.8);
   padding: 30px;
   border-radius: 15px;
+  box-sizing: border-box;
 }
 
 .history-card h1 {
@@ -24,7 +24,7 @@
   background: #ffffff;
   border-radius: 7px;
   margin-bottom: 10px;
-  border: 1px solid #8dd9bd; 
+  border: 1px solid #8dd9bd;
 }
 
 .accordion-header {
@@ -35,11 +35,9 @@
   font-size: 18px;
 }
 
-
 .accordion-header:hover {
-  background: rgb(188, 255, 226); 
+  background: rgb(188, 255, 226);
 }
-
 
 .calendar-input {
   background: rgb(188, 255, 226);
@@ -81,8 +79,8 @@
 }
 
 .accordion-row.active {
-  border-color: #4CAF50;
-  background-color: #f1f8e9; 
+  border-color: #4caf50;
+  background-color: #f1f8e9;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
@@ -95,7 +93,7 @@
 }
 
 .row-main:hover {
-  background-color: rgb(188, 255, 226); 
+  background-color: rgb(188, 255, 226);
 }
 
 .row-title {
@@ -106,7 +104,7 @@
 
 .row-content {
   padding: 20px;
-  background-color: #ffffff; 
+  background-color: #ffffff;
   border-top: 1px solid #e8f5e9;
   display: flex;
   justify-content: center;
@@ -114,21 +112,20 @@
 
 .sensor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 15px;
   width: 100%;
   max-width: 800px;
 }
 
 .sensor-item {
-  background-color: #e8f5e9; 
+  background-color: #e8f5e9;
   border: 1px solid #c8e6c9;
   border-radius: 10px;
   padding: 15px;
   text-align: center;
   transition: transform 0.2s ease;
 }
-
 
 .sensor-item:hover {
   transform: scale(1.05);
@@ -150,7 +147,7 @@
 
 .arrow {
   font-size: 1.2rem;
-  color: #4CAF50;
+  color: #4caf50;
   transition: transform 0.3s ease;
 }
 
@@ -165,5 +162,133 @@
   border-radius: 15px;
   margin-bottom: 30px;
   width: 100%;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* DARK THEME - HISTORY */
+
+body.dark-theme .history-page {
+  color: #ffffff;
+}
+
+body.dark-theme .history-card {
+  background: rgba(43, 43, 43, 0.9);
+  color: #ffffff;
+}
+
+body.dark-theme .history-card h1,
+body.dark-theme .title {
+  color: rgb(188, 255, 226);
+}
+
+body.dark-theme .accordion-item,
+body.dark-theme .accordion-row {
+  background: #2b2b2b;
+  border-color: #555;
+  color: #ffffff;
+}
+
+body.dark-theme .accordion-row.active {
+  background: #1f3d32;
+  border-color: rgb(188, 255, 226);
+}
+
+body.dark-theme .accordion-header:hover,
+body.dark-theme .row-main:hover {
+  background: #1f3d32;
+}
+
+body.dark-theme .row-title {
+  color: #ffffff;
+}
+
+body.dark-theme .row-content {
+  background: #1f1f1f;
+  border-top-color: #555;
+}
+
+body.dark-theme .calendar-input {
+  background: #2b2b2b;
+  color: #ffffff;
+  border: 1px solid #555;
+}
+
+body.dark-theme .sensor-item {
+  background: #2b2b2b;
+  border-color: #555;
+}
+
+body.dark-theme .sensor-item:hover {
+  background: #1f3d32;
+}
+
+body.dark-theme .sensor-item p {
+  color: #dddddd;
+}
+
+body.dark-theme .sensor-item strong {
+  color: rgb(188, 255, 226);
+}
+
+body.dark-theme .chart-card {
+  background: #2b2b2b;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+/*1024px și 480px) */
+
+@media (max-width: 1024px) {
+  .history-page {
+    padding: 90px 15px 20px 15px;
+  }
+
+  .history-card {
+    padding: 20px 15px;
+  }
+
+  .history-card h1 {
+    font-size: 24px;
+    margin-bottom: 25px;
+  }
+
+  .indicators-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px;
+  }
+
+  .row-main {
+    padding: 15px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .row-title {
+    font-size: 1.1rem;
+  }
+
+  .chart-card {
+    height: 280px !important;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .indicators-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sensor-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+  
+  .sensor-item {
+    padding: 10px 5px;
+  }
+  
+  .sensor-item strong {
+    font-size: 1rem;
+  }
 }

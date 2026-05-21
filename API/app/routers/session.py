@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from psycopg import AsyncConnection
 
 from app.database import get_db
-from app.models import Session, SessionCreate
+from app.models import Session, SessionCreate, SessionUpdate
 
 router = APIRouter(prefix="/session", tags=["session"])
 
@@ -58,11 +58,11 @@ async def create_session(body: SessionCreate, db: AsyncConnection = Depends(get_
 
         await cur.execute(
             """
-            INSERT INTO sessions (device_id, started_at, last_pulse_at, study_quality)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO sessions (device_id, started_at, last_pulse_at)
+            VALUES (%s, %s, %s)
             RETURNING *
             """,
-            (device_id, now, now, body.study_quality),
+            (device_id, now, now),
         )
         row = await cur.fetchone()
     await db.commit()
@@ -87,6 +87,31 @@ async def pulse(id: int, db: AsyncConnection = Depends(get_db)):
         )
     await db.commit()
     return {"alive": True}
+
+
+@router.patch("/{id}")
+async def update_session(id: int, body: SessionUpdate, db: AsyncConnection = Depends(get_db)):
+    async with db.cursor() as cur:
+        await cur.execute("SELECT * FROM sessions WHERE id = %s", (id,))
+        row = await cur.fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    updates = {
+        field: getattr(body, field)
+        for field in body.model_fields_set
+    }
+
+    if updates:
+        columns = ", ".join(f"{col} = %s" for col in updates)
+        values = list(updates.values()) + [id]
+        async with db.cursor() as cur:
+            await cur.execute(f"UPDATE sessions SET {columns} WHERE id = %s RETURNING *", values)
+            row = await cur.fetchone()
+        await db.commit()
+
+    return Session.from_row(row)
 
 
 @router.delete("/{id}", status_code=204)

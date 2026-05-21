@@ -9,6 +9,7 @@
 #include "wifi_http.h"
 #include "dht11.h"
 #include "light.h"
+#include "co2.h"
 #include "timer.h"
 #include "server_api.h"
 
@@ -46,6 +47,17 @@ int main(void)
 
     printf("\n=== Device boot ===\n");
     light_init();
+    uint16_t latest_co2_ppm = 0;
+    if (co2_init() == CO2_OK)
+    {
+        printf("[CO2] Sensor UART initialized\n");
+        co2_request_measurement();
+    }
+    else
+    {
+        printf("[CO2] Sensor UART init failed\n");
+    }
+
     wifi_init();
     printf("[WIFI] Waiting for module...\n");
     delay_s(4);
@@ -106,9 +118,23 @@ int main(void)
             request_in_progress = 1;
             uint8_t t_int = 0, t_dec = 0, h_int = 0, h_dec = 0;
             uint16_t current_light = light_measure_raw();
+            uint16_t current_co2 = latest_co2_ppm;
+
+            if (co2_read_ppm(&current_co2) == CO2_OK)
+            {
+                latest_co2_ppm = current_co2;
+                printf("[CO2] ppm=%u\n", current_co2);
+            }
+            else
+            {
+                printf("[CO2] No fresh reading, using ppm=%u\n", current_co2);
+            }
+
+            co2_request_measurement();
+
             if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK)
             {
-                server_send_data(t_int, t_dec, h_int, h_dec, current_light);
+                server_send_data(t_int, t_dec, h_int, h_dec, current_light, current_co2);
             }
             else
             {

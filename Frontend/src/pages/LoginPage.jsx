@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/AuthService";
 import "./LoginPage.css";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function LoginPage() {
   const [form, setForm] = useState({
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -27,29 +29,30 @@ export default function LoginPage() {
     setError("");
 
     if (!form.email || !form.password) {
-      setError("Enter email and password");
+      setError(t.enterEmailPassword);
       return;
     }
 
     try {
       const result = await login(form);
+      console.log(result);
       localStorage.setItem("user", JSON.stringify(result.user));
-      window.dispatchEvent(new Event("storage")); 
-      navigate("/student");
+      localStorage.setItem("token", result.access_token);
+      navigate("/dashboard");
     } catch {
-      setError("Login failed");
+      setError(t.loginFailed);
     }
   }
 
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1>Hi!</h1>
-        <h2>Login</h2>
+        <h1>{t.hi}</h1>
+        <h2>{t.login}</h2>
 
         <form onSubmit={handleSubmit} className="login-form">
           <label>
-            Email:
+            {t.email}:
             <input
               name="email"
               type="email"
@@ -59,7 +62,7 @@ export default function LoginPage() {
           </label>
 
           <label>
-            Password:
+           {t.password}:
             <input
               name="password"
               type="password"
@@ -70,11 +73,11 @@ export default function LoginPage() {
 
           {error && <p className="login-error">{error}</p>}
 
-          <button type="submit">Login</button>
+          <button type="submit">{t.login}</button>
         </form>
 
         <p className="auth-link">
-          Don’t have an account? <Link to="/register">Register</Link>
+           {t.dontHaveAccount}<Link to="/register">{t.register}</Link>
         </p>
       </div>
     </div>

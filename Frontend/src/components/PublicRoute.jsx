@@ -5,7 +5,7 @@ const PublicRoute = ({ children }) => {
 
   // logged in → dashboard
   if (user) {
-    return <Navigate to="/student" />;
+    return <Navigate to="/dashboard" />;
   }
 
   // not logged in → access

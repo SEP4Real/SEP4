@@ -78,3 +78,68 @@
 .auth-link a:hover {
   text-decoration: underline;
 }
+
+/* DARK THEME*/
+
+body.dark-theme .login-page {
+  background: transparent;
+  color: #ffffff;
+}
+
+body.dark-theme .login-card h1,
+body.dark-theme .login-card h2 {
+  color: #ffffff;
+}
+
+body.dark-theme .login-form label {
+  color: #ffffff;
+}
+
+body.dark-theme .login-form input {
+  background: #0a0404;
+  color: #ffffff;
+  border: 1px solid #555;
+}
+
+body.dark-theme .login-form button {
+  background: #2d6a4f;
+  color: #ffffff;
+}
+
+body.dark-theme .auth-link,
+body.dark-theme .auth-link a {
+  color: rgb(188, 255, 226);
+}
+
+/*1024px și 480px) */
+
+@media (max-width: 1024px) {
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 110px 20px 20px 20px;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card h1 {
+    font-size: 26px;
+  }
+  .login-card h2 {
+    font-size: 20px;
+    margin-bottom: 45px;
+  }
+  .login-form {
+    gap: 22px;
+  }
+  .login-form input {
+    width: 220px;
+    height: 30px;
+    font-size: 16px;
+  }
+  .login-form button {
+    width: 130px;
+    height: 42px;
+  }
+}

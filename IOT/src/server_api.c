@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <avr/wdt.h>
 #include <util/delay.h>
+#include "buzzer.h"
 
 #define SESSION_START_RETRIES 5
 #define SESSION_RETRY_DELAY_MS 2000
@@ -26,7 +27,7 @@ void server_register_device(void)
     printf("[DEVICE] Registering device id: %s\n", DEVICE_ID);
     char body[64];
     snprintf(body, sizeof(body), "{\"id\":\"%s\"}", DEVICE_ID);
-    http_post("/Device", body, tcp_rx_buf, sizeof(tcp_rx_buf));
+    http_post("/device", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 }
 
 void server_start_session(void)
@@ -38,7 +39,7 @@ void server_start_session(void)
     {
         printf("[SESSION] Starting (attempt %d/%d)...\n", attempt, SESSION_START_RETRIES);
 
-        http_post("/Session", body, tcp_rx_buf, sizeof(tcp_rx_buf));
+        http_post("/session", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 
         char *p = strstr(tcp_rx_buf, "\"id\":");
         if (p)
@@ -71,7 +72,7 @@ void server_send_pulse(void)
         return;
 
     char endpoint[32];
-    snprintf(endpoint, sizeof(endpoint), "/Session/%ld/pulse", session_id);
+    snprintf(endpoint, sizeof(endpoint), "/session/%ld/pulse", session_id);
     printf("[PULSE] Sending keepalive\n");
 
     http_patch(endpoint, "{}", tcp_rx_buf, sizeof(tcp_rx_buf));
@@ -84,16 +85,39 @@ void server_send_pulse(void)
     }
 }
 
-void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec, uint16_t light_raw)
+void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec, uint16_t light_raw, uint16_t co2_ppm)
 {
     if (session_id < 0)
     {
         return;
     }
-    char body[128];
-    snprintf(body, sizeof(body), "{\"sessionId\":%ld,\"temperature\":%d.%d,\"humidity\":%d.%d,\"lightLevel\":%u}", session_id, temp_int, temp_dec, hum_int, hum_dec, light_raw);
-    printf("[DATA] Sending temp=%d.%d, hum=%d.%d, light=%u\n", temp_int, temp_dec, hum_int, hum_dec, light_raw);
-    http_post("/Data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
+    char body[160];
+    snprintf(body, sizeof(body), "{\"sessionId\":%ld,\"temperature\":%d.%d,\"humidity\":%d.%d,\"lightLevel\":%u,\"co2Level\":%u}", session_id, temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
+    printf("[DATA] Sending temp=%d.%d, hum=%d.%d, light=%u, co2=%u\n", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
+    http_post("/data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
+
+    char *quality_ptr = strstr(tcp_rx_buf, "\"study_quality\"");
+    if (quality_ptr != NULL){
+
+        char *colon_ptr = strchr(quality_ptr, ':');
+        if (colon_ptr != NULL)
+        {
+            int quality_val = atoi(colon_ptr + 1);
+            printf("[DATA] Server returned study quality: %d\n", quality_val);
+            if (quality_val == 1)
+            {
+                printf("[ALERT] Quality is 1 - sounding buzzer...\n");
+                for (int i = 0; i < 120; i++)
+                {
+                    wdt_reset();
+                    buzzer_beep(); 
+                }
+            }
+            
+        }
+        
+    }
+    
 }
 
 void server_reset(void)
