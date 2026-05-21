@@ -226,12 +226,17 @@
 }
 
 .chart-card {
+  min-height: 650px;
   margin-top: 10px;
-  padding: 22px;
-  border: 1px solid rgba(45, 106, 79, 0.1);
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgba(27, 67, 50, 0.08);
+  padding: 28px;
+  border: 1px solid rgba(45, 106, 79, 0.08);
+  border-radius: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.95) 0%,
+    rgba(232,245,233,0.9) 100%
+  );
+  box-shadow: 0 12px 32px rgba(27, 67, 50, 0.12);
 }
 
 .chart-card-header {
@@ -239,12 +244,19 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+
+  margin-bottom: 24px;
+}
+
+.chart-wrapper {
+  margin-top: 20px;
 }
 
 .chart-card-header h2 {
   margin: 0;
+
   color: #1b4332;
+  font-size: 2rem;
 }
 
 .chart-card-header span {

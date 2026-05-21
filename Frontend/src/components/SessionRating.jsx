@@ -61,12 +61,11 @@ export default function SessionRating({ onSuccess }) {
       });
 
       setMessage(t.ratingSaved);
-      onSuccess();
     } catch (e) {
 
       console.error(e);
-      setMessage("Failed to save rating");
     }
+     onSuccess();
   }
 
   return (
@@ -120,13 +119,6 @@ export default function SessionRating({ onSuccess }) {
           {message}
         </p>
       )}
-      <button
-  type="button"
-  className="rating-submit-btn"
-  onClick={handleSubmit}
->
-  {t.submitRating}
-</button>
 
       <button
         className="rating-submit"

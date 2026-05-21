@@ -93,7 +93,7 @@ export default function SensorChart({ data }) {
     </button>
 
     </div>
-      <ResponsiveContainer>
+      <ResponsiveContainer width="100%" height={500}>
 
         <LineChart data={data}>
 
