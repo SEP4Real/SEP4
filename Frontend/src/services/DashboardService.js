@@ -1,12 +1,8 @@
-const API_URL = "http://localhost:8080";
+import { API_URL } from "./apiConfig";
 
 export async function getDashboardData() {
-  const token = localStorage.getItem("token");
-
   const response = await fetch(`${API_URL}/dashboard`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
   });
 
   if (!response.ok) {

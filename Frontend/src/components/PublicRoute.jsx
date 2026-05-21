@@ -2,9 +2,8 @@ import { Navigate } from "react-router-dom";
 
 const PublicRoute = ({ children }) => {
   const user = localStorage.getItem("user");
-  const token = localStorage.getItem("token");
 
-  if (user && token) {
+  if (user) {
     return <Navigate to="/dashboard" />;
   }
 

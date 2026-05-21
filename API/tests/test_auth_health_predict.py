@@ -70,7 +70,8 @@ def test_login_success(client, app):
     assert r.status_code == 200
     body = r.json()
     assert body["message"] == "Login successful"
-    assert "access_token" in body
+    assert "access_token" not in body
+    assert "access_token" in r.cookies
     assert body["user"]["email"] == "ada@example.com"
 
 
@@ -97,6 +98,28 @@ def test_login_wrong_password(client, app):
     r = client.post("/login", json={"email": "ada@example.com", "password": "wrongpassword"})
     assert r.status_code == 200
     assert r.json()["error"] == "Invalid credentials"
+
+
+def test_login_rate_limit_after_failed_attempts(client, app):
+    from app.routers.auth import LOGIN_RATE_LIMIT_ATTEMPTS, login_attempts
+
+    login_attempts.clear()
+    db = AsyncMock()
+    result = AsyncMock()
+    result.fetchone = AsyncMock(return_value=None)
+    db.execute = AsyncMock(return_value=result)
+    _override(app, db)
+
+    payload = {"email": "limited@example.com", "password": "wrongpassword"}
+
+    for _ in range(LOGIN_RATE_LIMIT_ATTEMPTS):
+        r = client.post("/login", json=payload)
+        assert r.status_code == 200
+        assert r.json()["error"] == "Invalid credentials"
+
+    r = client.post("/login", json=payload)
+    assert r.status_code == 429
+    assert "Too many login attempts" in r.json()["detail"]
 
 
 # HEALTH

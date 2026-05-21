@@ -1,12 +1,8 @@
-const API_URL = "http://localhost:8080";
+import { API_URL } from "./apiConfig";
 
 export async function getProfile() {
-  const token = localStorage.getItem("token");
-
   const response = await fetch(`${API_URL}/profile`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -17,13 +13,11 @@ export async function getProfile() {
 }
 
 export async function updateProfile(profileData) {
-  const token = localStorage.getItem("token");
-
   const response = await fetch(`${API_URL}/profile`, {
     method: "PUT",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
 
     body: JSON.stringify(profileData),

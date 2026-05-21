@@ -115,7 +115,7 @@ Were these considerations built into the project from the start, or addressed re
 
 # 4. Project Execution
 
-<<<<<<< Updated upstream
+
 MAL notes (maybe project report relevant too):
 When looking for mock data in the early phase, we initially focused on datasets about how environmental noise might influence focus during different activities. We found one dataset describing focus-related effects of background noise and tried to combine it with another dataset containing labelled sound categories from WAV files. The idea was to extract frequencies and loudness from the sound files and connect them to the focus-related dataset. During the project, however, we narrowed the ML goal from predicting focus directly to predicting a user-provided study suitability rating, because focus cannot be measured directly by our system. This still helped us make the target variable less random, since the rating could be based on environmental conditions and user feedback rather than arbitrary labels.
 
@@ -124,10 +124,16 @@ When looking for mock data in the early phase, we initially focused on datasets 
      what surprised you, what would you change?
      Technical details belong in the Project Report — your reflections on
      using those techniques belong here. -->
-=======
+
 This section describes the development process, divided into our collective efforts and team-specific contributions.
 
 ## 4.1 Together Process
+
+
+This section describes the development process, divided into our collective efforts and team-specific contributions.
+
+## 4.1 Together Process
+
 
 [Describe how the whole group worked together during the execution phase.
 How were the components (IoT, ML, Frontend) integrated?
@@ -149,7 +155,7 @@ Initially, the focus was on how environmental noise influences focus. We attempt
 ### 4.3.2 Data Quality and Correlation Analysis
 
 Further investigation led to the elimination of several datasets that appeared synthetic. We observed that in some candidate datasets, the distributions of features like humidity, noise, and light were suspiciously uniform, suggesting algorithmic generation rather than real sensor collection.
->>>>>>> Stashed changes
+
 
 We also analyzed feature correlations as part of our validation process. Healthy datasets showed natural physical correlations (e.g., CO2, temperature, and humidity), while suspicious datasets exhibited either zero correlation or extreme overfitting potential. We decided to merge diverse datasets to create a more robust mock dataset.
 

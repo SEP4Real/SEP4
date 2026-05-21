@@ -1,0 +1,48 @@
+@startuml
+title MAL data pipeline
+
+skinparam componentStyle rectangle
+
+folder "data/raw" {
+  file "HomeCoach_5min_2023..2026.csv" as homecoach
+  file "room_conditions.csv" as room_conditions
+}
+
+folder "data/interim" {
+  file "keti_1min_resampled.csv" as keti
+}
+
+folder "data/processed" {
+  file "1_room_measurements_with_comfort.csv" as room_comfort
+  file "unified_environment_focus_dataset.csv" as unified
+  file "unified_environment_focus_dataset_report.csv" as report
+  file "final_mock_dataset.csv" as final_mock
+}
+
+component "scripts/build_unified_environment_dataset.py" as builder
+component "notebooks/data_related/5_unified_environment_dataset.ipynb" as unified_nb
+component "notebooks/data_related/full_mock_data_analysis.ipynb" as mock_nb
+component "notebooks/data_related/sessions.ipynb" as sessions_nb
+
+keti --> builder
+room_conditions --> builder
+room_comfort --> builder
+homecoach --> builder
+
+builder --> unified
+builder --> report
+
+unified_nb --> builder : rebuilds or loads
+unified_nb --> unified : inspects
+unified_nb --> report : inspects
+
+unified --> mock_nb
+mock_nb --> final_mock
+unified --> sessions_nb
+
+note right of sessions_nb
+  Analysis only.
+  Does not generate session IDs.
+end note
+
+@enduml
