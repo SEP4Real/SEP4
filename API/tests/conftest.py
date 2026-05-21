@@ -6,6 +6,7 @@ os.environ.setdefault("DB_NAME", "test")
 os.environ.setdefault("DB_USER", "test")
 os.environ.setdefault("DB_PASSWORD", "test")
 os.environ.setdefault("MAL_API_HOST_PORT", "http://ml:8000")
+os.environ.setdefault("SECRET_KEY", "test_secret_key")
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch

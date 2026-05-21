@@ -1,14 +1,16 @@
+import os
 from jose import jwt
 from datetime import datetime, timedelta
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
-from fastapi import Depends, HTTPException
+from fastapi import Cookie, Depends, HTTPException
 from app.database import get_db
 
-SECRET_KEY = "your_secret_key_here"
+SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-security = HTTPBearer()
+AUTH_COOKIE_NAME = "access_token"
+security = HTTPBearer(auto_error=False)
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -23,9 +25,15 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    cookie_token: str | None = Cookie(default=None, alias=AUTH_COOKIE_NAME),
     db=Depends(get_db)):
-    token = credentials.credentials
+    token = cookie_token or (credentials.credentials if credentials else None)
+
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated")
 
     try:
         payload = jwt.decode(

@@ -1,17 +1,12 @@
-const API_URL = "http://localhost:8080";
+import { API_URL } from "./apiConfig";
 
 export async function submitRating(ratingData) {
-
-  const token = localStorage.getItem("token");
-
   const response = await fetch(`${API_URL}/ratings`, {
     method: "POST",
-
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
-
     body: JSON.stringify(ratingData),
   });
 
