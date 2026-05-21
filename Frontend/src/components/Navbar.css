@@ -174,7 +174,7 @@ body.dark-theme .theme-icon-button {
 }
 
 body.dark-theme .language-toggle {
-  color: rgb(188, 255, 226);
+  color: rgb(188, 255, 226) !important;
 }
 
 /* Light theme navbar */
