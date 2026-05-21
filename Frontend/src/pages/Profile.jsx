@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { getDashboardData } from "../services/DashboardService";
 import { getDeviceById } from "../services/DeviceService";
 import { getProfile, updateProfile } from "../services/ProfileService";
 import { logout } from "../services/AuthService";
@@ -9,7 +8,6 @@ import SessionRating from "../components/SessionRating";
 import {
   Eye,
   EyeOff,
-  History,
   ImageUp,
   LogOut,
   Unplug,
@@ -39,7 +37,6 @@ const Profile = () => {
   const userData = localStorage.getItem("user");
   const user = readUser();
 
-  const [recentHistory, setRecentHistory] = useState([]);
   const [passwordForm, setPasswordForm] = useState({ current: "", next: "" });
   const [forgotPasswordForm, setForgotPasswordForm] = useState({
     email: user?.email || "",
@@ -95,17 +92,6 @@ const Profile = () => {
       }
     };
 
-    const loadData = async () => {
-      try {
-        const data = await getDashboardData();
-        if (Array.isArray(data) && data.length > 0) {
-          setRecentHistory([...data].reverse().slice(0, 3));
-        }
-      } catch (e) {
-        console.error("Error loading history:", e);
-      }
-    };
-
     const loadConnectedDevice = () => {
       const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
       const connectedDevice = userDevices.find(
@@ -131,7 +117,6 @@ const Profile = () => {
       setDeviceId(DEFAULT_DEVICE_ID);
     };
 
-    loadData();
     loadProfile();
     loadConnectedDevice();
   }, [userData, user?.email]);
@@ -173,7 +158,7 @@ const Profile = () => {
       alert("Information has been saved!");
     } catch (e) {
       console.error(e);
-      alert("Failed to save profile");
+      alert(e.message || "Failed to save profile");
     }
   };
 
@@ -463,7 +448,7 @@ const Profile = () => {
                   className="password-toggle-btn"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 >
-                  {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showCurrentPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                 </button>
               </div>
             </div>
@@ -483,7 +468,7 @@ const Profile = () => {
                   className="password-toggle-btn"
                   onClick={() => setShowNextPassword(!showNextPassword)}
                 >
-                  {showNextPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showNextPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                 </button>
               </div>
             </div>
@@ -541,9 +526,9 @@ const Profile = () => {
                       }
                     >
                       {showForgotNextPassword ? (
-                        <EyeOff size={18} />
-                      ) : (
                         <Eye size={18} />
+                      ) : (
+                        <EyeOff size={18} />
                       )}
                     </button>
                   </div>
@@ -584,31 +569,7 @@ const Profile = () => {
           </div>
         </div>
 
-          <div className="profile-section">
-            <h3>
-              <History size={18} /> History (Last 3)
-            </h3>
-            <table className="history-table-compact">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Temp</th>
-                  <th>CO2</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentHistory.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{new Date(item.sent_at).toLocaleDateString()}</td>
-                    <td>{item.temperature}C</td>
-                    <td>{item.co2_level}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
-       
 
       {showRatingModal && (
         <div className="rating-modal">
@@ -620,7 +581,11 @@ const Profile = () => {
               ×
             </button>
 
-            <SessionRating onSuccess={completeLogout} />
+            <SessionRating
+              submitLabel="Submit & Logout"
+              allowSuccessOnError
+              onSuccess={completeLogout}
+            />
           </div>
         </div>
       )}

@@ -24,7 +24,17 @@ export async function updateProfile(profileData) {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to update profile");
+    const errorText = await response.text();
+    let message = errorText;
+
+    try {
+      const error = JSON.parse(errorText);
+      message = error?.detail || message;
+    } catch {
+      message = errorText;
+    }
+
+    throw new Error(message || "Failed to update profile");
   }
 
   return response.json();

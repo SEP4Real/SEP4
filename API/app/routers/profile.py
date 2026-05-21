@@ -21,16 +21,16 @@ async def get_profile(
     current_user=Depends(get_current_user),
     db=Depends(get_db)):
 
-    result = await db.execute(
-        """
-        SELECT *
-        FROM user_profiles
-        WHERE user_id = %s
-        """,
-        (current_user["id"],)
-    )
-
-    profile = await result.fetchone()
+    async with db.cursor() as cur:
+        await cur.execute(
+            """
+            SELECT *
+            FROM user_profiles
+            WHERE user_id = %s
+            """,
+            (current_user["id"],)
+        )
+        profile = await cur.fetchone()
 
     return {
         "user": {
@@ -48,41 +48,42 @@ async def update_profile(
     current_user=Depends(get_current_user),
     db=Depends(get_db)
 ):
-    await db.execute(
-        """
-        INSERT INTO user_profiles (
-            user_id,
-            university,
-            study_program,
-            study_year,
-            study_goal,
-            preferred_temp,
-            preferred_co2,
-            profile_picture
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    async with db.cursor() as cur:
+        await cur.execute(
+            """
+            INSERT INTO user_profiles (
+                user_id,
+                university,
+                study_program,
+                study_year,
+                study_goal,
+                preferred_temp,
+                preferred_co2,
+                profile_picture
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
 
-        ON CONFLICT (user_id)
-        DO UPDATE SET
-            university = EXCLUDED.university,
-            study_program = EXCLUDED.study_program,
-            study_year = EXCLUDED.study_year,
-            study_goal = EXCLUDED.study_goal,
-            preferred_temp = EXCLUDED.preferred_temp,
-            preferred_co2 = EXCLUDED.preferred_co2,
-            profile_picture = EXCLUDED.profile_picture
-        """,
-        (
-            current_user["id"],
-            data.university,
-            data.study_program,
-            data.study_year,
-            data.study_goal,
-            data.preferred_temp,
-            data.preferred_co2,
-            data.profile_picture
+            ON CONFLICT (user_id)
+            DO UPDATE SET
+                university = EXCLUDED.university,
+                study_program = EXCLUDED.study_program,
+                study_year = EXCLUDED.study_year,
+                study_goal = EXCLUDED.study_goal,
+                preferred_temp = EXCLUDED.preferred_temp,
+                preferred_co2 = EXCLUDED.preferred_co2,
+                profile_picture = EXCLUDED.profile_picture
+            """,
+            (
+                current_user["id"],
+                data.university,
+                data.study_program,
+                data.study_year,
+                data.study_goal,
+                data.preferred_temp,
+                data.preferred_co2,
+                data.profile_picture
+            )
         )
-    )
 
     await db.commit()
 

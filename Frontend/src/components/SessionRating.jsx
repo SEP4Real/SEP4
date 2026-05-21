@@ -9,7 +9,13 @@ import {
   FaRegSmile
 } from "react-icons/fa";
 
-export default function SessionRating({ onSuccess }) {
+export default function SessionRating({
+  onSuccess,
+  submitLabel,
+  allowSuccessOnError = false,
+  deviceId = "arduino-device-01",
+  sessionId,
+}) {
 
   const [rating, setRating] = useState(null);
   const [message, setMessage] = useState("");
@@ -52,20 +58,37 @@ export default function SessionRating({ onSuccess }) {
     }
 
     try {
+      if (!sessionId) {
+        if (allowSuccessOnError && onSuccess) {
+          onSuccess();
+          return;
+        }
+
+        setMessage("No session found for rating");
+        return;
+      }
 
       await submitRating({
-        device_id: "device_1",
-        session_id: 1,
+        device_id: deviceId,
+        session_id: sessionId,
         rating: rating,
         comment: ""
       });
 
       setMessage(t.ratingSaved);
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (e) {
 
       console.error(e);
+      if (allowSuccessOnError && onSuccess) {
+        onSuccess();
+        return;
+      }
+
+      setMessage("Failed to save rating");
     }
-     onSuccess();
   }
 
   return (
@@ -124,7 +147,7 @@ export default function SessionRating({ onSuccess }) {
         className="rating-submit"
         onClick={handleSubmit}
       >
-        Submit & Logout
+        {submitLabel || t.submitRating || "Submit rating"}
       </button>
 
       
