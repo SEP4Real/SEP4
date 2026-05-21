@@ -1,5 +1,23 @@
 .calendar-container {
-  padding: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 90px 20px 30px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.calendar-container .fc {
+  max-width: 100%;
+}
+
+.calendar-container .fc-toolbar {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.calendar-container .fc-toolbar-title {
+  font-size: clamp(1.2rem, 3vw, 1.75rem);
 }
 
 .popup {
@@ -55,7 +73,22 @@
 
 @media (max-width: 768px) {
   .calendar-container {
-    padding: 10px;
+    padding: 90px 10px 20px;
+  }
+
+  .calendar-container .fc-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calendar-container .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
+  }
+
+  .calendar-container .fc-button {
+    padding: 0.35em 0.5em;
+    font-size: 0.85rem;
   }
 
   /* (ex: 320px) */

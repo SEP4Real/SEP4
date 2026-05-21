@@ -115,49 +115,77 @@ Were these considerations built into the project from the start, or addressed re
 
 # 4. Project Execution
 
-**MAL notes (maybe project report relevant too):**
+<!-- Reflect on the MIDDLE of the project — how you actually worked through it.
+     Focus on the process: what methods did you use and why, did they work,
+     what surprised you, what would you change?
+     Technical details belong in the Project Report — your reflections on
+     using those techniques belong here. -->
 
-**Mock data search activities:**
-When looking for mock data in the early phase, we initially focused on datasets about how environmental noise might influence focus during different activities. We found one dataset describing focus-related effects of background noise and tried to combine it with another dataset containing labelled sound categories from WAV files. The idea was to extract frequencies and loudness from the sound files and connect them to the focus-related dataset. During the project, however, we narrowed the ML goal from predicting focus directly to predicting a user-provided study suitability rating, because focus cannot be measured directly by our system. This still helped us make the target variable less random, since the rating could be based on environmental conditions and user feedback rather than arbitrary labels.
+This section describes the development process, divided into our collective efforts and team-specific contributions.
 
-Further investigation and search for more relialable datasets continued and brought us to many conclusions about where are we heading from there. Firstly, we eliminated few datasets containing data which seemed very suspicious, like produced by an algorithm rather than collected by real sensors. This can be seen on the distribution of features like humidity, noise and light of data 2 and 4 on the figures below. It looked to perfectly distributed.![1778581492077](image/process-report/1778581492077.png)
+## 4.1 Together Process
 
-![1778581584716](image/process-report/1778581584716.png)
+This section describes the development process, divided into our collective efforts and team-specific contributions.
 
-![1778581593641](image/process-report/1778581593641.png)
+## 4.1 Together Process
 
-Another interesting analysis was about coleration where we found out that features like co2, temperature and humidity are naturally correlated often and some datasets correlations showed that nothing is correlated which seems that the data is very random. Two figures below are showing healthy and supsicious correlation. [todo: remove id from matrix]![1778581896856](image/process-report/1778581896856.png)
+[Describe how the whole group worked together during the execution phase.
+How were the components (IoT, ML, Frontend) integrated?
+How did we handle cross-team dependencies and API contracts?
+Reflect on the effectiveness of our shared git workflow and communication.]
 
-![1778581949534](image/process-report/1778581949534.png)
+## 4.2 IOT Team Process
 
-One of the datasets (correlation on the figure below) if used alone would make our models super overfitting but we decided to keep it and merge with other datasets which can create interesting diversity.![1778582109105](image/process-report/1778582109105.png)
+[... Describe the development of the embedded C code, hardware assembly, and testing. ...]
 
-Another issue was that most datasets were missing 1 to 2 sensor data, so after mergin them into final mock dataset, several options for handling missing values (columns) were investigated. In order to keep the variance and avoid the "perfect average" look often seen in basic imputation, we implemented a more sophisticated approach using MICE framework.
+## 4.3 MAL Team Process
 
-In order to make it as realistic as possible we wanted something else than simple means or standard linear MICE. Our process started by finding room type groups by using k-means clustering model based on features (temperature, co2, humidity) that were in full dataset. This was done because we though that there might be rooms where those features are more correlated (because of e.g. sun exposion), or less correlated (e.g. laboratories). ExtraTress model were chosen as an estimator to model more complex relationships than linear. We also modified the imputation so that the averagae standard deviation from Trees used to include a natural distirbution and variance rather than a flat average line.
+The Machine Learning and API (MAL) development followed an iterative path from data exploration to pipeline implementation. The following notes capture the key decisions and observations made during this process.
 
-If a cluster was missing full column of either noise or light, global median was used to handle extreme data sparsity and prevent model bias. This allowed us to achieve 100% missing columns coverage in a lot better way than just randomizing or generating them. Because without at least some local ground truth, a model cannot statistically converge on a meaningful correlation.
+### 4.3.1 Mock Data Search and Goal Refinement
 
-## 4.1 Application of Methods and Theories
+Initially, the focus was on how environmental noise influences focus. We attempted to combine datasets of focus-related noise effects with labeled sound categories from WAV files, extracting frequencies and loudness. However, we realized that "focus" cannot be measured directly. Consequently, we narrowed the goal to predicting a user-provided **Study Suitability Rating**, which made the target variable more grounded in user feedback.
+
+### 4.3.2 Data Quality and Correlation Analysis
+
+Further investigation led to the elimination of several datasets that appeared synthetic. We observed that in some candidate datasets, the distributions of features like humidity, noise, and light were suspiciously uniform, suggesting algorithmic generation rather than real sensor collection.
+
+We also analyzed feature correlations as part of our validation process. Healthy datasets showed natural physical correlations (e.g., CO2, temperature, and humidity), while suspicious datasets exhibited either zero correlation or extreme overfitting potential. We decided to merge diverse datasets to create a more robust mock dataset.
+
+### 4.3.3 Advanced Imputation Strategy
+
+To handle missing values after merging, we implemented a sophisticated approach using the **MICE (Multivariate Imputation by Chained Equations)** framework. We enhanced this by:
+
+- **Clustering**: Using k-means to find environment types (e.g., sessions made with high sun exposure vs. sessions made in labs).
+- **ExtraTrees Estimator**: Modeling complex non-linear relationships.
+- **Variance Modification**: Including natural distribution variance to avoid "flat average" imputation.
+- **Global Median Fallback**: Used for extreme sparsity to prevent bias.
+
+## 4.4 Frontend Team Process
+
+[... Describe the development of the React application, UI/UX iterations, and integration with the backend API. ...]
+
+## 4.5 Application of Methods and Theories
 
 [Reflect on the engineering and analytical methods you applied (requirements analysis,
 architecture design, testing frameworks, etc.). Were the methods well-suited to the
 problem? Did you feel confident using them, or were there learning curves?
 What worked well and what fell short?]
 
-## 4.2 Challenges During Execution
+## 4.6 Challenges During Execution
 
 [Describe the most significant technical or organisational challenges encountered.
-How did you diagnose and address them? What did you learn?
-Were there decisions that seemed right at the time but turned out to be problematic?]
+How did the team respond? What was the outcome?
+Examples: "The I2C sensor driver took much longer than expected," or
+"The API contract changes caused significant rework in the frontend."]
 
-## 4.3 Deviations from the Plan
+## 4.7 Deviations from the Plan
 
 [Compare what was planned versus what was actually executed.
 What changed and why? Were changes proactive (intentional pivots) or reactive
 (forced by circumstances)? How did the team adapt?]
 
-## 4.4 Use of Tools and Technologies
+## 4.8 Use of Tools and Technologies
 
 [Reflect on the tools and technologies used throughout the project (IDEs, version
 control, project management, testing frameworks, etc.). Were they effective?

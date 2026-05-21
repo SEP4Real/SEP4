@@ -63,6 +63,11 @@ CREATE TABLE IF NOT EXISTS data (
     CONSTRAINT fk_data_session FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE RESTRICT
 );
 
+-- MIGRATION PATCH: Safely add missing columns to existing tables
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS is_ended BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS last_pulse_at TIMESTAMPTZ;
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS study_quality INT CHECK (study_quality BETWEEN 1 AND 5);
+
 ALTER TABLE sessions DROP CONSTRAINT IF EXISTS sessions_device_id_fkey;
 ALTER TABLE data DROP CONSTRAINT IF EXISTS data_session_id_fkey;
 
@@ -114,6 +119,34 @@ CREATE TABLE IF NOT EXISTS calendar_events (
     all_day BOOLEAN DEFAULT FALSE,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+
+    university VARCHAR(255),
+    study_program VARCHAR(255),
+    study_year VARCHAR(50),
+    study_goal TEXT,
+
+    preferred_temp INT DEFAULT 22,
+    preferred_co2 INT DEFAULT 800,
+
+    profile_picture TEXT
+);
+
+CREATE TABLE IF NOT EXISTS ratings (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    device_id VARCHAR(255) NOT NULL,
+    session_id BIGINT NOT NULL,
+    rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    
+    CONSTRAINT fk_ratings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ratings_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ratings_session FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 """
 

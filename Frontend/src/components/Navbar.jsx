@@ -11,7 +11,7 @@ const Navbar = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { language, toggleLanguage, t } = useLanguage();
- 
+
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -80,18 +80,16 @@ const Navbar = () => {
 
         {!user && (
           <>
-            {location.pathname !== "/register" && (
-              <li>
-                <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                  Register
-                </Link>
-              </li>
-            )}
-
-            {location.pathname !== "/login" && (
+            {location.pathname === "/register" ? (
               <li>
                 <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                   Login
+                </Link>
+              </li>
+            ) : (
+              <li>
+                <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                  Register
                 </Link>
               </li>
             )}
@@ -103,12 +101,6 @@ const Navbar = () => {
             <li>
               <Link to="/calendar" onClick={() => setIsMenuOpen(false)}>
                 Calendar
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/history" onClick={() => setIsMenuOpen(false)}>
-                History
               </Link>
             </li>
 
