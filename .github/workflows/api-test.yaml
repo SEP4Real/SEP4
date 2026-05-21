@@ -20,14 +20,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check for API changes
         uses: dorny/paths-filter@v3
         id: changes
         with:
+          base: ${{ github.base_ref }}
           filters: |
-            api:
-              - 'API/**'
+            iot:
+              - 'IOT/**'
 
       - name: Set up Python
         if: steps.changes.outputs.api == 'true'
