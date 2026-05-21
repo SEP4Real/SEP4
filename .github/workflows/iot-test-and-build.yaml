@@ -20,6 +20,7 @@ jobs:
         uses: dorny/paths-filter@v3
         id: filter
         with:
+          token: ''
           base: ${{ github.base_ref }}
           filters: |
             iot:
