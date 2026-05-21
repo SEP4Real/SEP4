@@ -39,4 +39,4 @@ build/
 !/MAL/models/rf_model.pkl
 
 # gitignore processed data
-/MAL/data/processed/*.
+/MAL/data/processed/*.csv
