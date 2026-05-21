@@ -7,11 +7,10 @@ on:
       - dev
 
 jobs:
-  iot-test:
+  detect-changes:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: IOT
+    outputs:
+      iot: ${{ steps.filter.outputs.iot }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,19 +18,27 @@ jobs:
 
       - name: Check for IoT changes
         uses: dorny/paths-filter@v3
-        id: changes
+        id: filter
         with:
           base: ${{ github.base_ref }}
           filters: |
             iot:
               - 'IOT/**'
 
+  iot-test:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.iot == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: IOT
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Install lcov
-        if: steps.changes.outputs.iot == 'true'
         run: sudo apt-get install -y lcov
 
       - name: Create secrets.ini
-        if: steps.changes.outputs.iot == 'true'
         run: |
           cat > secrets.ini << EOF
           [secrets]
@@ -43,46 +50,34 @@ jobs:
           EOF
 
       - name: Run tests with coverage
-        if: steps.changes.outputs.iot == 'true'
         run: make coverage
 
       - name: Upload HTML report as artifact
-        if: steps.changes.outputs.iot == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: IOT/coverage-html
 
   iot-build:
+    needs: [detect-changes, iot-test]
+    if: needs.detect-changes.outputs.iot == 'true'
     runs-on: ubuntu-latest
-    needs: iot-test
     defaults:
       run:
         working-directory: IOT
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check for IoT changes
-        uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          filters: |
-            iot:
-              - 'IOT/**'
-
       - name: Cache PlatformIO
-        if: steps.changes.outputs.iot == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-pio-${{ hashFiles('IOT/platformio.ini') }}
 
       - name: Install PlatformIO
-        if: steps.changes.outputs.iot == 'true'
         run: pip install platformio
 
       - name: Create secrets.ini
-        if: steps.changes.outputs.iot == 'true'
         run: |
           cat > secrets.ini << EOF
           [secrets]
@@ -94,11 +89,9 @@ jobs:
           EOF
 
       - name: Build
-        if: steps.changes.outputs.iot == 'true'
         run: pio run -e megaatmega2560
 
       - name: Upload .hex artifact
-        if: steps.changes.outputs.iot == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: firmware
