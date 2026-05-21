@@ -1,7 +1,9 @@
-const API_URL = "http://localhost:8080";
+import { API_URL } from "./apiConfig";
 
 export async function getDeviceById(deviceId) {
-  const response = await fetch(`${API_URL}/device/${encodeURIComponent(deviceId)}`);
+  const response = await fetch(`${API_URL}/device/${encodeURIComponent(deviceId)}`, {
+    credentials: "include",
+  });
 
   if (response.status === 404) {
     throw new Error("Device not found in the database.");

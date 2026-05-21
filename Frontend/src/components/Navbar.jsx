@@ -80,18 +80,16 @@ const Navbar = () => {
 
         {!user && (
           <>
-            {location.pathname !== "/register" && (
-              <li>
-                <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                  Register
-                </Link>
-              </li>
-            )}
-
-            {location.pathname !== "/login" && (
+            {location.pathname === "/register" ? (
               <li>
                 <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                   Login
+                </Link>
+              </li>
+            ) : (
+              <li>
+                <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                  Register
                 </Link>
               </li>
             )}
