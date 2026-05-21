@@ -132,12 +132,13 @@
 
 .recommendation-card p {
   margin: 0;
-  padding: 26px;
-  border-radius: 8px;
-  background: #bce9c9;
-  box-shadow: 0 8px 16px rgba(27, 67, 50, 0.12);
+  padding: 18px;
+  border-radius: 10px;
+  background: rgba(120, 20, 20, 0.12);
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
 }
-
 .overview-recommendation {
   display: flex;
   gap: 14px;
@@ -163,13 +164,7 @@
   color: #1b4332;
 }
 
-.recommendation-card p {
-  margin: 0 0 12px 0;
-  font-size: 1.1rem;
-  color: #2d6a4f;
-  line-height: 1.5;
-  font-size: 1rem;
-}
+
 
 /* STATUS COLORS */
 
@@ -253,11 +248,14 @@
 }
 
 .session-control-card {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
   gap: 15px;
   margin-bottom: 20px;
   align-items: center;
+  width: fit-content;
+  background: transparent;
+  box-shadow: none;
 }
 
 .session-btn {
@@ -462,11 +460,13 @@
   }
 
   .session-control-card,
-  .details-card-header,
-  .row-main {
-    align-items: stretch;
-    flex-direction: column;
-  }
+.details-card-header,
+.row-main {
+  flex-direction: column;
+}
+.session-control-card {
+  align-items: flex-start;
+}
 
   .session-btn,
   .calendar-input {

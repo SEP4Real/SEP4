@@ -7,29 +7,116 @@
   overflow-x: hidden;
 }
 
+.calendar-container h2 {
+  margin-bottom: 20px;
+  color: #1b4332;
+}
+
 .calendar-container .fc {
   max-width: 100%;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 18px;
+  border-radius: 18px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
 }
 
 .calendar-container .fc-toolbar {
   gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 18px;
 }
 
 .calendar-container .fc-toolbar-title {
   font-size: clamp(1.2rem, 3vw, 1.75rem);
+  color: #1b4332;
+  font-weight: 800;
 }
+
+.calendar-container .fc-button {
+  background: #baffdf !important;
+  border: none !important;
+  color: #123827 !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  transition: 0.2s ease;
+}
+
+.calendar-container .fc-button:hover {
+  background: #8dd9bd !important;
+  transform: translateY(-1px);
+}
+
+.calendar-container .fc-button-active {
+  background: #2d6a4f !important;
+  color: white !important;
+}
+
+.calendar-container .fc-scrollgrid,
+.calendar-container .fc-theme-standard td,
+.calendar-container .fc-theme-standard th {
+  border-color: rgba(27, 67, 50, 0.22);
+}
+
+.calendar-container .fc-col-header-cell {
+  background: rgba(188, 255, 226, 0.5);
+}
+
+.calendar-container .fc-col-header-cell-cushion {
+  color: #1b4332;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.calendar-container .fc-daygrid-day-number,
+.calendar-container .fc-timegrid-slot-label,
+.calendar-container .fc-timegrid-axis-cushion {
+  color: #1b4332;
+}
+
+.calendar-container .fc-timegrid-slot {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.calendar-container .fc-day-today {
+  background: rgba(141, 217, 189, 0.24) !important;
+}
+
+.calendar-container .fc-timegrid-col.fc-day-today {
+  background: rgba(141, 217, 189, 0.28) !important;
+}
+
+.calendar-container .fc-event {
+  background: rgba(45, 106, 79, 0.88) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 2px 4px;
+}
+
+.calendar-container .fc-event-title,
+.calendar-container .fc-event-time {
+  color: white !important;
+}
+
+/* POPUP */
 
 .popup {
   position: fixed;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #8dd9bd;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(27, 67, 50, 0.2);
   z-index: 1000;
-  width: 260px;
+  width: 320px;
   overflow: hidden;
+}
+
+.popup h3 {
+  margin: 0 0 16px;
+  color: #1b4332;
+  font-size: 1.35rem;
 }
 
 .popup-close {
@@ -41,7 +128,16 @@
 .popup-close span {
   cursor: pointer;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 20px;
+  color: #1b4332;
+}
+
+.popup-label {
+  display: block;
+  margin: 10px 0 6px;
+  color: #1b4332;
+  font-weight: 700;
+  font-size: 0.95rem;
 }
 
 .popup input,
@@ -49,12 +145,24 @@
   width: 100%;
   box-sizing: border-box;
   margin-bottom: 10px;
+  border: 1px solid #8dd9bd;
+  border-radius: 10px;
+  padding: 10px;
+  outline: none;
+  background: rgba(247, 255, 251, 0.92);
+  color: #1b4332;
+}
+
+.popup input:focus,
+.popup textarea:focus {
+  border-color: #2d6a4f;
+  box-shadow: 0 0 0 3px rgba(141, 217, 189, 0.28);
 }
 
 .popup textarea {
   resize: vertical;
-  min-height: 60px;
-  max-height: 120px;
+  min-height: 90px;
+  max-height: 140px;
   overflow-y: auto;
 }
 
@@ -62,14 +170,147 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 16px;
+}
+
+.popup-buttons button {
+  background: #8dd9bd;
+  color: #1b4332;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.popup-buttons button:hover {
+  background: #6fc9a9;
+}
+
+.delete-button {
+  background: transparent !important;
+  color: #d32f2f !important;
+  padding: 8px 0 !important;
+  font-weight: 800;
 }
 
 .delete-icon {
   cursor: pointer;
-  color: red;
+  color: #d32f2f;
   font-size: 18px;
 }
+
+/* DARK THEME */
+
+body.dark-theme .calendar-container h2 {
+  color: rgb(188, 255, 226);
+}
+
+body.dark-theme .calendar-container .fc {
+  background: #1b1b1b;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+
+body.dark-theme .calendar-container .fc-toolbar-title {
+  color: white;
+}
+
+body.dark-theme .calendar-container .fc-button {
+  background: rgb(188, 255, 226) !important;
+  color: #111 !important;
+}
+
+body.dark-theme .calendar-container .fc-button-active {
+  background: #2d6a4f !important;
+  color: white !important;
+}
+
+body.dark-theme .calendar-container .fc-scrollgrid,
+body.dark-theme .calendar-container .fc-theme-standard td,
+body.dark-theme .calendar-container .fc-theme-standard th {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+body.dark-theme .calendar-container .fc-col-header-cell {
+  background: #282828;
+}
+
+body.dark-theme .calendar-container .fc-col-header-cell-cushion,
+body.dark-theme .calendar-container .fc-daygrid-day-number,
+body.dark-theme .calendar-container .fc-timegrid-slot-label,
+body.dark-theme .calendar-container .fc-timegrid-axis-cushion {
+  color: rgb(188, 255, 226);
+}
+
+body.dark-theme .calendar-container .fc-timegrid-slot {
+  background: #1f1f1f;
+}
+
+body.dark-theme .calendar-container .fc-timegrid-col {
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+body.dark-theme .calendar-container .fc-timegrid-col.fc-day-today {
+  background: rgba(188, 255, 226, 0.12) !important;
+}
+
+body.dark-theme .calendar-container .fc-day-today {
+  background: rgba(188, 255, 226, 0.1) !important;
+}
+
+body.dark-theme .calendar-container .fc-event {
+  background: rgba(141, 217, 189, 0.78) !important;
+}
+
+body.dark-theme .calendar-container .fc-event-title,
+body.dark-theme .calendar-container .fc-event-time {
+  color: #111 !important;
+}
+
+/* DARK POPUP */
+
+body.dark-theme .popup {
+  background: #1b4332;
+  border: 1px solid rgba(188, 255, 226, 0.45);
+  color: rgb(188, 255, 226);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-theme .popup h3,
+body.dark-theme .popup-close span,
+body.dark-theme .popup-label {
+  color: rgb(188, 255, 226);
+}
+
+body.dark-theme .popup input,
+body.dark-theme .popup textarea {
+  background: rgba(18, 56, 39, 0.95);
+  color: white;
+  border: 1px solid rgba(188, 255, 226, 0.45);
+}
+
+body.dark-theme .popup input::placeholder,
+body.dark-theme .popup textarea::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+body.dark-theme .popup input:focus,
+body.dark-theme .popup textarea:focus {
+  border-color: rgb(188, 255, 226);
+  box-shadow: 0 0 0 3px rgba(188, 255, 226, 0.2);
+}
+
+body.dark-theme .popup-buttons button {
+  background: rgb(188, 255, 226);
+  color: #1b4332;
+}
+
+body.dark-theme .delete-button {
+  background: transparent !important;
+  color: #ff8a8a !important;
+}
+
+/* RESPONSIVE */
 
 @media (max-width: 768px) {
   .calendar-container {
@@ -91,12 +332,11 @@
     font-size: 0.85rem;
   }
 
-  /* (ex: 320px) */
   .popup {
     width: 90%;
-    left: 5% !important; /* center */
+    left: 5% !important;
     top: 20% !important;
-    padding: 12px;
+    padding: 16px;
   }
 
   .popup-buttons {
@@ -106,13 +346,5 @@
   .popup-buttons button {
     padding: 8px 12px;
     font-size: 14px;
-  }
-}
-
-@media (max-width: 768px) {
-  body.dark-theme .popup {
-    background: #222; 
-    border: 1px solid #444; 
-    color: #fff;
   }
 }

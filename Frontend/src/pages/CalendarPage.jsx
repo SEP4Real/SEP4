@@ -4,15 +4,11 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import './CalendarPage.css';
-import {
-  getCalendarEvents,
-  createCalendarEvent,
-  updateCalendarEvent,
-  deleteCalendarEvent
-} from "../services/CalendarService";
+import { useLanguage } from "../context/LanguageContext";
+import {getCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent} from "../services/CalendarService";
 
 const CalendarPage = () => {
-
+const { language, t } = useLanguage();
   // popup + selection state
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
@@ -204,10 +200,13 @@ const CalendarPage = () => {
 
   return (
     <div className="calendar-container">
-      <h2>Calendar</h2>
+     <h2>{t.calendar}</h2>
 
       {/* calendar component */}
       <FullCalendar
+      allDayText={t.calendarAllDay}
+      locale={language === "da" ? "da" : "en"}
+      buttonText={{ today: t.calendarToday,month: t.calendarMonth,week: t.calendarWeek,day: t.calendarDay}}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="timeGridWeek"
         selectable={true}
@@ -239,35 +238,37 @@ const CalendarPage = () => {
           </div>
 
           {/* dynamic title */}
-          <h3>{selectedEvent ? "Edit Event" : "New Event"}</h3>
-
+   <h3>{selectedEvent? t.editEvent: t.newEvent}</h3>
+<label className="popup-label">{t.eventTitle}</label>
           {/* event title */}
           <input
             type="text"
-            placeholder="Title"
+           placeholder={t.eventTitlePlaceholder}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+          <label className="popup-label">{t.eventNote}</label>
 
           {/* event note */}
           <textarea
-            placeholder="Note"
+            placeholder={t.eventTitle}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
 
           {/* actions */}
           <div className="popup-buttons">
-            <button onClick={handleSave}>Save</button>
+            <button onClick={handleSave}>{t.save}</button>
 
             {selectedEvent && (
-              <span
-                className="delete-icon"
-                onClick={handleDelete}
-              >
-                🗑
-              </span>
-            )}
+  <button
+    type="button"
+    className="delete-button"
+    onClick={handleDelete}
+  >
+    🗑 {t.delete}
+  </button>
+)}
           </div>
 
         </div>

@@ -6,6 +6,7 @@ import SensorChart from "../components/SensorChart";
 import SessionRating from "../components/SessionRating";
 import LoadingSpinner from "../components/LoadingSpinner";
 import SensorCard from "../components/SensorCard";
+import EmptyState from "../components/EmptyState";
 import {
   CalendarRange,
   CheckCircle2,
