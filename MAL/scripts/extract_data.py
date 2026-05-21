@@ -1,7 +1,9 @@
 import csv
+import io
 import os
 import urllib.error
 import urllib.request
+import zipfile
 from pathlib import Path
 
 import psycopg
@@ -39,8 +41,12 @@ def _collect_from_api(api_base_url: str) -> None:
         raise RuntimeError(f"API request failed with status {exc.code}: {body}") from exc
 
     REAL_SENSOR_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    REAL_SENSOR_HISTORY_PATH.write_bytes(payload)
-    print(f"Success: Saved data to {REAL_SENSOR_HISTORY_PATH}")
+    with zipfile.ZipFile(io.BytesIO(payload)) as zf:
+        with zf.open("sensor_history.csv") as f:
+            REAL_SENSOR_HISTORY_PATH.write_bytes(f.read())
+        with zf.open("sessions.csv") as f:
+            SESSIONS_PATH.write_bytes(f.read())
+    print(f"Success: Extracted sensor_history.csv and sessions.csv from zip")
 
 
 def _collect_from_db() -> None:
