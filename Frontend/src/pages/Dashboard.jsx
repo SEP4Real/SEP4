@@ -240,6 +240,10 @@ useEffect(() => {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  if (loading) {
+  return <LoadingSpinner text={t.loading} />;
+}
+
   const openRatingModal = async () => {
     try {
       const sessions = await getDeviceSessions(DEFAULT_DEVICE_ID);
