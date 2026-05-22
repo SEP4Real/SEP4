@@ -34,11 +34,17 @@ def decide_stay_or_leave(measurement: InstantMeasurementRequest) -> Literal["sta
     return "stay"
 
 
+def build_instant_measurement_response(
+    measurement: InstantMeasurementRequest,
+) -> InstantMeasurementResponse:
+    return InstantMeasurementResponse(decision=decide_stay_or_leave(measurement))
+
+
 @router.post("", response_model=InstantMeasurementResponse, status_code=201)
 async def create_instant_measurement(
     body: InstantMeasurementRequest,
 ) -> InstantMeasurementResponse:
-    return InstantMeasurementResponse(decision=decide_stay_or_leave(body))
+    return build_instant_measurement_response(body)
 
 
 @router.get("/latest", response_model=InstantMeasurementResponse)
@@ -86,4 +92,4 @@ async def get_latest_instant_measurement(
         co2Level=row["co2_level"],
         lightLevel=row["light_level"],
     )
-    return InstantMeasurementResponse(decision=decide_stay_or_leave(measurement))
+    return build_instant_measurement_response(measurement)
