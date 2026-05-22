@@ -1,15 +1,20 @@
 .login-page {
   min-height: 100vh;
+  width: 100%;
   font-family: Arial, sans-serif;
   background: linear-gradient(to bottom, #c9ffe7 0%, #ffffff 36%);
   display: flex;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .login-card {
-  width: 420px;
+  width: min(100%, 420px);
   padding-top: 95px;
+  padding-left: 20px;
+  padding-right: 20px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .login-card h1 {
@@ -38,7 +43,7 @@
 }
 
 .login-form input {
-  width: 180px;
+  width: min(100%, 220px);
   height: 24px;
   margin-top: 5px;
   border: none;
@@ -111,13 +116,13 @@ body.dark-theme .auth-link a {
   color: rgb(188, 255, 226);
 }
 
-/*1024px și 480px) */
+/* 1024px and 480px */
 
 @media (max-width: 1024px) {
   .login-card {
     width: 100%;
     max-width: 420px;
-    padding: 110px 20px 20px 20px;
+    padding: 90px 20px 20px 20px;
     box-sizing: border-box;
   }
 }

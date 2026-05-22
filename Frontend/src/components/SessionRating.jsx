@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import "./SessionRating.css";
+import { submitRating } from "../services/RatingService";
 
 import {
   FaRegFrown,
@@ -8,7 +9,13 @@ import {
   FaRegSmile
 } from "react-icons/fa";
 
-export default function SessionRating() {
+export default function SessionRating({
+  onSuccess,
+  submitLabel,
+  allowSuccessOnError = false,
+  deviceId = "arduino-device-01",
+  sessionId,
+}) {
 
   const [rating, setRating] = useState(null);
   const [message, setMessage] = useState("");
@@ -43,16 +50,46 @@ export default function SessionRating() {
     }
   ];
 
-  function handleSubmit() {
+  async function handleSubmit() {
 
     if (!rating) {
       setMessage(t.selectRating);
       return;
     }
 
-    localStorage.setItem("sessionRating", rating);
+    try {
+      if (!sessionId) {
+        if (allowSuccessOnError && onSuccess) {
+          setMessage("No session found for rating");
+          onSuccess();
+          return;
+        }
 
-    setMessage(t.ratingSaved);
+        setMessage("No session found for rating");
+        return;
+      }
+
+      await submitRating({
+        device_id: deviceId,
+        session_id: sessionId,
+        rating: rating,
+        comment: ""
+      });
+
+      setMessage(t.ratingSaved);
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (e) {
+
+      console.error(e);
+      if (allowSuccessOnError && onSuccess) {
+        onSuccess();
+        return;
+      }
+
+      setMessage("Failed to save rating");
+    }
   }
 
   return (
@@ -106,6 +143,15 @@ export default function SessionRating() {
           {message}
         </p>
       )}
+
+      <button
+        className="rating-submit"
+        onClick={handleSubmit}
+      >
+        {submitLabel || t.submitRating || "Submit rating"}
+      </button>
+
+      
 
     </div>
   );

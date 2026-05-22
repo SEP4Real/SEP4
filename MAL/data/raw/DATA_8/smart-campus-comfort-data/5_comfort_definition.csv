@@ -1,0 +1,97 @@
+timestamp,respondentId,temperatureRelevance,temperatureLabel,humidityRelevance,humidityLabel,airQualityRelevance,airQualityLabel,otherParametersRaw,otherParametersStandardized
+2025-09-17T15:19:35.000Z,167,4,Very relevant,4,Very relevant,4,Very relevant,rumore,noise
+2025-09-19T10:24:38.000Z,166,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,"rumore, umidità","noise, humidity"
+2025-09-17T15:24:18.000Z,78,5,Extremely relevant,4,Very relevant,4,Very relevant,odore e rumore,"smell, noise"
+2025-09-17T14:59:32.000Z,104,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,Spazio,space
+2025-09-17T14:36:03.000Z,47,5,Extremely relevant,5,Extremely relevant,4,Very relevant,Rumore,noise
+2025-09-17T14:36:40.000Z,91,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,Numero di persone ,number of people
+2025-09-17T14:41:56.000Z,9,5,Extremely relevant,4,Very relevant,5,Extremely relevant,"rumore, odore, luce","noise, smell, lighting"
+2025-09-19T11:54:01.000Z,18,4,Very relevant,2,Slightly relevant,3,Moderately relevant,Luminosità,lighting
+2025-09-17T14:38:05.000Z,155,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,La luminosità ambientale,lighting
+2025-09-17T15:04:03.000Z,53,5,Extremely relevant,2,Slightly relevant,3,Moderately relevant,Luminosità,lighting
+2025-09-17T15:12:50.000Z,4,5,Extremely relevant,4,Very relevant,5,Extremely relevant,inquinamento acustico,noise
+2025-09-19T10:12:53.000Z,1,5,Extremely relevant,4,Very relevant,3,Moderately relevant,Rumore di sottofondo,noise
+2025-09-17T14:45:38.000Z,125,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,luminosità,lighting
+2025-09-17T14:39:26.000Z,56,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,Arieggiamento stanza,ventilation
+2025-09-17T15:18:36.000Z,128,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,L'odore,smell
+2025-09-19T11:56:12.000Z,131,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,Luce e suono ,"lighting, noise"
+2025-09-17T14:37:11.000Z,38,5,Extremely relevant,3,Moderately relevant,4,Very relevant,Rumori,noise
+2025-09-17T14:53:57.000Z,71,5,Extremely relevant,5,Extremely relevant,4,Very relevant,Il rumore,noise
+2025-10-10T13:58:19.000Z,179,5,Extremely relevant,3,Moderately relevant,4,Very relevant,no,
+2025-09-17T16:04:33.000Z,45,4,Very relevant,5,Extremely relevant,5,Extremely relevant,No,
+2025-09-17T16:06:59.000Z,183,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,rumore esterno,external noise
+2025-09-17T14:36:49.000Z,65,4,Very relevant,3,Moderately relevant,5,Extremely relevant,no,
+2025-09-17T14:37:02.000Z,110,5,Extremely relevant,5,Extremely relevant,3,Moderately relevant,Odore ,smell
+2025-09-17T15:21:22.000Z,160,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,Luce,lighting
+2025-09-17T14:31:43.000Z,73,5,Extremely relevant,4,Very relevant,5,Extremely relevant,Spazio di movimento,space
+2025-09-17T14:38:52.000Z,126,3,Moderately relevant,3,Moderately relevant,3,Moderately relevant,No,
+2025-09-17T14:39:52.000Z,26,5,Extremely relevant,5,Extremely relevant,4,Very relevant,Luce e rumore,"lighting, noise"
+2025-09-17T15:04:22.000Z,60,4,Very relevant,3,Moderately relevant,4,Very relevant,Livello di luminosità.,lighting
+2025-09-17T14:37:05.000Z,154,5,Extremely relevant,4,Very relevant,5,Extremely relevant,Distrurbo ambientale,environmental disturbance
+2025-09-17T14:36:43.000Z,77,5,Extremely relevant,3,Moderately relevant,5,Extremely relevant,No,
+2025-09-19T11:51:44.000Z,138,5,Extremely relevant,4,Very relevant,4,Very relevant,La luminosità della stanz,lighting
+2025-09-19T10:18:11.000Z,43,5,Extremely relevant,3,Moderately relevant,5,Extremely relevant,Rumori fastidiosi,noise
+2025-09-19T10:39:04.000Z,143,4,Very relevant,4,Very relevant,5,Extremely relevant,L'utilizzo dell aria cond,air conditioning
+2025-09-19T11:57:31.000Z,7,4,Very relevant,5,Extremely relevant,2,Slightly relevant,Isolamento acustico,soundproofing
+2025-09-19T10:30:38.000Z,36,5,Extremely relevant,4,Very relevant,4,Very relevant,Rumore,noise
+2025-09-19T10:17:51.000Z,100,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,L'odore,smell
+2025-09-19T10:18:42.000Z,163,5,Extremely relevant,4,Very relevant,4,Very relevant,Il rumore ambientale ,noise
+2025-09-19T11:55:24.000Z,172,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,No,
+2025-09-19T10:12:44.000Z,101,5,Extremely relevant,3,Moderately relevant,4,Very relevant,No,
+2025-09-19T10:13:31.000Z,102,5,Extremely relevant,2,Slightly relevant,2,Slightly relevant,La luminosità nell'ambien,lighting
+2025-09-19T10:54:19.000Z,115,5,Extremely relevant,3,Moderately relevant,3,Moderately relevant,No,
+2025-09-19T10:25:58.000Z,87,5,Extremely relevant,3,Moderately relevant,4,Very relevant,#personerispetto a spazio,"space, number of people"
+2025-09-19T10:22:51.000Z,181,4,Very relevant,5,Extremely relevant,5,Extremely relevant,Non so,
+2025-09-19T10:20:39.000Z,141,4,Very relevant,4,Very relevant,5,Extremely relevant,Eccesso di luci,lighting
+2025-09-19T10:17:41.000Z,185,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,no,
+2025-09-19T10:36:13.000Z,133,4,Very relevant,5,Extremely relevant,4,Very relevant,No,
+2025-09-19T10:11:41.000Z,116,5,Extremely relevant,4,Very relevant,4,Very relevant,no,
+2025-09-19T10:33:08.000Z,161,5,Extremely relevant,4,Very relevant,5,Extremely relevant,La luce,lighting
+2025-09-19T10:34:26.000Z,13,5,Extremely relevant,3,Moderately relevant,5,Extremely relevant,si,yes
+2025-09-19T10:14:10.000Z,113,5,Extremely relevant,4,Very relevant,3,Moderately relevant,Luminosità non eccessiva,lighting
+2025-09-19T09:49:23.000Z,97,5,Extremely relevant,4,Very relevant,5,Extremely relevant,Rumore,noise
+2025-09-19T10:13:31.000Z,106,4,Very relevant,4,Very relevant,4,Very relevant,Pulizia dell'ambiente ,environmental cleanliness
+2025-09-19T10:13:29.000Z,152,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,No,
+2025-09-19T10:22:18.000Z,20,3,Moderately relevant,3,Moderately relevant,4,Very relevant,luci non abbastanza poten,lighting
+2025-09-19T10:23:24.000Z,35,5,Extremely relevant,3,Moderately relevant,4,Very relevant,Effetto serra,greenhouse effect
+2025-09-19T10:12:45.000Z,112,5,Extremely relevant,5,Extremely relevant,4,Very relevant,no,
+2025-09-19T10:19:12.000Z,57,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,Inquinamento acustico,noise
+2025-09-19T10:13:14.000Z,54,5,Extremely relevant,4,Very relevant,4,Very relevant,Rumore e luminosità,"noise, lighting"
+2025-09-19T10:13:17.000Z,92,5,Extremely relevant,4,Very relevant,5,Extremely relevant,il rumore,noise
+2025-09-19T10:17:32.000Z,40,5,Extremely relevant,5,Extremely relevant,4,Very relevant,No,
+2025-09-19T11:44:47.000Z,50,5,Extremely relevant,3,Moderately relevant,4,Very relevant,Isolamento acustico,soundproofing
+2025-09-19T10:36:25.000Z,88,4,Very relevant,3,Moderately relevant,3,Moderately relevant,No,
+2025-09-19T10:16:30.000Z,83,5,Extremely relevant,4,Very relevant,4,Very relevant,No,
+2025-09-19T10:15:10.000Z,84,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,principalmente il rumore,
+2025-09-19T10:47:36.000Z,17,5,Extremely relevant,4,Very relevant,3,Moderately relevant,No,
+2025-09-19T10:13:39.000Z,122,5,Extremely relevant,3,Moderately relevant,5,Extremely relevant,Luce ambientale,lighting
+2025-09-19T10:23:55.000Z,118,4,Very relevant,4,Very relevant,5,Extremely relevant,No.,
+2025-09-19T11:15:41.000Z,103,5,Extremely relevant,2,Slightly relevant,5,Extremely relevant,No,
+2025-09-19T10:11:56.000Z,117,4,Very relevant,2,Slightly relevant,5,Extremely relevant,No,
+2025-09-19T11:11:48.000Z,59,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,sedie,seating comfort
+2025-09-19T10:17:02.000Z,79,4,Very relevant,2,Slightly relevant,5,Extremely relevant,La luminosità della stanz,lighting
+2025-09-19T10:46:06.000Z,42,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,L'areazione dei locali,ventilation
+2025-09-19T10:11:39.000Z,76,5,Extremely relevant,4,Very relevant,5,Extremely relevant,Rumore,noise
+2025-09-19T10:19:07.000Z,51,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,Riciclo dell’aria,ventilation
+2025-09-19T10:42:06.000Z,137,5,Extremely relevant,5,Extremely relevant,4,Very relevant,Gli odori,smell
+2025-09-19T11:38:55.000Z,2,5,Extremely relevant,3,Moderately relevant,4,Very relevant,No,
+2025-09-19T10:11:42.000Z,162,5,Extremely relevant,4,Very relevant,5,Extremely relevant,No,
+2025-09-19T10:13:29.000Z,142,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,no,
+2025-09-19T10:46:12.000Z,151,5,Extremely relevant,5,Extremely relevant,4,Very relevant,rumore,noise
+2025-09-19T10:12:27.000Z,121,5,Extremely relevant,3,Moderately relevant,5,Extremely relevant,Rumore di fondo ,noise
+2025-09-19T10:39:06.000Z,69,4,Very relevant,4,Very relevant,5,Extremely relevant,Spazio della seduta,seating space
+2025-09-19T11:51:42.000Z,14,5,Extremely relevant,3,Moderately relevant,4,Very relevant,Aria addosso,air currents
+2025-09-19T10:50:52.000Z,98,5,Extremely relevant,4,Very relevant,4,Very relevant,La luce,lighting
+2025-09-19T10:35:09.000Z,127,5,Extremely relevant,2,Slightly relevant,5,Extremely relevant,Luminosità,lighting
+2025-09-19T10:12:52.000Z,21,5,Extremely relevant,4,Very relevant,4,Very relevant,Il rumore,noise
+2025-09-19T10:13:37.000Z,134,5,Extremely relevant,4,Very relevant,3,Moderately relevant,No,
+2025-09-19T10:37:32.000Z,139,4,Very relevant,5,Extremely relevant,4,Very relevant,no,
+2025-09-19T10:13:57.000Z,176,5,Extremely relevant,2,Slightly relevant,4,Very relevant,L’illuminazione,lighting
+2025-09-19T11:56:48.000Z,94,4,Very relevant,4,Very relevant,4,Very relevant,Non credo,
+2025-09-19T11:45:22.000Z,22,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,qualità del suono,acoustics
+2025-09-19T10:15:00.000Z,12,5,Extremely relevant,5,Extremely relevant,5,Extremely relevant,l' acustica,acoustics
+2025-09-19T10:13:18.000Z,24,5,Extremely relevant,4,Very relevant,5,Extremely relevant,no,
+2025-09-19T10:14:17.000Z,108,5,Extremely relevant,4,Very relevant,5,Extremely relevant,I posti a sedere,number of seats
+2025-09-19T10:13:00.000Z,62,4,Very relevant,5,Extremely relevant,2,Slightly relevant,No,
+2025-09-17T14:45:16.000Z,37,5,Extremely relevant,3,Moderately relevant,4,Very relevant,Luminosità,lighting
+2025-10-08T14:13:27.000Z,95,2,Slightly relevant,3,Moderately relevant,4,Very relevant,no,

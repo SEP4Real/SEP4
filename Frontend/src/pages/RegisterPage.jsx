@@ -61,8 +61,12 @@ export default function RegisterPage() {
         password: form.password,
       });
 
+      if (!userData.user) {
+        throw new Error("Missing login data");
+      }
+
       localStorage.setItem("user", JSON.stringify(userData.user));
-      localStorage.setItem("token", userData.access_token);
+      window.dispatchEvent(new Event("storage"));
 
       setSuccess(t.registeredSuccessfully);
 

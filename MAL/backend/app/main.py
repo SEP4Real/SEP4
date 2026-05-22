@@ -1,5 +1,6 @@
 import csv
 import io
+import zipfile
 import os
 from datetime import datetime
 
@@ -135,35 +136,41 @@ def export_data(
             password=db_password,
         ) as conn:
             with conn.cursor() as cur:
-                query = """
+                cur.execute("""
                     SELECT *
                     FROM data
                     ORDER BY sent_at DESC
                     LIMIT %s
-                """
-                cur.execute(query, (limit,))
-                rows = cur.fetchall()
-                colnames = [desc[0] for desc in cur.description]
+                """, (limit,))
+                data_rows = cur.fetchall()
+                data_cols = [desc[0] for desc in cur.description]
 
-        if not rows:
+                cur.execute("""
+                    SELECT *
+                    FROM sessions
+                    ORDER BY started_at DESC
+                """)
+                session_rows = cur.fetchall()
+                session_cols = [desc[0] for desc in cur.description]
+
+        if not data_rows and not session_rows:
             raise HTTPException(status_code=404, detail="No data found in database")
 
-        def iter_csv():
-            buffer = io.StringIO()
-            writer = csv.writer(buffer)
-            writer.writerow(colnames)
-            yield buffer.getvalue()
-            buffer.seek(0)
-            buffer.truncate(0)
+        def _to_csv(cols, rows) -> bytes:
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(cols)
+            writer.writerows(rows)
+            return buf.getvalue().encode()
 
-            for row in rows:
-                writer.writerow(row)
-                yield buffer.getvalue()
-                buffer.seek(0)
-                buffer.truncate(0)
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("sensor_history.csv", _to_csv(data_cols, data_rows))
+            zf.writestr("sessions.csv", _to_csv(session_cols, session_rows))
+        zip_buffer.seek(0)
 
-        headers = {"Content-Disposition": "attachment; filename=sensor_history.csv"}
-        return StreamingResponse(iter_csv(), media_type="text/csv", headers=headers)
+        headers = {"Content-Disposition": "attachment; filename=export.zip"}
+        return StreamingResponse(zip_buffer, media_type="application/zip", headers=headers)
     except HTTPException:
         raise
     except Exception as exc:

@@ -12,6 +12,9 @@
 #include "co2.h"
 #include "timer.h"
 #include "server_api.h"
+#include "button.h"
+#include "display.h"
+#include "display_status.h"
 
 static void delay_s(uint8_t seconds)
 {
@@ -26,6 +29,7 @@ static void delay_s(uint8_t seconds)
 
 static volatile uint8_t pulse_due = 0;
 static volatile uint8_t data_due = 0;
+static volatile uint8_t session_button_cooldown_active = 0;
 static uint8_t request_in_progress = 0;
 
 static void on_pulse_timer(uint8_t id)
@@ -39,11 +43,19 @@ static void on_data_timer(uint8_t id)
     data_due = 1;
 }
 
+static void on_session_button_cooldown_timer(uint8_t id)
+{
+    session_button_cooldown_active = 0;
+    timer_pause(id);
+}
+
 int main(void)
 {
     sei();
-
+    button_init();
+    display_init();
     uart_stdio_init(115200);
+    display_status_boot();
 
     printf("\n=== Device boot ===\n");
     light_init();
@@ -90,21 +102,108 @@ int main(void)
 
     server_register_device();
     delay_s(1);
-    server_start_session();
-
+    printf("[SESSION] Waiting for Button 1 to start session\n");
+    display_status_idle();
     int8_t pulse_timer = timer_create_sw(on_pulse_timer, 5000);
     int8_t data_timer = timer_create_sw(on_data_timer, 30000);
+    int8_t session_button_cooldown_timer = timer_create_sw(on_session_button_cooldown_timer, 10000);
 
-    if (pulse_timer < 0 || data_timer < 0)
+    if (pulse_timer < 0 || data_timer < 0 || session_button_cooldown_timer < 0)
     {
         printf("[ERROR] Timer creation failed\n");
     }
+    else
+    {
+        timer_pause(session_button_cooldown_timer);
+    }
 
-    printf("[MAIN] Entering main loop\n");
+    static uint8_t session_active = 0;
+    static uint8_t button1_last_state = 0;
+    static uint8_t button2_last_state = 0;
 
     while (1)
     {
-        if (!request_in_progress && pulse_due)
+        uint8_t button1_current_state = button_get(1);
+        uint8_t button2_current_state = button_get(2);
+
+        if (button1_last_state == 0 && button1_current_state == 1 && !request_in_progress)
+        {
+            _delay_ms(50);
+
+            if (button_get(1))
+            {
+                if (session_button_cooldown_active)
+                {
+                    printf("[SESSION] Ignored - wait 10s between start/stop actions\n");
+                    button1_last_state = button1_current_state;
+                    continue;
+                }
+
+                session_button_cooldown_active = 1;
+                if (session_button_cooldown_timer > 0)
+                {
+                    timer_resume(session_button_cooldown_timer);
+                }
+
+                request_in_progress = 1;
+
+                if (session_active)
+                {
+                    printf("[SESSION] Button 1 pressed - ending session\n");
+                    session_active = 0;
+                    server_reset();
+                    pulse_due = 0;
+                    data_due = 0;
+                    display_status_idle();
+                    printf("[SESSION] Session ended - pulse/data stopped\n");
+                }
+                else
+                {
+                    printf("[SESSION] Button 1 pressed - starting session\n");
+                    server_start_session();
+                    session_active = 1;
+                    pulse_due = 0;
+                    data_due = 0;
+                    display_status_session();
+                    printf("[SESSION] Session started by button\n");
+                }
+
+                request_in_progress = 0;
+            }
+        }
+
+        if (button2_last_state == 0 && button2_current_state == 1 && !request_in_progress && !session_active)
+        {
+            _delay_ms(50);
+
+            if (button_get(2))
+            {
+                request_in_progress = 1;
+                printf("[ONETIME] Button 2 pressed — taking instant measurement\n");
+                display_status_instant();
+                uint8_t t_int = 0, t_dec = 0, h_int = 0, h_dec = 0;
+                uint16_t light = light_measure_raw();
+                uint16_t co2 = latest_co2_ppm;
+
+                co2_read_ppm(&co2);
+
+                if (dht11_get(&h_int, &h_dec, &t_int, &t_dec) == DHT11_OK)
+                {
+                    server_send_onetime_measurement(t_int, t_dec, h_int, h_dec, light, co2);
+                }
+                else
+                {
+                    printf("[ERROR] DHT11 failed during instant measurement\n");
+                }
+                display_status_idle();
+                request_in_progress = 0;
+            }
+        }
+
+        button1_last_state = button1_current_state;
+        button2_last_state = button2_current_state;
+
+        if (session_active && !request_in_progress && pulse_due)
         {
             pulse_due = 0;
             request_in_progress = 1;
@@ -112,7 +211,7 @@ int main(void)
             request_in_progress = 0;
         }
 
-        if (!request_in_progress && data_due)
+        if (session_active && !request_in_progress && data_due)
         {
             data_due = 0;
             request_in_progress = 1;

@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from app.database import ensure_schema_created
-from app.routers import device, session, data, health, auth, profile, calendar, dashboard, prediction
+from app.routers import device, session, data, health, auth, profile, calendar, dashboard, prediction, rating
 from app.database import cleanup_sessions
 
 @asynccontextmanager
@@ -17,7 +17,11 @@ app = FastAPI(title="API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,3 +36,4 @@ app.include_router(profile.router)
 app.include_router(calendar.router)
 app.include_router(dashboard.router)
 app.include_router(prediction.router)
+app.include_router(rating.router)
