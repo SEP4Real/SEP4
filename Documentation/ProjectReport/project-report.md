@@ -268,35 +268,27 @@ Reference the architecture diagram:]
 [Justify the key architectural decisions: why this decomposition, how components
 communicate (protocols, data formats), and how data flows end-to-end.]
 
-The StudyHelper system follows a layered, distributed architecture comprising four runtime components: the embedded IoT firmware, the IoT backend, the ML/analytics API, and the React frontend. All server-side components share a single PostgreSQL database and are deployed as a multi-container application, described by `docker-compose.yml`.
+The StudyHelper system follows a layered, distributed architecture comprising four runtime components: the embedded IoT firmware, the Core API, the MAL API, and the React frontend. All server-side components are deployed as Docker containers behind a Coolify-managed reverse proxy (Caddy/Traefik) and share a single PostgreSQL database, as described by `docker-compose.yml`.
 
-The IoT device sits at the edge of the system. It collects sensor readings and transmits them over HTTP to the IoT backend, acting as the sole source of real-world environmental data. This unidirectional push pattern was chosen because the device does not need to receive commands in normal operation and because HTTP over TCP is straightforward to implement with the ESP8266-based Wi-Fi module used alongside the ATmega2560.
+The IoT device sits at the edge of the system. It collects sensor readings and transmits them over HTTP to the Core API, acting as the sole source of real-world environmental data. This unidirectional push pattern was chosen because the device does not need to receive commands in normal operation and because HTTP over TCP is straightforward to implement with the ESP8266-based Wi-Fi module used alongside the ATmega2560.
 
-The IoT backend (ASP.NET Core) is the system's central data gateway. It handles device registration, session lifecycle management, and sensor data persistence. It is the only component with write access to the `devices`, `sessions`, and `data` tables. Separating the IoT-facing backend from the ML service ensures that sensor ingestion is not disrupted by any latency introduced by model inference.
+The Core API (FastAPI) is the system's central gateway. It handles device registration, session lifecycle management, sensor data persistence, and user authentication. It is the only component with direct write access to the PostgreSQL database. The Core API also acts as a proxy to the MAL API for suitability predictions - forwarding prediction requests from the frontend and returning the result - so that the frontend has a single API surface to communicate with. Separating the prediction concern into the MAL service means the ML component can be retrained and redeployed independently without affecting the Core API.
 
-The MAL API (FastAPI) is responsible for model inference and data collection for retraining. It reads from the database to export training data and serves predictions at the `/predict` endpoint. The frontend calls the MAL API directly for suitability predictions, bypassing the IoT backend. This separation of concerns means that the ML service can be updated or retrained independently of the rest of the backend.
+The MAL API (FastAPI) is responsible for model inference and data collection for retraining. It receives prediction requests forwarded by the Core API, loads the trained model artifact, and returns a suitability rating. It also exposes endpoints for exporting raw sensor data from the database to support offline retraining workflows.
 
-The React frontend is a static single-page application served by Nginx inside a Docker container. It communicates with both the IoT backend (for sensor history) and the MAL API (for predictions) via REST calls. All inter-service communication uses JSON over HTTP.
+The React frontend is a static single-page application served by Nginx inside a Docker container. It communicates exclusively with the Core API via REST calls - for sensor history, user authentication, and suitability predictions. All inter-service communication uses JSON over HTTP. The Coolify reverse proxy handles TLS termination and routes public traffic to the frontend and Core API containers.
 
-Data flows through the system as follows: the IoT device pushes a sensor payload to the IoT backend every thirty seconds; the backend persists the reading; the frontend polls the backend for the latest readings and simultaneously requests a prediction from the MAL API; the MAL API queries the stored session data, computes feature windows, and returns a rating; the frontend renders the result.
+Data flows through the system as follows: the IoT device pushes a sensor payload to the Core API every thirty seconds; the Core API persists the reading in PostgreSQL; the frontend polls the Core API for the latest readings and requests a prediction, which the Core API forwards to the MAL API; the MAL API returns a rating; the Core API relays it to the frontend, which renders the result.
 
-[TODO: Insert the architecture diagram reference here once the SVG is available. Also confirm whether the `iot-api` service in the deployed docker-compose corresponds to the ASP.NET Core backend in `API/` rather than `IOT_backend/`, as the latter appears to contain only compiled output directories.]
+[TODO: Insert the architecture diagram reference here once the SVG is exported.]
 
 ### 3.1.2 Cloud Architecture
 
-<!-- Required by SEP4: must use public cloud hosting, containers, and serverless. -->
+<!-- Required by SEP4: must use public cloud hosting, containers, and serverless. -
 
-[Describe the cloud infrastructure:
+The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted PaaS that provides a managed deployment environment on top of a virtual machine. [Specify the underlying VPS provider - e.g. Hetzner, DigitalOcean - and the server specification if available.] Coolify was chosen because it provides a Heroku-like deployment workflow without vendor lock-in to a major cloud provider, and because it integrates directly with GitHub Actions via a webhook trigger.
 
-- **Hosting provider**: which provider and why (AWS, Azure, GCP, etc.)?
-- **Containerisation**: how are services packaged and deployed (Docker, Compose, K8s)?
-- **Serverless workloads**: which parts run as serverless functions, and why those parts?
-- **Database**: what database system is used, and how is it hosted/managed?
-- **RESTful API**: overall API design, endpoint structure, data formats (JSON).]
-
-The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted PaaS that provides a managed deployment environment on top of a virtual machine. [Specify the underlying VPS provider — e.g. Hetzner, DigitalOcean — and the server specification if available.] Coolify was chosen because it provides a Heroku-like deployment workflow without vendor lock-in to a major cloud provider, and because it integrates directly with GitHub Actions via a webhook trigger.
-
-**Containerisation:** All four server-side services — `postgres`, `iot-api`, `mal-api`, and `frontend` — are defined in `docker-compose.yml` and run as Docker containers. The `iot-api` service is built from `API/Dockerfile` using a .NET base image. The `mal-api` service is built from `MAL/Dockerfile` using a Python 3.x base image and packages the FastAPI application together with the trained Random Forest model artifact (`rf_model.pkl`). The `frontend` service is built from `Frontend/Dockerfile`, which compiles the Vite/React application into static assets and serves them with Nginx on port 80. The `postgres` container uses the official `postgres:16-alpine` image with a named volume (`postgres_data`) for data persistence.
+**Containerisation:** All four server-side services - `postgres`, `iot-api`, `mal-api`, and `frontend` - are defined in `docker-compose.yml` and run as Docker containers. The `iot-api` service is built from `API/Dockerfile` using a .NET base image. The `mal-api` service is built from `MAL/Dockerfile` using a Python 3.x base image and packages the FastAPI application together with the trained Random Forest model artifact (`rf_model.pkl`). The `frontend` service is built from `Frontend/Dockerfile`, which compiles the Vite/React application into static assets and serves them with Nginx on port 80. The `postgres` container uses the official `postgres:16-alpine` image with a named volume (`postgres_data`) for data persistence.
 
 **Database:** A single PostgreSQL 16 instance is used as the shared persistence layer for both the IoT backend and the MAL API. The schema is initialised via `initdb/01_schema.sql`, which is mounted as a Docker entrypoint init script. The three tables — `devices`, `sessions`, and `data` — cover all current persistence requirements. [Add the database server specification and confirm whether backups are configured.]
 
