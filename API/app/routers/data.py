@@ -88,17 +88,6 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
             (body.session_id, cutoff),
         )
         temp_stats = await cur.fetchone()
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{os.getenv("MAL_API_HOST_PORT")}/predict",
-            json={
-                "currentTemperature": body.temperature,
-                "maxTemp": temp_stats["max_temp"],
-                "minTemp": temp_stats["min_temp"],
-                "meanTemp": float(temp_stats["avg_temp"])
-            },
-        )
-
     predicted_quality = -1
     try:
         async with httpx.AsyncClient() as client:
@@ -112,11 +101,11 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
                 },
             )
         response.raise_for_status()
-        predicted_quality = response.json().get("rating")
+        predicted_quality = response.json().get("rating", -1)
     except Exception:
         pass
 
-    if predicted_quality is not -1:
+    if predicted_quality != -1:
         async with db.cursor() as cur:
             await cur.execute(
                 "UPDATE data SET predicted_study_quality = %s WHERE id = %s",
@@ -124,4 +113,5 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
             )
         await db.commit()
 
-    return DataPointResponse(study_quality=-1)
+    return DataPointResponse(study_quality=predicted_quality)
+
