@@ -82,7 +82,7 @@ class DataPoint(BaseModel):
     co2_level: Optional[float] = Field(None, alias="co2Level")
     light_level: Optional[float] = Field(None, alias="lightLevel")
     sent_at: datetime = Field(..., alias="sentAt")
-    predicted_study_quality: int = Field(None, alias="predictedStudyQuality", ge=1, le=5)
+    predicted_study_quality: Optional[int] = Field(None, alias="predictedStudyQuality", ge=1, le=5)
 
     model_config = {"populate_by_name": True}
 
@@ -100,5 +100,5 @@ class DataPoint(BaseModel):
         )
 
 class DataPointResponse(BaseModel):
-    study_quality: int = Field(ge=1, le=5)
+    study_quality: int = Field(ge=-1, le=5)
 
