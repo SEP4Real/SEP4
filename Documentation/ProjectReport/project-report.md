@@ -284,37 +284,30 @@ Data flows through the system as follows: the IoT device pushes a sensor payload
 
 ### 3.1.2 Cloud Architecture
 
-<!-- Required by SEP4: must use public cloud hosting, containers, and serverless. -
+<!-- Required by SEP4: must use public cloud hosting, containers, and serverless. -->
 
-The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted PaaS that provides a managed deployment environment on top of a virtual machine. [Specify the underlying VPS provider - e.g. Hetzner, DigitalOcean - and the server specification if available.] Coolify was chosen because it provides a Heroku-like deployment workflow without vendor lock-in to a major cloud provider, and because it integrates directly with GitHub Actions via a webhook trigger.
+The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted PaaS running on a public VPS. Coolify provides container lifecycle management and a built-in reverse proxy (Caddy/Traefik) that terminates TLS and routes public traffic to the frontend and Core API services. Internal traffic between services stays on the Docker network.
 
-**Containerisation:** All four server-side services - `postgres`, `iot-api`, `mal-api`, and `frontend` - are defined in `docker-compose.yml` and run as Docker containers. The `iot-api` service is built from `API/Dockerfile` using a .NET base image. The `mal-api` service is built from `MAL/Dockerfile` using a Python 3.x base image and packages the FastAPI application together with the trained Random Forest model artifact (`rf_model.pkl`). The `frontend` service is built from `Frontend/Dockerfile`, which compiles the Vite/React application into static assets and serves them with Nginx on port 80. The `postgres` container uses the official `postgres:16-alpine` image with a named volume (`postgres_data`) for data persistence.
+**Containerisation:** All runtime services are defined in `docker-compose.yml` and run as Docker containers: `postgres`, `api`, `mal-api`, and `frontend`. The `api` service is built from `API/Dockerfile` (Python 3.12) and serves the Core API with Uvicorn on port 8080. The `mal-api` service is built from `MAL/Dockerfile` and serves the ML inference API on port 8000, including the committed Random Forest[TODO: update after final model] model artifact (`models/rf_model.pkl`). The `frontend` service is built from `Frontend/Dockerfile`, compiles the Vite/React application, and serves static assets with Nginx on port 80. The `postgres` container uses the official `postgres:16-alpine` image with a named volume (`postgres_data`) for persistence.
 
-**Database:** A single PostgreSQL 16 instance is used as the shared persistence layer for both the IoT backend and the MAL API. The schema is initialised via `initdb/01_schema.sql`, which is mounted as a Docker entrypoint init script. The three tables — `devices`, `sessions`, and `data` — cover all current persistence requirements. [Add the database server specification and confirm whether backups are configured.]
+**Database:** A single PostgreSQL 16 instance is the shared persistence layer. The schema is initialized via `initdb/01_schema.sql` mounted as an entrypoint init script. The Core API owns write access for devices, sessions, and sensor data, while the MAL API reads data for export and model support.
 
-**RESTful API design:** The IoT backend exposes endpoints under a flat resource hierarchy. Device registration uses `POST /device` with a JSON body `{"id": "<device-id>"}`. Session management uses `POST /session` and `PATCH /session/{id}/pulse`. Sensor data submission uses `POST /data`. All request and response bodies are JSON, with numeric values in SI units (°C, %, ppm). The MAL API exposes `GET /model-info`, `GET /collect-data`, `GET /export-data`, and `POST /predict`. The `/predict` endpoint accepts a JSON body with fields `currentTemperature`, `maxTemp`, `minTemp`, and `meanTemp`, and returns `{"rating": <1–5>}`.
+**RESTful API design:** The IoT device communicates directly with the Core API over HTTP (no message queue is used). Device registration uses `POST /device`, sessions use `POST /session` and `PATCH /session/{id}/pulse`, and sensor submissions use `POST /data`. The frontend communicates exclusively with the Core API for readings and predictions; prediction requests are forwarded by the Core API to the MAL API `POST /predict` endpoint. All inter-service payloads are JSON.
 
-**Serverless workloads:** [Describe whether any serverless functions are used, e.g. for scheduled ML retraining, or confirm that the serverless requirement is met by the Coolify platform's function-as-a-service capabilities. If no serverless component was implemented, explain the decision and any alternative approach taken.]
+**Serverless workloads:** No separate serverless runtime is deployed. Data extraction and model verification tasks are handled by on-demand GitHub Actions workflows (for example, `data-extract.yml`).
 
-**Continuous delivery:** On every push to `main`, a GitHub Actions workflow sends a webhook to Coolify, which pulls the updated images from the GitHub Container Registry (GHCR) and restarts the affected containers. Pre-built images for the `mal-api` and `frontend` services are published to GHCR as part of the MLOps and frontend CI/CD pipelines.
+**Continuous delivery:** On every push to `main`, a GitHub Actions workflow sends a webhook to Coolify, which pulls updated images from GHCR and restarts the affected containers. Pre-built images for `mal-api` and `frontend` are published to GHCR as part of the MLOps and frontend CI/CD pipelines.
 
 ### 3.1.3 Security Design
 
 <!-- SEP4 requires: encryption for IoT–cloud (symmetric or asymmetric),
-     and JWT (or equivalent) protection for frontend-facing API endpoints. -->
+     and JWT (or equivalent) protection for frontend-facing API endpoints. --
 
-[Describe the security architecture:
-
-- **IoT–cloud encryption**: which scheme was chosen (TLS, AES, RSA) and why?
-- **API authentication**: how are endpoints protected (JWT, API keys)?
-- **Key and certificate management**: how are secrets handled in the project?
-- Any additional security considerations for your specific domain.]
-
-**IoT–cloud encryption:** [Describe the encryption mechanism used between the ATmega2560 firmware and the IoT backend. Specify whether TLS is terminated at the Coolify reverse proxy, whether a certificate is used, and how the device authenticates itself to the server — e.g. via a pre-shared device ID string in the JSON payload or via a bearer token in the HTTP header.]
+**IoT–cloud encryption:** [Describe the encryption mechanism used between the ATmega2560 firmware and the IoT backend. Specify whether TLS is terminated at the Coolify reverse proxy, whether a certificate is used, and how the device authenticates itself to the server - e.g. via a pre-shared device ID string in the JSON payload or via a bearer token in the HTTP header.]
 
 **API authentication:** The MAL API export endpoint (`GET /export-data`) is protected by an `X-Export-Token` HTTP header checked against the `MAL_API_EXPORT_TOKEN` environment variable. This prevents unauthorised access to raw sensor exports. [Describe the authentication mechanism for the IoT backend endpoints — the `secrets.ini.example` file in the IoT firmware references a `SECRET_KEY` environment variable on the API container, which suggests token-based authentication is configured. Confirm whether JWT is implemented and which endpoints require it.]
 
-**Secret management:** Sensitive credentials — database password, Wi-Fi SSID and password, server hostname, device ID, and the API secret key — are stored as environment variables, never hard-coded in source files. The firmware secrets are injected at build time via `secrets.ini`, which is excluded from the repository by `.gitignore`. Server-side secrets are passed to Docker containers via the `.env` file, which is similarly excluded. The `docker-compose.yml` uses mandatory variable substitution (`:?` syntax) so that a deployment will fail explicitly if any required secret is missing rather than silently using an empty value.
+**Secret management:** Sensitive credentials - database password, Wi-Fi SSID and password, server hostname, device ID, and the API secret key - are stored as environment variables, never hard-coded in source files. The firmware secrets are injected at build time via `secrets.ini`, which is excluded from the repository by `.gitignore`. Server-side secrets are passed to Docker containers via the `.env` file, which is similarly excluded. The `docker-compose.yml` uses mandatory variable substitution (`:?` syntax) so that a deployment will fail explicitly if any required secret is missing rather than silently using an empty value.
 
 **Additional considerations:** Because the ATmega2560 has limited cryptographic hardware support, the choice of encryption scheme involves a trade-off between security strength and memory and processing overhead. [Justify the chosen approach in light of these constraints.] The database is not exposed on a public port; access is restricted to the Docker internal network, which limits the attack surface from the public internet.
 
@@ -324,15 +317,7 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 <!-- All projects must: unit test, use distributed Git with branches/tags,
      set up automated regression testing via GitHub/GitLab CI, and use containers.
-     Pair-programming commits must list both names in the commit message. -->
-
-[Describe the overall DevOps plan:
-
-- **Git workflow**: branching model (e.g. Gitflow, trunk-based), tagging conventions,
-  commit message standard, pair-programming naming convention.
-- **CI/CD overview**: what events trigger pipelines, what gates exist before merging.
-- **Container strategy**: what is containerised, which base images are used.
-- **Testing overview**: how unit and regression testing is organised across all components.
+     Pair-programming commits must list both names in the commit message. --
 
 Reference the repository: [GitHub/GitLab URL]]
 
@@ -341,13 +326,13 @@ The StudyHelper project follows a trunk-based branching model with two long-live
 **CI/CD overview:** Three separate GitHub Actions workflows cover the three main codebases:
 
 - **IoT CI** (`iot-ci.yaml`): triggered on pull requests to `main` and `dev` that modify files under `IOT/`. Runs two sequential jobs: native unit tests compiled with GCC and coverage reporting via lcov, followed by firmware compilation for the ATmega2560 using PlatformIO. A flashable `firmware.hex` artifact is published on every passing build.
-- **MLOps** (`mlops.yaml`): triggered on pull requests to `main` and `dev`. Runs the full `pytest` suite for data pipeline and API tests, verifies that `rf_model.pkl` is present and loadable, and on merge to `main` builds and pushes the `mal-api` Docker image to GHCR.
+- **MLOps** (`mlops.yaml`): triggered on pull requests to `main` and `dev`. Runs the full `pytest` suite for data pipeline and API tests, verifies that `rf_model.pkl` [TODO:update]is present and loadable, and on merge to `main` builds and pushes the `mal-api` Docker image to GHCR.
 - **Frontend CI/CD** (`frontend.yaml`): [Describe the frontend pipeline — what checks run (lint, tests, build) and whether the frontend image is pushed to GHCR on merge.]
 - **Deployment** (`deploy-coolify.yaml`): triggered on pushes to `main`. Sends a webhook to Coolify to redeploy the production stack.
 
 **Container strategy:** All services are containerised. The IoT backend (`api`) uses a multi-stage .NET Dockerfile. The MAL API (`mal-api`) uses a Python Dockerfile that installs dependencies from `requirements.txt` and copies the model artifact. The frontend (`frontend`) uses a Node.js build stage and an Nginx serve stage. The database uses the unmodified `postgres:16-alpine` official image.
 
-**Testing overview:** Unit testing is component-specific. The IoT firmware tests cover the `wifi_http` and `server_api` modules using Unity and FFF, running natively on the CI host. The ML pipeline tests cover data transformation logic and the FastAPI prediction endpoint using pytest. [Describe the frontend test approach — e.g. whether Jest or React Testing Library tests are included in the pipeline.] Integration testing across components is manual, performed by flashing the firmware, running the backend stack locally, and observing end-to-end data flow.
+**Testing overview:** Unit testing is component-specific. The IoT firmware tests cover the `wifi_http` and `server_api` modules using Unity and FFF, running natively on the CI host. The ML pipeline tests cover data transformation logic and the FastAPI prediction endpoint using pytest. [TODO: Describe the frontend test approach — e.g. whether Jest or React Testing Library tests are included in the pipeline.] Integration testing across components is manual, performed by flashing the firmware, running the backend stack locally, and observing end-to-end data flow.
 
 The repository is hosted at [insert GitHub URL]. [Add any tag naming conventions used for releases, e.g. `v1.0.0` semantic versioning tags on `main`.]
 
@@ -732,7 +717,7 @@ The MAL component requires a specialized DevOps approach to manage the lifecycle
 
 The MLOps pipeline is automated via GitHub Actions (`mlops.yaml`) and executes the testing strategy described above on every pull request.
 
-**`test-and-train` Job**
+**`test-and-train` [TODO: maybe change the name because does not inlcude "train"]Job**
 
 The pipeline automates several critical verification steps:
 
