@@ -60,6 +60,7 @@ export default function SessionRating({
     try {
       if (!sessionId) {
         if (allowSuccessOnError && onSuccess) {
+          setMessage("No session found for rating");
           onSuccess();
           return;
         }

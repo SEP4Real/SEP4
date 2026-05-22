@@ -491,6 +491,22 @@
   line-height: 1;
 }
 
+body.dark-theme .rating-modal {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+body.dark-theme .rating-modal-content {
+  background: #242424;
+  border: 1px solid rgba(188, 255, 226, 0.16);
+  border-radius: 18px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+}
+
+body.dark-theme .close-rating-modal {
+  background: #b8ffdf;
+  color: #10251b;
+}
+
 /* ADMIN BUTTONS */
 
 .admin-actions {

@@ -43,8 +43,8 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(result.user));
       window.dispatchEvent(new Event("storage"));
       navigate("/dashboard");
-    } catch {
-      setError(t.loginFailed);
+    } catch (err) {
+      setError(err.message || t.loginFailed);
     }
   }
 

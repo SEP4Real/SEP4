@@ -13,7 +13,6 @@ import {
   CirclePlay,
   Clock3,
   MonitorX,
-  TriangleAlert,
   Thermometer,
   Droplets,
   Fan,
@@ -74,6 +73,9 @@ const placeholderData = [
 const RATING_POPUP_DELAY_MS = 60 * 60 * 1000;
 const DEFAULT_DEVICE_ID = "arduino-device-01";
 
+const getSessionStorageKey = (email) =>
+  email ? `dashboard_session_active:${email}` : null;
+
 const normalizeDashboardRecord = (item = {}) => {
   const predictedStudyQuality =
     item.predictedStudyQuality ?? item.predicted_study_quality ?? 0;
@@ -119,7 +121,12 @@ export default function Dashboard() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const [isSessionActive, setIsSessionActive] = useState(false);
+  const sessionStorageKey = getSessionStorageKey(user?.email);
+  const [isSessionActive, setIsSessionActive] = useState(() => {
+    return sessionStorageKey
+      ? localStorage.getItem(sessionStorageKey) === "true"
+      : false;
+  });
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [ratingSessionId, setRatingSessionId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
@@ -154,6 +161,8 @@ useEffect(() => {
 
       if (!connectedDevice) {
         setHasDevice(false);
+        setIsSessionActive(false);
+        setRatingSessionId(null);
         setDashboardData([]);
         setLoading(false);
         return;
@@ -200,6 +209,14 @@ useEffect(() => {
     };
   }, [isSessionActive]);
 
+  useEffect(() => {
+    if (!sessionStorageKey) {
+      return;
+    }
+
+    localStorage.setItem(sessionStorageKey, String(isSessionActive));
+  }, [isSessionActive, sessionStorageKey]);
+
   const latestData = dashboardData[dashboardData.length - 1];
   const latestMetrics = normalizeDashboardRecord(latestData);
 
@@ -243,18 +260,9 @@ useEffect(() => {
     return (
       <div className="dashboard">
         <EmptyState
-          icon="📡"
           title={t.noDeviceTitle}
           message={t.noDeviceMessage}
         />
-        <h1>{t.dashboard}</h1>
-        <div className="recommendation-card">
-          <p> You don't have any devices connected. Go to Profile for setup</p>
-          <p>
-            <TriangleAlert /> You don't have any devices connected. Go to
-            Profile for setup
-          </p>
-        </div>
       </div>
     );
   }
@@ -263,7 +271,6 @@ useEffect(() => {
     return (
       <div className="dashboard">
         <EmptyState
-          icon="📂"
           title={t.noDashboardDataTitle}
           message={t.noDashboardDataMessage}
         />
@@ -386,6 +393,7 @@ return {
 
             <SessionRating
               submitLabel="Submit rating"
+              allowSuccessOnError
               deviceId={DEFAULT_DEVICE_ID}
               sessionId={ratingSessionId}
               onSuccess={() => {

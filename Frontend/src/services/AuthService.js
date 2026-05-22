@@ -46,7 +46,7 @@ export async function login(data) {
   });
 
   // convert response
-  const result = await response.json();
+  const result = await response.json().catch(() => ({}));
 
   // failed -> error
   if (!response.ok || result.error) {
@@ -62,6 +62,7 @@ export async function logout() {
     credentials: "include",
   });
   localStorage.removeItem("user");
+  localStorage.removeItem("token");
   window.dispatchEvent(new Event("storage"));
 }
 

@@ -39,3 +39,30 @@ export async function updateProfile(profileData) {
 
   return response.json();
 }
+
+export async function updatePassword(passwordData) {
+  const response = await fetch(`${API_URL}/profile/password`, {
+    method: "PUT",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(passwordData),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let message = errorText;
+
+    try {
+      const error = JSON.parse(errorText);
+      message = error?.detail || message;
+    } catch {
+      message = errorText;
+    }
+
+    throw new Error(message || "Failed to update password");
+  }
+
+  return response.json();
+}

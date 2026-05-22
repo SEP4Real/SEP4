@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from passlib.context import CryptContext
 from app.database import get_db
 from app.security import get_current_user
 
 router = APIRouter()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UpdateProfileRequest(BaseModel):
     university: str | None = None
@@ -15,6 +17,10 @@ class UpdateProfileRequest(BaseModel):
     preferred_co2: int | None = None
 
     profile_picture: str | None = None
+
+class UpdatePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 @router.get("/profile")
 async def get_profile(
@@ -89,4 +95,34 @@ async def update_profile(
 
     return {
         "message": "Profile updated successfully"
+    }
+
+@router.put("/profile/password")
+async def update_password(
+    data: UpdatePasswordRequest,
+    current_user=Depends(get_current_user),
+    db=Depends(get_db)
+):
+    if len(data.new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password too short")
+
+    if not pwd_context.verify(data.current_password, current_user["password"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+
+    hashed_password = pwd_context.hash(data.new_password)
+
+    async with db.cursor() as cur:
+        await cur.execute(
+            """
+            UPDATE users
+            SET password = %s
+            WHERE id = %s
+            """,
+            (hashed_password, current_user["id"])
+        )
+
+    await db.commit()
+
+    return {
+        "message": "Password changed successfully"
     }
