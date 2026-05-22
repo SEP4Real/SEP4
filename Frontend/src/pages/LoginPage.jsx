@@ -36,7 +36,12 @@ export default function LoginPage() {
     try {
       const result = await login(form);
       console.log(result);
+      if (!result.user) {
+        throw new Error("Missing login data");
+      }
+
       localStorage.setItem("user", JSON.stringify(result.user));
+      window.dispatchEvent(new Event("storage"));
       navigate("/dashboard");
     } catch {
       setError(t.loginFailed);

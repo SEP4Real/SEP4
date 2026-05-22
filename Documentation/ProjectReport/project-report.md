@@ -340,7 +340,7 @@ A significant challenge was merging disparate datasets, which often resulted in 
 
 Rather than using simple means or linear regression, we adopted a cluster-based approach:
 
-1. **Room TypeTODO Clustering**: We used k-means clustering to group data points into "room typesTODO" based on features that were fully present (Temperature, CO2, Humidity). This accounts for different physical environments (e.g., sun-exposed rooms vs. windowless labs) where sensor correlations might differ.
+1. **Environment Type Clustering**: We used k-means clustering to group data points into "environment types" based on features that were fully present (Temperature, CO2, Humidity). This accounts for different physical environments (e.g., sun-exposed sessions vs. windowless labs sessions) where sensor correlations might differ.
 2. **ExtraTrees Estimator**: Within the MICE framework, we utilized an ExtraTrees estimator to model non-linear relationships.
 3. **Variance Preservation**: We modified the imputation logic to include natural distribution variance based on the average standard deviation from the trees, preventing the "flat average" effect.
 
@@ -547,45 +547,49 @@ No automated integration testing was implemented, as the hardware constraints di
 [How was responsive behaviour verified at the three required breakpoints
 (576px, 768px, 1200px)? Include screenshots if helpful.]
 
-## 3.13 Machine Learning DevOps (MLOps)
+## 3.13 Machine Learning Tests and DevOps (MLOps)
 
 *Authors: [Piotr, Name]*
 
-<!-- DevOps checklist for MAL:
-     1. General MLOps considerations
-     2. Tools and Pipeline (mlops.yaml)
-     3. Integration into workflow
-     4. Outcomes and Evaluation -->
+### 3.13.1 Machine Learning Testing Strategy TODO: update after the py-cov
 
-### 3.13.1 MLOps Considerations
+The Machine Learning and API (MAL) component is verified through a multi-layered testing strategy that ensures both the data processing logic and the serving infrastructure are robust.
 
-The Machine Learning and API (MAL) component requires a specialized DevOps approach, often referred to as MLOps. The primary challenge is ensuring that the FastAPI backend is always served with a valid, high-performing model artifact and that changes to the data processing logic or model architecture do not break the API contract. Unlike traditional software, the "build" artifact in MLOps includes both the code and the serialized model weights.
+**Data Pipeline Testing**
+We implemented unit and integration tests for the data transformation logic (e.g., `test_build_unified_environment_dataset.py`). These tests verify:
 
-### 3.13.2 Tools and Pipeline
+- **Merging Logic**: Ensuring that disparate datasets (IoT sensor logs, study ratings, and environmental history) are correctly joined on time-series keys.
+- **Preprocessing Correctness**: Validating that the MICE imputation and k-means clustering logic produce consistent outputs without introducing data leakage.
+- **Schema Validation**: Ensuring the final processed dataset matches the input requirements of the Random Forest model.
 
-The MLOps pipeline is implemented using GitHub Actions (`mlops.yaml`). It is triggered by changes to the `MAL/` directory or the core datasets used for training.
+**API and Model Serving Testing**
+To verify the serving layer, we use `pytest` (e.g., `test_prediction_api.py`) to test the FastAPI endpoints. These tests serve as integration checks that:
+
+- **Endpoint Availability**: Confirm the `/predict` and health check endpoints respond correctly.
+- **Model Loading**: Verify the `rf_model.pkl` artifact is correctly loaded and can produce predictions.
+- **Input Validation**: Test the API's resilience to malformed or out-of-range sensor data.
+- **Inference Correctness**: Validate that the prediction output matches the expected schema and logical bounds of the Study Suitability Rating.
+
+### 3.13.2 MLOps Considerations
+
+The MAL component requires a specialized DevOps approach to manage the lifecycle of both code and serialized model weights. The primary challenge is ensuring that changes to the data processing logic in `ml_pipeline/` are always compatible with the model artifact committed in `models/`. Unlike traditional software, the "build" artifact in MLOps includes both the code and the serialized model weights (`rf_model.pkl`).
+
+### 3.13.3 Tools and Pipeline
+
+The MLOps pipeline is automated via GitHub Actions (`mlops.yaml`) and executes the testing strategy described above on every pull request.
 
 **`test-and-train` Job**
 
 The pipeline automates several critical verification steps:
 
-1. **Environment Setup**: Python 3.10 is configured with cached dependencies from `requirements.txt`.
-2. **Database Service**: A PostgreSQL container is spun up as a sidecar service to provide a realistic environment for integration testing.
-3. **Model Verification**: The pipeline explicitly checks for the presence of the trained model artifact (`rf_model.pkl`). This enforces a workflow where models are trained locally or in dedicated environments and then committed as versioned artifacts. TODO: after we implement the manual training triggering pipeline this should be updated (or all this paragraph basically))
-4. **API Integration Testing**:
-   * The FastAPI service is started within the CI runner.
-   * `pytest` is used to run integration tests against the live endpoint (e.g., `test_prediction_api.py`), ensuring the model correctly processes requests and returns predictions in the expected schema.
-5. **Containerization and CD**:
-   * On successful merges to `main`, the pipeline builds a Docker image for the MAL service.
-   * The image, containing the code and the validated model artifact, is pushed to the GitHub Container Registry (GHCR).
-
-### 3.13.3 Integration into Workflow
-
-The MLOps pipeline acts as a quality gate for all MAL-related changes. Pull requests are required to pass the API integration tests and model verification steps before they can be merged. This ensures that any change to the preprocessing logic (in `ml_pipeline/`) is immediately verified against the prediction API.
+1. **Environment Setup**: Python 3.10 is configured with dependencies, using a PostgreSQL sidecar for realistic data integration checks.
+2. **Automated Verification**: The pipeline runs the full `pytest` suite, including the data pipeline and API tests. This ensures that no code change breaks the existing model's ability to serve predictions.
+3. **Model Artifact Integrity**: The workflow explicitly fails if the `rf_model.pkl` is missing or corrupted, preventing "empty" deployments.
+4. **Containerized Continuous Delivery**: On successful validation and merge to `main`, the pipeline builds a Docker image (`mal-api`) and pushes it to the GitHub Container Registry (GHCR).
 
 ### 3.13.4 Outcomes and Evaluation
 
-The automated pipeline significantly reduced the risk of deploying "broken" models or incompatible API changes. By verifying the model artifact at build time and running live integration tests with a real database service, we achieved a high level of confidence in the MAL component's reliability. The use of Docker images for deployment ensures that the exact environment used during CI is replicated in production.
+This integrated Testing and MLOps approach significantly reduced deployment risks. By coupling data transformation tests with live API integration checks, we ensured that the entire pipeline—from raw data to study suitability prediction—is verifiable and reproducible. The use of Docker images for deployment ensures that the exact environment used during CI is replicated in production.
 
 # 4. Results and Discussion
 

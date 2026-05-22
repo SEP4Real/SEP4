@@ -7,7 +7,28 @@ on:
       - dev
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for API changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          token: ''
+          base: ${{ github.base_ref }}
+          filters: |
+            api:
+              - 'API/**'
+
   api-test:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     env:
       DB_HOST: localhost
@@ -20,39 +41,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check for API changes
-        uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          base: ${{ github.base_ref }}
-          filters: |
-            iot:
-              - 'IOT/**'
 
       - name: Set up Python
-        if: steps.changes.outputs.api == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install dependencies
-        if: steps.changes.outputs.api == 'true'
         working-directory: API
         run: |
           pip install -r requirements.txt
           pip install pytest pytest-cov pytest-asyncio httpx passlib[bcrypt] python-jose
 
       - name: Run tests with coverage
-        if: steps.changes.outputs.api == 'true'
         working-directory: API
         run: |
           pytest tests/ --cov=app --cov-report=term-missing --cov-report=html
 
       - name: Upload coverage report
-        if: steps.changes.outputs.api == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report

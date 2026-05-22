@@ -52,7 +52,6 @@ export async function login(data) {
   if (!response.ok || result.error) {
     throw new Error(result.detail || result.error || "Invalid credentials");
   }
-  window.dispatchEvent(new Event("storage"));
 
   return result;
 }
