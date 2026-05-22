@@ -6,6 +6,7 @@ import { getProfile, updateProfile } from "../services/ProfileService";
 import { logout } from "../services/AuthService";
 import "./Profile.css";
 import SessionRating from "../components/SessionRating";
+import { useLanguage } from "../context/LanguageContext";
 import {
   Eye,
   EyeOff,
@@ -31,6 +32,7 @@ const readUser = () => {
     return null;
   }
 };
+const { t } = useLanguage();
 
 const DEFAULT_DEVICE_ID = "arduino-device-01";
 
@@ -170,17 +172,17 @@ const Profile = () => {
       });
 
       setIsEditing(false);
-      alert("Information has been saved!");
+      alert(t.profileSaved);
     } catch (e) {
       console.error(e);
-      alert("Failed to save profile");
+      alert(t.profileSaveFailed);
     }
   };
 
   const handleConnectDevice = async () => {
     const id = deviceId.trim();
     if (!id) {
-      alert("Please enter an ID");
+      alert(t.profileSaveFailed);
       return;
     }
 
@@ -198,7 +200,7 @@ const Profile = () => {
     );
 
     if (alreadyConnected) {
-      alert("This device is already connected to your account!");
+      alert(t.deviceAlreadyConnected);
       return;
     }
 
@@ -207,7 +209,7 @@ const Profile = () => {
     setConnectedDeviceId(id);
     setDeviceId(id);
     window.dispatchEvent(new Event("storage"));
-    alert("Device " + id + " connected to your account!");
+   alert(`${t.deviceConnected} ${id}`);
   };
 
   const handleUpdatePassword = () => {
@@ -216,22 +218,22 @@ const Profile = () => {
     const allUsers = JSON.parse(localStorage.getItem("users")) || [];
 
     if (!storedUser) {
-      alert("You are not logged in! Please log in again.");
+      alert(t.notLoggedIn);
       return;
     }
 
     if (!storedUser.password) {
-      alert("Password updates are not available yet.");
+      alert(t.passwordNotAvailable);
       return;
     }
 
     if (storedUser.password !== current) {
-      alert("Current password is incorrect!");
+      alert(t.currentPasswordIncorrect);
       return;
     }
 
     if (next.length < 8) {
-      alert("New password too short!");
+      alert(t.newPasswordTooShort);
       return;
     }
 
@@ -244,7 +246,7 @@ const Profile = () => {
       localStorage.setItem("users", JSON.stringify(allUsers));
     }
 
-    alert("Password changed successfully!");
+    alert(t.passwordChanged);
     setPasswordForm({ current: "", next: "" });
   };
 
@@ -254,17 +256,17 @@ const Profile = () => {
     const email = forgotPasswordForm.email.trim().toLowerCase();
 
     if (!storedUser) {
-      alert("You are not logged in! Please log in again.");
+      alert(t.notLoggedIn);
       return;
     }
 
     if (email !== storedUser.email?.toLowerCase()) {
-      alert("The email does not match your current account.");
+      alert(t.emailDoesNotMatch);
       return;
     }
 
     if (forgotPasswordForm.next.length < 8) {
-      alert("New password too short!");
+      alert(t.newPasswordTooShort);
       return;
     }
 
@@ -279,7 +281,7 @@ const Profile = () => {
       localStorage.setItem("users", JSON.stringify(allUsers));
     }
 
-    alert("Password reset successfully!");
+    alert(t.passwordResetSuccess);
     setForgotPasswordForm({ email: storedUser.email || "", next: "" });
     setShowForgotPassword(false);
   };
@@ -311,13 +313,13 @@ const Profile = () => {
   return (
     <div className="profile-page-container">
       <div className="profile-card-wrapper">
-        <h1>User Profile</h1>
-        <h1>Welcome, {user?.name}</h1>
+        <h1>{t.profileTitle}</h1>
+<h1>{t.welcome}, {user?.name}</h1>
 
         <div className="completion-container">
           <div className="completion-text">
             <span>
-              <UserRoundPen size={18} /> Profile Completion
+              <UserRoundPen size={18} /> {t.profileCompletion}
             </span>
             <strong>{calculateProgress()}%</strong>
           </div>
@@ -341,7 +343,7 @@ const Profile = () => {
               </div>
               <label className="upload-label">
                 <span>
-                  <ImageUp size={16} /> Change Photo
+                  <ImageUp size={16} /> {t.changePhoto}
                 </span>
                 <input type="file" onChange={handleImageChange} hidden />
               </label>
@@ -354,7 +356,7 @@ const Profile = () => {
                   className="logout-btn-top"
                   onClick={() => setShowRatingModal(true)}
                 >
-                  <LogOut size={16} /> Logout
+                 <LogOut size={16} /> {t.logout}
                 </button>
               </div>
 
@@ -362,7 +364,7 @@ const Profile = () => {
 
               <div className="student-details-grid">
                 <div className="detail-item">
-                  <span>University:</span>
+                  <span>{t.university}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.university}
@@ -374,11 +376,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.university || "Not set"}</strong>
+                    <strong>{studentInfo.university || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Program:</span>
+                  <span>{t.program}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.StudyProgram}
@@ -390,11 +392,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.StudyProgram || "Not set"}</strong>
+                    <strong>{studentInfo.StudyProgram || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Year:</span>
+                  <span>{t.year}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.year}
@@ -403,11 +405,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.year || "Not set"}</strong>
+                    <strong>{studentInfo.year || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Goal:</span>
+                  <span>{t.goal}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.goal}
@@ -416,7 +418,7 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.goal || "Not set"}</strong>
+                    <strong>{studentInfo.goal || t.notSet}</strong>
                   )}
                 </div>
               </div>
@@ -424,14 +426,14 @@ const Profile = () => {
               <div className="header-action-btns">
                 {isEditing ? (
                   <button className="update-btn-full" onClick={handleSaveStudent}>
-                    Save Changes
+                    {t.saveChanges}
                   </button>
                 ) : (
                   <button
                     className="update-btn-full"
                     onClick={() => setIsEditing(true)}
                   >
-                    Edit Profile
+                    {t.editProfile}
                   </button>
                 )}
               </div>
@@ -442,10 +444,10 @@ const Profile = () => {
         <div className="profile-row-grid">
           <div className="profile-section">
             <h3>
-              <UserRoundKey size={18} /> Password & Security
+              <UserRoundKey size={18} /> {t.passwordSecurity}
             </h3>
             <div className="setting-row">
-              <span className="setting-label">Current:</span>
+              <span className="setting-label">{t.currentPassword}:</span>
               <div className="password-input-wrapper">
                 <input
                   type={showCurrentPassword ? "text" : "password"}
@@ -468,7 +470,7 @@ const Profile = () => {
               </div>
             </div>
             <div className="setting-row">
-              <span className="setting-label">New:</span>
+              <span className="setting-label">{t.newPassword}:</span>
               <div className="password-input-wrapper">
                 <input
                   type={showNextPassword ? "text" : "password"}
@@ -488,7 +490,7 @@ const Profile = () => {
               </div>
             </div>
             <button className="update-btn-full" onClick={handleUpdatePassword}>
-              Update Password
+              {t.updatePassword}
             </button>
 
             <button
@@ -496,17 +498,16 @@ const Profile = () => {
               className="forgot-password-toggle"
               onClick={() => setShowForgotPassword(!showForgotPassword)}
             >
-              Forgot password?
+           {t.forgotPassword}
             </button>
 
             {showForgotPassword && (
               <div className="forgot-password-box">
                 <p>
-                  Reset your password by confirming the email connected to this
-                  profile.
+                 {t.resetPasswordInfo}
                 </p>
                 <div className="setting-row">
-                  <span className="setting-label">Email:</span>
+                  <span className="setting-label">{t.email}:</span>
                   <input
                     type="email"
                     value={forgotPasswordForm.email}
@@ -520,7 +521,7 @@ const Profile = () => {
                   />
                 </div>
                 <div className="setting-row">
-                  <span className="setting-label">New:</span>
+                  <span className="setting-label">{t.new}:</span>
                   <div className="password-input-wrapper">
                     <input
                       type={showForgotNextPassword ? "text" : "password"}
@@ -552,7 +553,7 @@ const Profile = () => {
                   className="update-btn-full reset-password-btn"
                   onClick={handleForgotPasswordReset}
                 >
-                  Reset Password
+                  {t.resetPassword}
                 </button>
               </div>
             )}
@@ -560,15 +561,14 @@ const Profile = () => {
 
           <div className="profile-section">
             <h3>
-              <Unplug size={18} /> Connect Device
-            </h3>
+              <Unplug size={18} /> {t.connectDevice}</h3>
             {connectedDeviceId && (
               <p className="connected-device-status">
-                Connected device: <strong>{connectedDeviceId}</strong>
+                {t.connectedDevice}:<strong>{connectedDeviceId}</strong>
               </p>
             )}
             <div className="setting-row">
-              <span>Device ID:</span>
+              <span>{t.deviceId}:</span>
               <input
                 type="text"
                 value={deviceId}
@@ -579,20 +579,20 @@ const Profile = () => {
               />
             </div>
             <button className="update-btn-full" onClick={handleConnectDevice}>
-              {connectedDeviceId ? "Save Device" : "Connect Now"}
+              {connectedDeviceId  ? t.saveDevice  : t.connectNow}
             </button>
           </div>
         </div>
 
           <div className="profile-section">
             <h3>
-              <History size={18} /> History (Last 3)
+              <History size={18} /> {t.quickHistory}
             </h3>
             <table className="history-table-compact">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Temp</th>
+                  <th>{t.date}</th>
+                  <th>{t.temp}</th>
                   <th>CO2</th>
                 </tr>
               </thead>
