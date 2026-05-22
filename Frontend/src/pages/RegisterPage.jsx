@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { register, login } from "../services/AuthService";
 import "../index.css";
 import "./RegisterPage.css";
@@ -15,6 +16,7 @@ export default function RegisterPage() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -77,12 +79,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="page">
-      <div className="card">
+    <div className="register-page">
+      <div className="register-auth-content">
         <h1>{t.hi}</h1>
         <h2>{t.registerTitle}</h2>
 
-        <form onSubmit={handleSubmit} className="form">
+        <form onSubmit={handleSubmit} className="register-form">
           <label>
             {t.name}:
             <input name="name" value={form.name} onChange={handleChange} />
@@ -98,16 +100,6 @@ export default function RegisterPage() {
           </label>
 
           <label>
-            {t.password}:
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-            />
-          </label>
-
-          <label>
             {t.email}:
             <input
               name="email"
@@ -117,6 +109,26 @@ export default function RegisterPage() {
             />
           </label>
 
+          <label>
+            {t.password}:
+            <div className="auth-password-wrapper">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? t.hidePassword : t.showPassword}
+              >
+                {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+              </button>
+            </div>
+          </label>
+
         
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
@@ -124,7 +136,7 @@ export default function RegisterPage() {
           <button type="submit">{t.register}</button>
 
           <p className="auth-link">
-            {t.alredyHaveAccount} <Link to="/login">{t.login}</Link>
+            {t.alreadyHaveAccount} <Link to="/login">{t.goToLogin}</Link>
           </p>
         </form>
       </div>

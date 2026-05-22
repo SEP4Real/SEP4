@@ -12,6 +12,14 @@ import {
   deleteCalendarEvent
 } from "../services/CalendarService";
 
+const formatLocalDateTime = (date) => {
+  if (!date) {
+    return null;
+  }
+
+  return date.toLocaleString("sv-SE").replace(" ", "T");
+};
+
 const CalendarPage = () => {
 
   const { t, language } = useLanguage();
@@ -102,8 +110,8 @@ const CalendarPage = () => {
       {
         title,
         note,
-        start_time: selectedEvent.start.toLocaleString("sv-SE").replace(" ", "T"),
-        end_time: selectedEvent.end.toLocaleString("sv-SE").replace(" ", "T"),
+        start_time: formatLocalDateTime(selectedEvent.start),
+        end_time: formatLocalDateTime(selectedEvent.end),
         all_day: selectedEvent.allDay
       }
     );
@@ -138,8 +146,8 @@ const CalendarPage = () => {
           const createdEvent = await createCalendarEvent({
             title,
             note,
-            start_time: timeInfo.startStr,
-            end_time: timeInfo.endStr,
+            start_time: formatLocalDateTime(timeInfo.start),
+            end_time: formatLocalDateTime(timeInfo.end),
             all_day: timeInfo.allDay
           });
 
