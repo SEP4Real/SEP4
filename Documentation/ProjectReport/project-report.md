@@ -53,7 +53,7 @@ paragraph that lets a reader decide whether to read further.]
 
 [TODO: each team check and adjust sentences about their parts of the system so its 100% correct]
 
-StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data as well as user study comfort rating; and a React web frontend that presents live readings, historical trends, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every thirty seconds and keepalive pulses every five seconds. The machine learning model [TODO: update after making the final model] - a Random Forest classifier trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
+StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical trends, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every thirty seconds and keepalive pulses every five seconds. The machine learning model [TODO: update after making the final model] - a Random Forest classifier trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
 
 # 1. Introduction
 
@@ -127,9 +127,9 @@ The StudyHelper system is scoped to a single physical IoT device deployed within
 
 **Automation:** The system provides predictive guidance but does not automate any physical actuators beyond the onboard buzzer alert triggered when the predicted study quality rating reaches the lowest level. Full HVAC or lighting automation is explicitly out of scope.
 
-**User model:** The system supports a single user role - the student - who can start and stop sessions via the physical button on the device and submit a post-session quality rating through the frontend. Teacher-specific dashboards and administrator views are out of scope.
+**User model:** The system supports a user roles such as student who can start and stop sessions via the physical button on the device and submit a post-session quality rating through the frontend, and a teacher who assesses whether conditions are suitable for teaching. Administrator views are out of scope.
 
-**Privacy and data collection:** Only environmental sensor readings and session metadata are stored. No audio recordings, video, or personally identifiable information are collected. The use of dB-level sound measurement, if implemented, would fall within the agreed data-privacy boundaries.
+**Privacy and data collection:** The system stores environmental sensor readings and session lifecycle metadata. In addition, user accounts are stored, including name, last name, email address, and a hashed password, as well as optional profile fields such as university, study programme, study year, study goal, preferred environmental thresholds, and a profile picture reference. Post-session ratings submitted by users are also persisted, along with an optional free-text comment. No audio recordings or video are collected. All personally identifiable data is linked to a user account and is subject to standard data protection considerations; password storage uses hashing via the `pgcrypto` extension.
 
 **Medical and psychological analysis:** The system does not attempt to measure or infer physiological state, stress levels, or cognitive load directly. The Study Suitability Rating is an environmental proxy, not a clinical assessment.
 
@@ -140,15 +140,15 @@ The StudyHelper system is scoped to a single physical IoT device deployed within
 [Survey existing IoT, ML, and web solutions relevant to your domain. Cite with APA.
 How does your system differ from or build on existing approaches?]
 
-A growing body of research has examined the relationship between indoor environmental quality (IEQ) and cognitive performance. Bustamante-Mora et al. (2025) conducted a case study in university environments demonstrating that temperature and CO₂ levels correlate with measurable changes in student concentration and learning outcomes. Their findings motivate the sensor selection in this project, specifically the inclusion of CO₂ as a key environmental indicator alongside temperature and humidity.
+A growing body of research has examined the relationship between indoor environmental quality (IEQ) and cognitive performance. Bustamante-Mora et al. (2025)[TODO: add reference] conducted a case study in university environments demonstrating that temperature and CO₂ levels correlate with measurable changes in student concentration and learning outcomes. Their findings motivate the sensor selection in this project, specifically the inclusion of CO₂ as a key environmental indicator alongside temperature and humidity.
 
 IoT-based classroom monitoring systems have been explored in several contexts. [Cite one or two relevant prior IoT classroom studies here, e.g. systems based on Raspberry Pi or Arduino platforms.] These systems typically focus on data logging and threshold-based alerting rather than predictive modelling, which is the distinguishing contribution of the StudyHelper approach.
 
-In the domain of machine learning for indoor environment prediction, [cite relevant ML papers on predicting thermal comfort or cognitive performance from environmental data]. The use of ensemble methods such as Random Forest for environmental classification has been validated in comparable contexts and supports the model choice made in this project.
+In the domain of machine learning for indoor environment prediction, [cite relevant ML papers on predicting thermal comfort or cognitive performance from environmental data]. The use of ensemble methods such as Random Forest[TODO: update after final model choice] for environmental classification has been validated in comparable contexts and supports the model choice made in this project.
 
 On the frontend side, React-based dashboards for IoT data visualisation are a well-established pattern. [Reference any relevant existing open-source dashboards or comparable student-facing tools.]
 
-StudyHelper differs from prior work in its end-to-end integration: rather than treating sensing, prediction, and presentation as separate research artefacts, the project combines all three within a single deployable system. The use of a user-provided post-session rating as the supervised learning target — rather than a physiologically measured focus indicator — is a pragmatic design choice that makes the system trainable without invasive data collection, and represents a novel framing of the suitability prediction problem.
+StudyHelper differs from prior work in its end-to-end integration: rather than treating sensing, prediction, and presentation as separate research artefacts, the project combines all three within a single deployable system. The use of a user-provided post-session rating as the supervised learning target - rather than a physiologically measured focus indicator - is a pragmatic design choice that makes the system trainable without invasive data collection, and represents a novel framing of the suitability prediction problem.
 
 [This section should be expanded with full APA citations before submission. The references listed here are indicative placeholders.]
 
@@ -171,7 +171,7 @@ Reference the domain model diagram:]
 [Walk through the most important entities and associations.
 Justify the key modelling decisions.]
 
-The domain model captures the core concepts of the StudyHelper system and the relationships between them. The central entity is the **StudyEnvironment**, which represents the physical room or space being monitored. A StudyEnvironment has measurable attributes — temperature, humidity, CO₂ level, light level, and noise level — as well as derived attributes: a current suitability level and a predicted suitability level with an associated trend direction.
+The domain model captures the core concepts of the StudyHelper system and the relationships between them. The central entity is the **StudyEnvironment**, which represents the physical room or space being monitored. A StudyEnvironment has measurable attributes - temperature, humidity, CO₂ level, light level, and noise level [TODO: remove noise level or not depending on the choice] - as well as derived attributes: a current suitability level and a predicted suitability level with an associated trend direction.
 
 Two actors interact with the StudyEnvironment: the **Student**, who monitors conditions to decide whether to begin or continue a study session, and the **Teacher**, who assesses whether conditions are suitable for teaching. Both actors share a common monitoring relationship with the StudyEnvironment; however, only the Student can submit a session rating, which feeds back into the ML training pipeline.
 
@@ -184,13 +184,9 @@ The key modelling decision is the separation of the session concept from the raw
 ## 2.2 User Stories
 
 <!-- Present ALL user stories as a single shared backlog.
-     Format: "As a [role], I want to [action], so that [benefit]." -->
+     Format: "As a [role], I want to [action], so that [benefit]." --
 
-| ID   | User Story                                          | Priority  | Component   |
-| :--- | :-------------------------------------------------- | :-------- | :---------- |
-| US01 | As a [user], I want to [action], so that [benefit]. | Must have | IoT / Cloud |
-| US02 | As a [user], I want to [action], so that [benefit]. | Should    | Frontend    |
-| US03 | As a [user], I want to [action], so that [benefit]. | Could     | ML          |
+
 
 The following user stories were derived from the use cases defined in the project analysis and reflect the agreed shared backlog across all three sub-teams:
 
@@ -211,12 +207,7 @@ The following user stories were derived from the use cases defined in the projec
 [Derive functional and non-functional requirements from the user stories.
 Cross-cutting requirements (security, DevOps, performance) belong here.]
 
-| ID    | Requirement Description                                   | Type           | Source   |
-| :---- | :-------------------------------------------------------- | :------------- | :------- |
-| FR01  | [Functional requirement]                                  | Functional     | US01     |
-| NFR01 | IoT–cloud communication shall be encrypted.              | Non-functional | Security |
-| NFR02 | The frontend shall be responsive at 576px, 768px, 1200px. | Non-functional | US02     |
-| NFR03 | The system shall be deployed using containers.            | Non-functional | DevOps   |
+
 
 The following requirements were derived from the user stories and supplemented by cross-cutting concerns identified during analysis:
 
@@ -225,11 +216,11 @@ The following requirements were derived from the user stories and supplemented b
 | FR01  | The IoT device shall measure temperature (°C), humidity (%), CO₂ (ppm), and light level (raw ADC), and transmit a JSON payload to the backend API at intervals not exceeding 60 seconds during an active session. | Functional     | US01, US05  |
 | FR02  | The backend shall persist sensor readings, device identities, and session records in a PostgreSQL database.                                                                                                         | Functional     | US01, US03  |
 | FR03  | The backend API shall expose endpoints for device registration (`POST /device`), session management (`POST /session`, `PATCH /session/{id}/pulse`), and data submission (`POST /data`).                     | Functional     | US01, US05  |
-| FR04  | The ML service shall expose a `POST /predict` endpoint accepting temperature window features and returning an integer Study Suitability Rating between 1 and 5.                                                   | Functional     | US01, US06  |
+| FR04  | The ML service shall expose a `POST /predict` endpoint returning an integer Study Suitability Rating between 1 and 5.                                                                                            | Functional     | US01, US06  |
 | FR05  | The frontend shall display the current sensor readings, the ML-predicted suitability rating, and a time-series chart of historical readings for the active session.                                                 | Functional     | US01, US03  |
 | FR06  | The frontend shall allow a student to submit a post-session quality rating, which is stored against the session record.                                                                                             | Functional     | US02        |
 | FR07  | The IoT device shall sound the onboard buzzer when the predicted study quality returned by the server reaches level 1 (lowest).                                                                                     | Functional     | US04        |
-| NFR01 | IoT–cloud communication shall be protected against eavesdropping; [specify TLS, AES, or other mechanism].                                                                                                          | Non-functional | Security    |
+| NFR01 | IoT-cloud communication shall be protected against eavesdropping; [specify TLS, AES, or other mechanism].                                                                                                           | Non-functional | Security    |
 | NFR02 | The frontend shall render correctly and remain usable at viewport widths of 576 px, 768 px, and 1200 px.                                                                                                            | Non-functional | US07        |
 | NFR03 | All backend services and the frontend shall be packaged as Docker containers and deployed via `docker-compose`.                                                                                                   | Non-functional | DevOps      |
 | NFR04 | The IoT CI/CD pipeline shall compile the firmware for the ATmega2560 target and execute unit tests on every pull request targeting `main` or `dev`.                                                             | Non-functional | DevOps      |
@@ -245,15 +236,15 @@ Show the messages exchanged between IoT device, cloud, ML pipeline, and frontend
 
 <!-- ![SSD: [Use Case Name]](../../Documentation/Analysis/ssds/ssd_use_case.svg) -->
 
-Two system sequence diagrams capture the primary interaction flows in the StudyHelper system.
+Two system sequence diagrams capture the primary interaction flows in the StudyHelper system.[TODO: create 2 SSD for example those and change the description]
 
-**SSD 1 — Study Session Lifecycle (IoT-initiated)**
+**SSD 1 - Study Session Lifecycle (IoT-initiated)**
 
-When the student presses Button 1 on the device, the firmware sends `POST /device` to register the device identifier, then `POST /session` to create a new active session. The backend persists both records and returns a session ID, which the firmware stores in memory. During the session, the firmware fires two software timers: a five-second pulse timer and a thirty-second data timer. On each pulse, the firmware sends `PATCH /session/{id}/pulse` so the backend can detect abandoned sessions. On each data tick, the firmware reads all sensors and sends `POST /data` with a JSON payload containing temperature, humidity, light level, and CO₂. The backend stores the reading and may return a `study_quality` field in the response; if the value is 1 (worst), the firmware triggers the buzzer. When Button 1 is pressed again, the session is closed locally by clearing the session ID, and no further pulses or data are sent.
+*When the student presses Button 1 on the device, the firmware sends `POST /device` to register the device identifier, then `POST /session` to create a new active session. The backend persists both records and returns a session ID, which the firmware stores in memory. During the session, the firmware fires two software timers: a five-second pulse timer and a thirty-second data timer. On each pulse, the firmware sends `PATCH /session/{id}/pulse` so the backend can detect abandoned sessions. On each data tick, the firmware reads all sensors and sends `POST /data` with a JSON payload containing temperature, humidity, light level, and CO₂. The backend stores the reading and may return a `study_quality` field in the response; if the value is 1 (worst), the firmware triggers the buzzer. When Button 1 is pressed again, the session is closed locally by clearing the session ID, and no further pulses or data are sent.*
 
-**SSD 2 — Frontend Condition Overview and Prediction (frontend-initiated)**
+**SSD 2 - Frontend Condition Overview and Prediction (frontend-initiated)**
 
-The student opens the web application and the React frontend issues `GET /data` to the IoT backend to retrieve the most recent sensor readings. It then issues `POST /predict` to the MAL FastAPI service, passing the current and windowed temperature values. The MAL service loads the trained Random Forest model and returns a predicted Study Suitability Rating as a JSON integer. The frontend renders the readings and the rating on the dashboard. This cycle repeats at a configurable polling interval, defaulting to once per minute to match the IoT transmission cadence.
+*The student opens the web application and the React frontend issues `GET /data` to the IoT backend to retrieve the most recent sensor readings. It then issues `POST /predict` to the MAL FastAPI service, passing the current and windowed temperature values. The MAL service loads the trained Random Forest model and returns a predicted Study Suitability Rating as a JSON integer. The frontend renders the readings and the rating on the dashboard. This cycle repeats at a configurable polling interval, defaulting to once per minute to match the IoT transmission cadence.*
 
 [Reference the SSD diagram files in the `Documentation/Analysis/ssds/` directory once they are exported to SVG. If additional SSDs were created for post-session rating submission or for the Teacher condition overview, add them here.]
 
@@ -289,7 +280,7 @@ The React frontend is a static single-page application served by Nginx inside a 
 
 Data flows through the system as follows: the IoT device pushes a sensor payload to the IoT backend every thirty seconds; the backend persists the reading; the frontend polls the backend for the latest readings and simultaneously requests a prediction from the MAL API; the MAL API queries the stored session data, computes feature windows, and returns a rating; the frontend renders the result.
 
-[Insert the architecture diagram reference here once the SVG is available. Also confirm whether the `iot-api` service in the deployed docker-compose corresponds to the ASP.NET Core backend in `API/` rather than `IOT_backend/`, as the latter appears to contain only compiled output directories.]
+[TODO: Insert the architecture diagram reference here once the SVG is available. Also confirm whether the `iot-api` service in the deployed docker-compose corresponds to the ASP.NET Core backend in `API/` rather than `IOT_backend/`, as the latter appears to contain only compiled output directories.]
 
 ### 3.1.2 Cloud Architecture
 
