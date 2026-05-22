@@ -5,6 +5,7 @@ import { getProfile, updatePassword, updateProfile } from "../services/ProfileSe
 import { logout } from "../services/AuthService";
 import "./Profile.css";
 import SessionRating from "../components/SessionRating";
+import { useLanguage } from "../context/LanguageContext";
 import {
   Eye,
   EyeOff,
@@ -33,6 +34,7 @@ const readUser = () => {
 const DEFAULT_DEVICE_ID = "arduino-device-01";
 
 const Profile = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const userData = localStorage.getItem("user");
   const user = readUser();
@@ -131,17 +133,17 @@ const Profile = () => {
       await saveProfile();
 
       setIsEditing(false);
-      alert("Information has been saved!");
+      alert(t.profileSaved);
     } catch (e) {
       console.error(e);
-      alert(e.message || "Failed to save profile");
+      alert(e.message || t.profileSaveFailed);
     }
   };
 
   const handleConnectDevice = async () => {
     const id = deviceId.trim();
     if (!id) {
-      alert("Please enter an ID");
+      alert(t.profileSaveFailed);
       return;
     }
 
@@ -164,7 +166,7 @@ const Profile = () => {
     setConnectedDeviceId(id);
     setDeviceId(id);
     window.dispatchEvent(new Event("storage"));
-    alert("Device " + id + " connected to your account!");
+   alert(`${t.deviceConnected} ${id}`);
   };
 
   const saveProfile = async (profilePic = studentInfo.profilePic) => {
@@ -183,17 +185,17 @@ const Profile = () => {
     const { current, next, confirmNext } = passwordForm;
 
     if (!current || !next || !confirmNext) {
-      alert("Please fill in all password fields.");
+      alert(t.fillPasswordFields);
       return;
     }
 
     if (next.length < 8) {
-      alert("New password too short!");
+      alert(t.newPasswordTooShort);
       return;
     }
 
     if (next !== confirmNext) {
-      alert("New passwords do not match.");
+      alert(t.passwordsDoNotMatch);
       return;
     }
 
@@ -203,11 +205,11 @@ const Profile = () => {
         new_password: next,
       });
 
-      alert("Password changed successfully!");
+      alert(t.passwordChanged);
       setPasswordForm({ current: "", next: "", confirmNext: "" });
     } catch (error) {
       console.error(error);
-      alert(error.message || "Failed to update password");
+      alert(error.message || t.passwordUpdateFailed);
     }
   };
 
@@ -223,7 +225,7 @@ const Profile = () => {
           await saveProfile(profilePic);
         } catch (error) {
           console.error(error);
-          alert(error.message || "Failed to save profile photo");
+          alert(error.message || t.profilePhotoSaveFailed);
         }
       };
       reader.readAsDataURL(file);
@@ -234,7 +236,7 @@ const Profile = () => {
     try {
       await logout();
     } catch (error) {
-      console.error("Error clearing auth cookie:", error);
+      console.error(t.logoutCookieClearError, error);
     }
 
     localStorage.removeItem("user");
@@ -245,13 +247,13 @@ const Profile = () => {
   return (
     <div className="profile-page-container">
       <div className="profile-card-wrapper">
-        <h1>User Profile</h1>
-        <h1>Welcome, {user?.name}</h1>
+        <h1>{t.profileTitle}</h1>
+<h1>{t.welcome}, {user?.name}</h1>
 
         <div className="completion-container">
           <div className="completion-text">
             <span>
-              <UserRoundPen size={18} /> Profile Completion
+              <UserRoundPen size={18} /> {t.profileCompletion}
             </span>
             <strong>{calculateProgress()}%</strong>
           </div>
@@ -268,14 +270,14 @@ const Profile = () => {
             <div className="avatar-side">
               <div className="profile-avatar">
                 {studentInfo.profilePic ? (
-                  <img src={studentInfo.profilePic} alt="Profile" />
+                  <img src={studentInfo.profilePic} alt={t.profileImageAlt} />
                 ) : (
                   (user?.name || user?.email || "U").charAt(0).toUpperCase()
                 )}
               </div>
               <label className="upload-label">
                 <span>
-                  <ImageUp size={16} /> Change Photo
+                  <ImageUp size={16} /> {t.changePhoto}
                 </span>
                 <input type="file" onChange={handleImageChange} hidden />
               </label>
@@ -288,7 +290,7 @@ const Profile = () => {
                   className="logout-btn-top"
                   onClick={() => setShowRatingModal(true)}
                 >
-                  <LogOut size={16} /> Logout
+                 <LogOut size={16} /> {t.logout}
                 </button>
               </div>
 
@@ -296,7 +298,7 @@ const Profile = () => {
 
               <div className="student-details-grid">
                 <div className="detail-item">
-                  <span>University:</span>
+                  <span>{t.university}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.university}
@@ -308,11 +310,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.university || "Not set"}</strong>
+                    <strong>{studentInfo.university || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Program:</span>
+                  <span>{t.program}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.StudyProgram}
@@ -324,11 +326,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.StudyProgram || "Not set"}</strong>
+                    <strong>{studentInfo.StudyProgram || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Year:</span>
+                  <span>{t.year}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.year}
@@ -337,11 +339,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.year || "Not set"}</strong>
+                    <strong>{studentInfo.year || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Goal:</span>
+                  <span>{t.goal}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.goal}
@@ -350,7 +352,7 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.goal || "Not set"}</strong>
+                    <strong>{studentInfo.goal || t.notSet}</strong>
                   )}
                 </div>
               </div>
@@ -358,14 +360,14 @@ const Profile = () => {
               <div className="header-action-btns">
                 {isEditing ? (
                   <button className="update-btn-full" onClick={handleSaveStudent}>
-                    Save Changes
+                    {t.saveChanges}
                   </button>
                 ) : (
                   <button
                     className="update-btn-full"
                     onClick={() => setIsEditing(true)}
                   >
-                    Edit Profile
+                    {t.editProfile}
                   </button>
                 )}
               </div>
@@ -376,10 +378,10 @@ const Profile = () => {
         <div className="profile-row-grid">
           <div className="profile-section">
             <h3>
-              <UserRoundKey size={18} /> Change Password
+              <UserRoundKey size={18} /> {t.changePassword}
             </h3>
             <div className="setting-row">
-              <span className="setting-label">Current:</span>
+              <span className="setting-label">{t.currentPassword}:</span>
               <div className="password-input-wrapper">
                 <input
                   type={showCurrentPassword ? "text" : "password"}
@@ -402,7 +404,7 @@ const Profile = () => {
               </div>
             </div>
             <div className="setting-row">
-              <span className="setting-label">New:</span>
+              <span className="setting-label">{t.newPassword}:</span>
               <div className="password-input-wrapper">
                 <input
                   type={showNextPassword ? "text" : "password"}
@@ -422,7 +424,7 @@ const Profile = () => {
               </div>
             </div>
             <div className="setting-row">
-              <span className="setting-label">Confirm:</span>
+              <span className="setting-label">{t.confirmPassword}:</span>
               <div className="password-input-wrapper">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -445,21 +447,20 @@ const Profile = () => {
               </div>
             </div>
             <button className="update-btn-full" onClick={handleUpdatePassword}>
-              Update Password
+              {t.updatePassword}
             </button>
           </div>
 
           <div className="profile-section">
             <h3>
-              <Unplug size={18} /> Connect Device
-            </h3>
+              <Unplug size={18} /> {t.connectDevice}</h3>
             {connectedDeviceId && (
               <p className="connected-device-status">
-                Connected device: <strong>{connectedDeviceId}</strong>
+                {t.connectedDevice}:<strong>{connectedDeviceId}</strong>
               </p>
             )}
             <div className="setting-row">
-              <span>Device ID:</span>
+              <span>{t.deviceId}:</span>
               <input
                 type="text"
                 value={deviceId}
@@ -470,7 +471,7 @@ const Profile = () => {
               />
             </div>
             <button className="update-btn-full" onClick={handleConnectDevice}>
-              {connectedDeviceId ? "Save Device" : "Connect Now"}
+              {connectedDeviceId  ? t.saveDevice  : t.connectNow}
             </button>
           </div>
         </div>
@@ -488,7 +489,7 @@ const Profile = () => {
             </button>
 
             <SessionRating
-              submitLabel="Submit & Logout"
+              submitLabel={t.submitAndLogout}
               allowSuccessOnError
               onSuccess={completeLogout}
             />
