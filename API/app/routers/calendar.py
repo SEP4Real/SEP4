@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -77,7 +77,7 @@ async def delete_calendar_event(
     current_user=Depends(get_current_user),
     db=Depends(get_db)
 ):
-    await db.execute(
+    result = await db.execute(
         """
         DELETE FROM calendar_events
         WHERE id = %s
@@ -90,6 +90,9 @@ async def delete_calendar_event(
     )
 
     await db.commit()
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Calendar event not found")
 
     return {
         "message": "Event deleted successfully"
@@ -129,5 +132,8 @@ async def update_calendar_event(
     event = await result.fetchone()
 
     await db.commit()
+
+    if event is None:
+        raise HTTPException(status_code=404, detail="Calendar event not found")
 
     return event

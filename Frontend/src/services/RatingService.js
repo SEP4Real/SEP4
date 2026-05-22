@@ -11,7 +11,17 @@ export async function submitRating(ratingData) {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to submit rating");
+    const errorText = await response.text();
+    let message = errorText;
+
+    try {
+      const error = JSON.parse(errorText);
+      message = error?.detail || message;
+    } catch {
+      message = errorText;
+    }
+
+    throw new Error(message || "Failed to submit rating");
   }
 
   return response.json();
