@@ -53,7 +53,7 @@ paragraph that lets a reader decide whether to read further.]
 
 [TODO: each team check and adjust sentences about their parts of the system so its 100% correct]
 
-StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data as well as user study comfort raiting; and a React web frontend that presents live readings, historical trends, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with a shared PostgreSQL database serving both the ASP.NET Core IoT backend and the FastAPI ML service. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every thirty seconds and keepalive pulses every five seconds. The machine learning model [TODO: update after making the final model] - a Random Forest classifier trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability raitings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
+StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data as well as user study comfort rating; and a React web frontend that presents live readings, historical trends, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every thirty seconds and keepalive pulses every five seconds. The machine learning model [TODO: update after making the final model] - a Random Forest classifier trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
 
 # 1. Introduction
 
@@ -96,30 +96,23 @@ This problem is decomposed into the following sub-questions:
 - Is there a measurable relationship between environmental factors and study efficiency?
 - How accurately can future suitability levels be predicted based on collected sensor data?
 
-A successful solution would continuously collect real-world sensor data from study environments, expose this data through a structured API, and deliver ML-driven suitability predictions to students via a responsive web interface — all without requiring any manual data entry beyond an optional post-session quality rating. [Refine this paragraph to reflect any scope changes agreed with supervisors.]
+A successful solution would continuously collect real-world sensor data from study environments, expose this data through a structured API, and deliver ML-driven suitability predictions to students via a responsive web interface - all without requiring any manual data entry beyond an optional post-session quality rating.
 
 ## 1.3 Project Objectives
 
 [Enumerate concrete, verifiable goals. These will be evaluated against in Results
 and Discussion. Tie them to the three system components where relevant.
 
-Example format:
-
-- The IoT device shall measure [sensors] and transmit data to the cloud backend.
-- The cloud backend shall store sensor data and expose a RESTful API.
-- The ML component shall predict/classify [outcome] using sensor data.
-- The frontend shall retrieve and display live and historical sensor data responsively.]
-
 The concrete objectives of the StudyHelper project are as follows:
 
-- **IoT:** The embedded device shall measure temperature, humidity, CO₂ concentration, and ambient light level using the ATmega2560 MCU and transmit structured JSON payloads to the cloud backend via HTTP at a regular interval not exceeding sixty seconds.
-- **Cloud Backend:** The IoT backend (ASP.NET Core) shall persist sensor readings and session metadata in a shared PostgreSQL database and expose a RESTful API consumed by both the frontend and the ML service.
+- **IoT:** The embedded device shall measure temperature, humidity, CO₂ concentration, and light level using the ATmega2560 MCU and transmit structured JSON payloads to the cloud backend via HTTP at a regular interval not exceeding sixty seconds.
+- **Cloud Backend:** The Core API (FastAPI) shall act as the central gateway - persisting sensor readings and session metadata in a shared PostgreSQL database and exposing a RESTful API consumed by both the frontend and the MAL service.
 - **Machine Learning:** The ML component shall train a classifier capable of predicting a Study Suitability Rating on an integer scale of one to five, using aggregated temperature window features derived from historical sensor data, and expose predictions through a FastAPI endpoint.
 - **Frontend:** The React web application shall display live sensor readings, historical trends, and the current ML-predicted suitability rating in a responsive layout that adapts to screen widths of 576 px, 768 px, and 1200 px.
 - **DevOps:** All components shall be containerised with Docker, deployed to a public cloud host, and supported by automated CI/CD pipelines on GitHub Actions that enforce unit-test passing and successful build compilation before merging to the main branch.
 - **Security:** Communication between the IoT device and the backend shall be protected by [encryption scheme to be specified]; frontend-facing API endpoints shall be protected by [JWT / API key to be confirmed].
 
-[Review these objectives against the final delivered system before submission and adjust the wording where the implementation diverged from the original plan.]
+[TODO: Review these objectives against the final delivered system before submission and adjust the wording where the implementation diverged from the original plan.]
 
 ## 1.4 Scope and Delimitations
 
@@ -128,13 +121,13 @@ What has been consciously left out, and why? Important given the 60-page limit.]
 
 The StudyHelper system is scoped to a single physical IoT device deployed within one or more campus study environments for the duration of the project semester. The following delimitations were agreed at project inception and are reflected in the implemented system:
 
-**Geographical scope:** The device is designed and tested within a single campus environment. Multi-room or multi-building deployment is out of scope for this iteration.
+**Geographical scope:** The device is designed and tested within a single campus environment. Multi-building deployment is out of scope for this iteration.
 
-**Sensor coverage:** The system measures temperature, humidity, CO₂ concentration, and ambient light. Sound level measurement is not currently implemented by the active firmware, despite being noted as a candidate sensor in the project description. [State here whether noise was ultimately included or confirm it was excluded.]
+**Sensor coverage:** The system measures temperature, humidity, CO₂ concentration, and light. Sound level measurement is not currently implemented by the active firmware, despite being noted as a candidate sensor in the project description due to the malfunctioning and inaccurate quality of the sound sensor.
 
 **Automation:** The system provides predictive guidance but does not automate any physical actuators beyond the onboard buzzer alert triggered when the predicted study quality rating reaches the lowest level. Full HVAC or lighting automation is explicitly out of scope.
 
-**User model:** The system supports a single user role — the student — who can start and stop sessions via the physical button on the device and submit a post-session quality rating through the frontend. Teacher-specific dashboards and administrator views are out of scope.
+**User model:** The system supports a single user role - the student - who can start and stop sessions via the physical button on the device and submit a post-session quality rating through the frontend. Teacher-specific dashboards and administrator views are out of scope.
 
 **Privacy and data collection:** Only environmental sensor readings and session metadata are stored. No audio recordings, video, or personally identifiable information are collected. The use of dB-level sound measurement, if implemented, would fall within the agreed data-privacy boundaries.
 
