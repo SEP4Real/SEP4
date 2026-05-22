@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
 import { getDashboardData } from "../services/DashboardService";
+import { getDeviceSessions } from "../services/SessionService";
 import SensorChart from "../components/SensorChart";
 import SessionRating from "../components/SessionRating";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -9,11 +10,9 @@ import SensorCard from "../components/SensorCard";
 import EmptyState from "../components/EmptyState";
 import {
   CalendarRange,
-  CheckCircle2,
   CirclePlay,
   Clock3,
   MonitorX,
-  TriangleAlert,
   Thermometer,
   Droplets,
   Fan,
@@ -71,6 +70,12 @@ const placeholderData = [
   },
 ];
 
+const RATING_POPUP_DELAY_MS = 60 * 60 * 1000;
+const DEFAULT_DEVICE_ID = "arduino-device-01";
+
+const getSessionStorageKey = (email) =>
+  email ? `dashboard_session_active:${email}` : null;
+
 const normalizeDashboardRecord = (item = {}) => {
   const predictedStudyQuality =
     item.predictedStudyQuality ?? item.predicted_study_quality ?? 0;
@@ -116,7 +121,14 @@ export default function Dashboard() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const [isSessionActive, setIsSessionActive] = useState(false);
+  const sessionStorageKey = getSessionStorageKey(user?.email);
+  const [isSessionActive, setIsSessionActive] = useState(() => {
+    return sessionStorageKey
+      ? localStorage.getItem(sessionStorageKey) === "true"
+      : false;
+  });
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingSessionId, setRatingSessionId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
 
@@ -149,6 +161,8 @@ useEffect(() => {
 
       if (!connectedDevice) {
         setHasDevice(false);
+        setIsSessionActive(false);
+        setRatingSessionId(null);
         setDashboardData([]);
         setLoading(false);
         return;
@@ -170,7 +184,7 @@ useEffect(() => {
     };
   }, [user?.email]);
   useEffect(() => {
-    if (!hasDevice || !isSessionActive) {
+    if (!hasDevice) {
       return undefined;
     }
 
@@ -179,14 +193,32 @@ useEffect(() => {
     return () => {
       clearInterval(interval);
     };
-  }, [hasDevice, isSessionActive]);
+  }, [hasDevice]);
+
+  useEffect(() => {
+    if (!isSessionActive) {
+      return undefined;
+    }
+
+    const ratingTimer = setTimeout(() => {
+      openRatingModal();
+    }, RATING_POPUP_DELAY_MS);
+
+    return () => {
+      clearTimeout(ratingTimer);
+    };
+  }, [isSessionActive]);
+
+  useEffect(() => {
+    if (!sessionStorageKey) {
+      return;
+    }
+
+    localStorage.setItem(sessionStorageKey, String(isSessionActive));
+  }, [isSessionActive, sessionStorageKey]);
 
   const latestData = dashboardData[dashboardData.length - 1];
   const latestMetrics = normalizeDashboardRecord(latestData);
-  const recommendationText =
-    latestMetrics.predictedStudyQuality >= 4
-      ? "Conditions look good for studying. Keep monitoring the room while the session is active."
-      : "Conditions are getting weaker. Try adjusting light, airflow, or room temperature before continuing.";
 
   const filteredHistory = useMemo(() => {
     if (!filterDate) {
@@ -208,22 +240,29 @@ useEffect(() => {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  const openRatingModal = async () => {
+    try {
+      const sessions = await getDeviceSessions(DEFAULT_DEVICE_ID);
+      const latestSession = [...sessions].sort((a, b) => {
+        return new Date(b.startedAt || b.started_at) - new Date(a.startedAt || a.started_at);
+      })[0];
+
+      setRatingSessionId(latestSession?.id || null);
+    } catch (error) {
+      console.error("Error loading session for rating:", error);
+      setRatingSessionId(null);
+    }
+
+    setShowRatingModal(true);
+  };
+
   if (!hasDevice) {
     return (
       <div className="dashboard">
         <EmptyState
-          icon="📡"
           title={t.noDeviceTitle}
           message={t.noDeviceMessage}
         />
-        <h1>{t.dashboard}</h1>
-        <div className="recommendation-card">
-          <p> You don't have any devices connected. Go to Profile for setup</p>
-          <p>
-            <TriangleAlert /> You don't have any devices connected. Go to
-            Profile for setup
-          </p>
-        </div>
       </div>
     );
   }
@@ -232,7 +271,6 @@ useEffect(() => {
     return (
       <div className="dashboard">
         <EmptyState
-          icon="📂"
           title={t.noDashboardDataTitle}
           message={t.noDashboardDataMessage}
         />
@@ -270,34 +308,40 @@ return {
 
   return (
     <div className="dashboard">
-      <h1>{t.dashboardTitle || t.dashboard}</h1>
+      <div className="dashboard-hero">
+        <h1>{t.dashboardTitle || t.dashboard}</h1>
 
-      <div className="session-control-card">
-        {!isSessionActive ? (
-          <button
-            className="session-btn start"
-            onClick={() => {
-              setIsSessionActive(true);
-              loadDashboardData();
-            }}
-          >
-            <CirclePlay size={18} /> {t.StartSession}
-          </button>
-        ) : (
-          <button
-            className="session-btn stop"
-            onClick={() => setIsSessionActive(false)}
-          >
-            <MonitorX size={18} /> {t.StopSession}
-          </button>
-        )}
+        <div className="session-control-card">
+          {!isSessionActive ? (
+            <button
+              className="session-btn start"
+              onClick={() => {
+                setIsSessionActive(true);
+                loadDashboardData();
+              }}
+            >
+              <CirclePlay size={18} /> {t.StartSession}
+            </button>
+          ) : (
+            <button
+              className="session-btn stop"
+              onClick={openRatingModal}
+            >
+              <MonitorX size={18} /> {t.StopSession}
+            </button>
+          )}
 
-        {isSessionActive && (
-          <span className="live-status-container">
-            <span className="live-dot"></span>
-            Live Monitoring Active...
-          </span>
-        )}
+          {isSessionActive && (
+            <span className="live-status-container">
+              <span className="live-dot"></span>
+              Live Monitoring Active...
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="live-section-header">
+        <h2>{t.historyTitle}</h2>
       </div>
 
       <div className="dashboard-overview">
@@ -326,35 +370,41 @@ return {
             title={t.suitabilityLevel}
             value={`${(latestMetrics.suitabilityLevel * 100).toFixed(0)}%`}
           />
-          <SensorCard
-            title={t.trend}
-            value={latestMetrics.predictedTrend === 1 ? t.improving : t.declining}
-          />
-        </div>
-
-        <div className="recommendation-card overview-recommendation">
-          <span className="recommendation-icon">
-            <CheckCircle2 size={22} />
-          </span>
-          <div>
-            <h2>{t.recommendation}</h2>
-            <p>{recommendationText}</p>
-            <strong>
-              Study quality: {latestMetrics.predictedStudyQuality}/5
-            </strong>
-          </div>
         </div>
       </div>
 
       <div className="chart-card">
         <div className="chart-card-header">
-          <h2>{t.historyTitle || "Environmental Monitoring"}</h2>
           <span>Live sensor evolution</span>
         </div>
         <SensorChart data={dashboardData} />
       </div>
 
-      <SessionRating />
+      {showRatingModal && (
+        <div className="rating-modal">
+          <div className="rating-modal-content">
+            <button
+              type="button"
+              className="close-rating-modal"
+              onClick={() => setShowRatingModal(false)}
+            >
+              ×
+            </button>
+
+            <SessionRating
+              submitLabel="Submit rating"
+              allowSuccessOnError
+              deviceId={DEFAULT_DEVICE_ID}
+              sessionId={ratingSessionId}
+              onSuccess={() => {
+                setShowRatingModal(false);
+                setIsSessionActive(false);
+                setRatingSessionId(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className={`recommendation-card ${recommendation.status}`}>
 
