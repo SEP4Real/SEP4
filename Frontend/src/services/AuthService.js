@@ -57,10 +57,17 @@ export async function login(data) {
 }
 
 export async function logout() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
   await fetch(`${API_URL}/logout`, {
     method: "POST",
     credentials: "include",
   });
+
+  if (user?.email) {
+    localStorage.removeItem(`dashboard_session_active:${user.email}`);
+  }
+
   localStorage.removeItem("user");
   localStorage.removeItem("token");
   window.dispatchEvent(new Event("storage"));
