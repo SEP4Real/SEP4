@@ -185,7 +185,7 @@ const Profile = () => {
     const { current, next, confirmNext } = passwordForm;
 
     if (!current || !next || !confirmNext) {
-      alert("Please fill in all password fields.");
+      alert(t.fillPasswordFields);
       return;
     }
 
@@ -195,7 +195,7 @@ const Profile = () => {
     }
 
     if (next !== confirmNext) {
-      alert("New passwords do not match.");
+      alert(t.passwordsDoNotMatch);
       return;
     }
 
@@ -205,11 +205,11 @@ const Profile = () => {
         new_password: next,
       });
 
-      alert("Password changed successfully!");
+      alert(t.passwordChanged);
       setPasswordForm({ current: "", next: "", confirmNext: "" });
     } catch (error) {
       console.error(error);
-      alert(error.message || "Failed to update password");
+      alert(error.message || t.passwordUpdateFailed);
     }
   };
 
@@ -225,7 +225,7 @@ const Profile = () => {
           await saveProfile(profilePic);
         } catch (error) {
           console.error(error);
-          alert(error.message || "Failed to save profile photo");
+          alert(error.message || t.profilePhotoSaveFailed);
         }
       };
       reader.readAsDataURL(file);
@@ -236,7 +236,7 @@ const Profile = () => {
     try {
       await logout();
     } catch (error) {
-      console.error("Error clearing auth cookie:", error);
+      console.error(t.logoutCookieClearError, error);
     }
 
     localStorage.removeItem("user");
@@ -270,7 +270,7 @@ const Profile = () => {
             <div className="avatar-side">
               <div className="profile-avatar">
                 {studentInfo.profilePic ? (
-                  <img src={studentInfo.profilePic} alt="Profile" />
+                  <img src={studentInfo.profilePic} alt={t.profileImageAlt} />
                 ) : (
                   (user?.name || user?.email || "U").charAt(0).toUpperCase()
                 )}
@@ -378,7 +378,7 @@ const Profile = () => {
         <div className="profile-row-grid">
           <div className="profile-section">
             <h3>
-              <UserRoundKey size={18} /> Change Password
+              <UserRoundKey size={18} /> {t.changePassword}
             </h3>
             <div className="setting-row">
               <span className="setting-label">{t.currentPassword}:</span>
@@ -424,7 +424,7 @@ const Profile = () => {
               </div>
             </div>
             <div className="setting-row">
-              <span className="setting-label">Confirm:</span>
+              <span className="setting-label">{t.confirmPassword}:</span>
               <div className="password-input-wrapper">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -489,7 +489,7 @@ const Profile = () => {
             </button>
 
             <SessionRating
-              submitLabel="Submit & Logout"
+              submitLabel={t.submitAndLogout}
               allowSuccessOnError
               onSuccess={completeLogout}
             />

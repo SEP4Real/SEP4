@@ -136,7 +136,7 @@ body.dark-theme .auth-link a {
   color: rgb(188, 255, 226);
 }
 
-/*1024px și 480px */
+/* 1024px and 480px */
 
 @media (max-width: 1024px) {
   .card {
