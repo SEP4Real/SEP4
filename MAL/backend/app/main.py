@@ -1,15 +1,23 @@
 import csv
+import io
+import zipfile
 import os
 from datetime import datetime
 
 import psycopg
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, model_validator
 
 from ml_pipeline.model import FEATURE_COLUMNS, MODEL_PATH, REAL_SENSOR_HISTORY_PATH, predict
 from ml_pipeline.transform_real_data import transform_real_data
 
 app = FastAPI(title="MAL API")
+
+def _require_export_token(x_export_token: str | None = Header(default=None)) -> None:
+    expected_token = os.environ.get("MAL_API_EXPORT_TOKEN")
+    if expected_token and x_export_token != expected_token:
+        raise HTTPException(status_code=401, detail="Invalid export token")
 
 class PredictionRequest(BaseModel):
     currentTemperature: float = Field(allow_inf_nan=False)
@@ -104,6 +112,67 @@ def collect_data() -> dict[str, object]:
             "columns": colnames,
             "saved_to": str(REAL_SENSOR_HISTORY_PATH),
         }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/export-data")
+def export_data(
+    limit: int = Query(default=2000, ge=1, le=10000),
+    _: None = Depends(_require_export_token),
+) -> StreamingResponse:
+    db_host = os.environ["DB_HOST"]
+    db_port = os.environ["DB_PORT"]
+    db_name = os.environ["DB_NAME"]
+    db_user = os.environ["DB_USER"]
+    db_password = os.environ["DB_PASSWORD"]
+
+    try:
+        with psycopg.connect(
+            host=db_host,
+            port=db_port,
+            dbname=db_name,
+            user=db_user,
+            password=db_password,
+        ) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT *
+                    FROM data
+                    ORDER BY sent_at DESC
+                    LIMIT %s
+                """, (limit,))
+                data_rows = cur.fetchall()
+                data_cols = [desc[0] for desc in cur.description]
+
+                cur.execute("""
+                    SELECT *
+                    FROM sessions
+                    ORDER BY started_at DESC
+                """)
+                session_rows = cur.fetchall()
+                session_cols = [desc[0] for desc in cur.description]
+
+        if not data_rows and not session_rows:
+            raise HTTPException(status_code=404, detail="No data found in database")
+
+        def _to_csv(cols, rows) -> bytes:
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(cols)
+            writer.writerows(rows)
+            return buf.getvalue().encode()
+
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("sensor_history.csv", _to_csv(data_cols, data_rows))
+            zf.writestr("sessions.csv", _to_csv(session_cols, session_rows))
+        zip_buffer.seek(0)
+
+        headers = {"Content-Disposition": "attachment; filename=export.zip"}
+        return StreamingResponse(zip_buffer, media_type="application/zip", headers=headers)
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

@@ -1,16 +1,13 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
-import History from "./pages/History";
 import Navbar from "./components/Navbar";
-import StudentDashboard from "./pages/StudentDashboard";
+import Dashboard from "./pages/Dashboard";
 import IntegrationTest from "./components/IntegrationTest";
-
 import CalendarPage from "./pages/CalendarPage";
-import Profile from './pages/Profile';
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
-
 
 function App() {
   return (
@@ -18,11 +15,17 @@ function App() {
       <Navbar />
 
       <Routes>
-        <Route path="/integration-test" element={<IntegrationTest />} />
-        <Route path="/" element={<RegisterPage />} />
-        import PublicRoute from "./components/PublicRoute";
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
 
-        {/* public routes */}
+        <Route path="/integration-test" element={<IntegrationTest />} />
+
         <Route
           path="/register"
           element={
@@ -41,23 +44,15 @@ function App() {
           }
         />
 
-        {/* protected routes */}
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute>
-              <History />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="/student"
           element={
             <ProtectedRoute>
-              <StudentDashboard />
+              <Dashboard />
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/profile"
           element={
@@ -66,6 +61,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/calendar"
           element={
@@ -75,8 +71,16 @@ function App() {
           }
         />
 
-        <Route path="*" element={<RegisterPage />} />
-        
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </>
   );

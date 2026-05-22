@@ -1,5 +1,23 @@
 .calendar-container {
-  padding: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 90px 20px 30px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.calendar-container .fc {
+  max-width: 100%;
+}
+
+.calendar-container .fc-toolbar {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.calendar-container .fc-toolbar-title {
+  font-size: clamp(1.2rem, 3vw, 1.75rem);
 }
 
 .popup {
@@ -8,7 +26,7 @@
   border: 1px solid #ccc;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   width: 260px;
   overflow: hidden;
@@ -51,4 +69,50 @@
   cursor: pointer;
   color: red;
   font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 90px 10px 20px;
+  }
+
+  .calendar-container .fc-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calendar-container .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
+  }
+
+  .calendar-container .fc-button {
+    padding: 0.35em 0.5em;
+    font-size: 0.85rem;
+  }
+
+  /* (ex: 320px) */
+  .popup {
+    width: 90%;
+    left: 5% !important; /* center */
+    top: 20% !important;
+    padding: 12px;
+  }
+
+  .popup-buttons {
+    gap: 10px;
+  }
+
+  .popup-buttons button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  body.dark-theme .popup {
+    background: #222; 
+    border: 1px solid #444; 
+    color: #fff;
+  }
 }

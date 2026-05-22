@@ -2,12 +2,15 @@
 #include "fakes/fff.h"
 #include "../src/server_api.h"
 #include "../src/wifi_http.h"
+#include "buzzer.h"
 #include <string.h>
 
 DEFINE_FFF_GLOBALS;
 
 FAKE_VALUE_FUNC(WIFI_ERROR_MESSAGE_t, http_post, const char *, const char *, char *, uint16_t);
 FAKE_VALUE_FUNC(WIFI_ERROR_MESSAGE_t, http_patch, const char *, const char *, char *, uint16_t);
+
+FAKE_VOID_FUNC(buzzer_beep);
 
 // Captured argument buffers
 static char captured_body[256];
@@ -63,6 +66,7 @@ void setUp(void)
     server_reset();
     RESET_FAKE(http_post);
     RESET_FAKE(http_patch);
+    RESET_FAKE(buzzer_beep);
     FFF_RESET_HISTORY();
     inject_patch_response = NULL;
     inject_post_response = NULL;
@@ -102,7 +106,7 @@ void test_register_posts_to_device_endpoint(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
     server_register_device();
-    TEST_ASSERT_EQUAL_STRING("/Device", captured_endpoint);
+    TEST_ASSERT_EQUAL_STRING("/device", captured_endpoint);
 }
 
 void test_register_body_contains_id(void)
@@ -126,7 +130,7 @@ void test_start_session_posts_to_session_endpoint(void)
     inject_post_response = "{\"id\":1}";
     http_post_fake.custom_fake = capture_and_inject_post;
     server_start_session();
-    TEST_ASSERT_EQUAL_STRING("/Session", captured_endpoint);
+    TEST_ASSERT_EQUAL_STRING("/session", captured_endpoint);
 }
 
 void test_start_session_body_contains_device_id(void)
@@ -204,7 +208,7 @@ void test_send_pulse_endpoint_uses_session_path(void)
     start_session_with_id(5);
     http_patch_fake.custom_fake = capture_and_inject_patch;
     server_send_pulse();
-    TEST_ASSERT_NOT_NULL(strstr(captured_patch_endpoint, "/Session/"));
+    TEST_ASSERT_NOT_NULL(strstr(captured_patch_endpoint, "/session/"));
 }
 
 void test_send_pulse_restarts_session_when_alive_false(void)
@@ -230,7 +234,7 @@ void test_send_pulse_restarts_session_when_alive_false(void)
 
 void test_send_data_is_noop_without_session(void)
 {
-    server_send_data(22, 5, 60, 0, 856);
+    server_send_data(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_EQUAL(0, http_post_fake.call_count);
 }
 
@@ -238,7 +242,7 @@ void test_send_data_calls_http_post_with_session(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0, 856);
+    server_send_data(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_EQUAL(1, http_post_fake.call_count);
 }
 
@@ -246,15 +250,15 @@ void test_send_data_posts_to_data_endpoint(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0, 856);
-    TEST_ASSERT_EQUAL_STRING("/Data", captured_endpoint);
+    server_send_data(22, 5, 60, 0, 856, 1200);
+    TEST_ASSERT_EQUAL_STRING("/data", captured_endpoint);
 }
 
 void test_send_data_body_contains_temperature_field(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0, 856);
+    server_send_data(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "temperature"));
 }
 
@@ -262,7 +266,7 @@ void test_send_data_body_contains_humidity_field(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0, 856);
+    server_send_data(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "humidity"));
 }
 
@@ -270,7 +274,7 @@ void test_send_data_body_contains_session_id_field(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0, 856);
+    server_send_data(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "sessionId"));
 }
 
@@ -278,7 +282,7 @@ void test_send_data_body_contains_temp_values(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 0, 856);
+    server_send_data(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "22"));
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "5"));
 }
@@ -287,7 +291,7 @@ void test_send_data_body_contains_humidity_values(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 3, 856);
+    server_send_data(22, 5, 60, 3, 856, 1200);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "60"));
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "3"));
 }
@@ -296,7 +300,7 @@ void test_send_data_body_contains_light_field(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 3, 856);
+    server_send_data(22, 5, 60, 3, 856, 1200);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "lightLevel"));
 }
 
@@ -304,8 +308,42 @@ void test_send_data_body_contains_light_values(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    server_send_data(22, 5, 60, 3, 856);
+    server_send_data(22, 5, 60, 3, 856, 1200);
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "856"));
+}
+
+void test_send_data_body_contains_co2_field(void)
+{
+    start_session_with_id(3);
+    http_post_fake.custom_fake = capture_and_inject_post;
+    server_send_data(22, 5, 60, 3, 856, 1200);
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "co2Level"));
+}
+
+void test_send_data_body_contains_co2_value(void)
+{
+    start_session_with_id(3);
+    http_post_fake.custom_fake = capture_and_inject_post;
+    server_send_data(22, 5, 60, 3, 856, 1200);
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "1200"));
+}
+
+void test_bad_study_conditions_sound_buzzer(void)
+{
+    start_session_with_id(3);
+    http_post_fake.custom_fake = capture_and_inject_post;
+    inject_post_response = "{\"study_quality\": 1}";
+    server_send_data(22, 5, 60, 3, 856, 1200);
+    TEST_ASSERT_NOT_EQUAL(0, buzzer_beep_fake.call_count);
+}
+
+void test_normal_study_conditions_dont_sound_buzzer(void)
+{
+    start_session_with_id(3);
+    http_post_fake.custom_fake = capture_and_inject_post;
+    inject_post_response = "{\"study_quality\": 2}";
+    server_send_data(22, 5, 60, 3, 856, 1200);
+    TEST_ASSERT_EQUAL(0, buzzer_beep_fake.call_count);
 }
 
 int main(void)
@@ -340,6 +378,10 @@ int main(void)
     RUN_TEST(test_send_data_body_contains_humidity_values);
     RUN_TEST(test_send_data_body_contains_light_field);
     RUN_TEST(test_send_data_body_contains_light_values);
+    RUN_TEST(test_send_data_body_contains_co2_field);
+    RUN_TEST(test_send_data_body_contains_co2_value);
+    RUN_TEST(test_bad_study_conditions_sound_buzzer);
+    RUN_TEST(test_normal_study_conditions_dont_sound_buzzer);
 
     return UNITY_END();
 }

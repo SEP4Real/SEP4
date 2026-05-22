@@ -26,7 +26,16 @@ class Device(BaseModel):
 
 class SessionCreate(BaseModel):
     device_id: str = Field(..., alias="deviceId")
-    study_quality: Optional[int] = Field(None, alias="studyQuality", ge=1, le=10)
+
+    model_config = {"populate_by_name": True}
+
+
+class SessionUpdate(BaseModel):
+    device_id: Optional[str] = Field(None, alias="deviceId")
+    started_at: Optional[datetime] = Field(None, alias="startedAt")
+    is_ended: Optional[bool] = Field(None, alias="isEnded")
+    last_pulse_at: Optional[datetime] = Field(None, alias="lastPulseAt")
+    study_quality: Optional[int] = Field(None, alias="studyQuality", ge=1, le=5)
 
     model_config = {"populate_by_name": True}
 
@@ -37,7 +46,7 @@ class Session(BaseModel):
     started_at: datetime = Field(..., alias="startedAt")
     is_ended: bool = Field(None, alias="isEnded")
     last_pulse_at: Optional[datetime] = Field(None, alias="lastPulseAt")
-    study_quality: Optional[int] = Field(None, alias="studyQuality", ge=1, le=10)
+    study_quality: Optional[int] = Field(None, alias="studyQuality", ge=1, le=5)
 
     model_config = {"populate_by_name": True}
 
@@ -73,6 +82,7 @@ class DataPoint(BaseModel):
     co2_level: Optional[float] = Field(None, alias="co2Level")
     light_level: Optional[float] = Field(None, alias="lightLevel")
     sent_at: datetime = Field(..., alias="sentAt")
+    predicted_study_quality: int = Field(None, alias="predictedStudyQuality", ge=1, le=5)
 
     model_config = {"populate_by_name": True}
 
@@ -86,4 +96,9 @@ class DataPoint(BaseModel):
             co2Level=row.get("co2_level"),
             lightLevel=row.get("light_level"),
             sentAt=row["sent_at"],
+            predicted_study_quality=row["predicted_study_quality"],
         )
+
+class DataPointResponse(BaseModel):
+    study_quality: int = Field(ge=1, le=5)
+

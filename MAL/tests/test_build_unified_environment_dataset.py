@@ -6,7 +6,7 @@ import pandas as pd
 MAL_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(MAL_DIR))
 
-from scripts.build_unified_environment_dataset import (
+from MAL.notebooks.archive.scripts_related_archive.build_unified_environment_dataset import (
     SourceSpec,
     build_unified_dataset,
     make_location_ids,
@@ -199,7 +199,7 @@ def test_fill_focus_scores_from_respondent_preferences_outputs_1_to_5_scores():
     assert model_summary["student_id"].tolist() == ["13", "31"]
 
 
-def test_linearized_windows_split_sessions_by_configurable_gap_and_overlap():
+def test_linearized_windows_split_sessions_by_configurable_gap():
     df = pd.DataFrame(
         {
             "timestamp": [
@@ -230,12 +230,15 @@ def test_linearized_windows_split_sessions_by_configurable_gap_and_overlap():
     assert "window_end" not in linearized.columns
     assert session_report["rows"].tolist() == [3, 1]
 
-    third_window = linearized.iloc[2]
-    assert third_window["temperature_latest"] == 24.0
-    assert third_window["temperature_mean"] == 22.0
-    assert third_window["temperature_min"] == 20.0
-    assert third_window["temperature_max"] == 24.0
-    assert third_window["focus_score"] == 4
+    assert len(linearized) == 2
+
+    first_window = linearized.iloc[0]
+    assert first_window["temperature_latest"] == 24.0
+    assert first_window["temperature_mean"] == 22.0
+    assert first_window["temperature_min"] == 20.0
+    assert first_window["temperature_max"] == 24.0
+    assert first_window["temperature_count"] == 3
+    assert first_window["focus_score"] == 4
 
 
 def test_linearized_window_size_is_configurable():
@@ -260,8 +263,11 @@ def test_linearized_window_size_is_configurable():
         session_gap_minutes=30,
     )
 
-    assert linearized.iloc[2]["temperature_mean"] == 23.0
-    assert linearized.iloc[2]["temperature_count"] == 2
+    assert len(linearized) == 2
+    assert linearized.iloc[0]["temperature_mean"] == 21.0
+    assert linearized.iloc[0]["temperature_count"] == 2
+    assert linearized.iloc[1]["temperature_mean"] == 24.0
+    assert linearized.iloc[1]["temperature_count"] == 1
     assert list(linearized.columns) == [
         "focus_score",
         "temperature_latest",

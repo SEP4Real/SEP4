@@ -1,42 +1,77 @@
+import { API_URL } from "./apiConfig";
+
 export async function register(data) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // get existing users
-      const users = JSON.parse(localStorage.getItem("users")) || [];
+  // send request to backend
+  const response = await fetch(`${API_URL}/register`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
 
-      // add user
-      users.push(data);
-
-      // save back to localStorage
-      localStorage.setItem("users", JSON.stringify(users));
-
-      // simulate success response
-      resolve({ ok: true });
-    }, 500);
+    // send user data
+    body: JSON.stringify({
+      name: data.name,
+      last_name: data.lastName,
+      email: data.email,
+      password: data.password,
+    }),
   });
+
+  // failed -> backend error
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.log(errorData);
+    throw new Error(errorData.detail || "Registration failed");
+  }
+
+  // success -> backend response
+  return response.json();
 }
 
 export async function login(data) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      
-      // get existing users
-      const users = JSON.parse(localStorage.getItem("users")) || [];
+  // send login request to backend
+  const response = await fetch(`${API_URL}/login`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
 
-      // find user with matching credentials from localStorage
-      const foundUser = users.find(
-        (u) => u.email === data.email && u.password === data.password
-      );
-
-      if (foundUser) {
-        //login successful → user data
-        resolve({
-          user: foundUser,
-        });
-      } else {
-        // login failed → error
-        reject(new Error("Invalid credentials"));
-      }
-    }, 500);
+    // send email and password
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+    }),
   });
+
+  // convert response
+  const result = await response.json();
+
+  // failed -> error
+  if (!response.ok || result.error) {
+    throw new Error(result.detail || result.error || "Invalid credentials");
+  }
+  window.dispatchEvent(new Event("storage"));
+
+  return result;
 }
+
+export async function logout() {
+  await fetch(`${API_URL}/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+  localStorage.removeItem("user");
+  window.dispatchEvent(new Event("storage"));
+}
+
+export const connectDevice = (deviceId) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) return;
+
+  const devices = JSON.parse(localStorage.getItem("user_devices")) || [];
+
+  devices.push({ email: user.email, deviceId: deviceId });
+  localStorage.setItem("user_devices", JSON.stringify(devices));
+};

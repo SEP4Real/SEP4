@@ -40,6 +40,8 @@ services:
       DB_NAME: ${POSTGRES_DB:?POSTGRES_DB must be set}
       DB_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      MAL_API_HOST_PORT: ${MAL_API_HOST_PORT:?MAL_API_HOST_PORT must be set}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
     ports:
       - "8080:8080"
     depends_on:
@@ -51,7 +53,7 @@ services:
     build:
       context: ./Frontend
     ports:
-      - "3000:80"
+      - "80:80"
 
 volumes:
   postgres_data:
