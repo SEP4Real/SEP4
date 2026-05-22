@@ -13,7 +13,6 @@ import {
   CirclePlay,
   Clock3,
   MonitorX,
-  TriangleAlert,
   Thermometer,
   Droplets,
   Fan,
@@ -208,25 +207,21 @@ useEffect(() => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  if (!hasDevice) {
-    return (
-      <div className="dashboard">
-        <EmptyState
-          icon="📡"
-          title={t.noDeviceTitle}
-          message={t.noDeviceMessage}
-        />
-        <h1>{t.dashboard}</h1>
-        <div className="recommendation-card">
-          <p> You don't have any devices connected. Go to Profile for setup</p>
-          <p>
-            <TriangleAlert /> You don't have any devices connected. Go to
-            Profile for setup
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) {
+  return <LoadingSpinner text={t.loading} />;
+}
+
+if (!hasDevice) {
+  return (
+    <div className="dashboard">
+      <EmptyState
+        icon="📡"
+        title={t.noDeviceTitle}
+        message={t.noDeviceMessage}
+      />
+    </div>
+  );
+}
 
   if (!latestData) {
     return (

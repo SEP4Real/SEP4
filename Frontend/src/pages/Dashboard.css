@@ -130,14 +130,6 @@
   margin: 14px 0 8px;
 }
 
-.recommendation-card p {
-  margin: 0;
-  padding: 26px;
-  border-radius: 8px;
-  background: #bce9c9;
-  box-shadow: 0 8px 16px rgba(27, 67, 50, 0.12);
-}
-
 .overview-recommendation {
   display: flex;
   gap: 14px;
@@ -164,11 +156,10 @@
 }
 
 .recommendation-card p {
-  margin: 0 0 12px 0;
-  font-size: 1.1rem;
-  color: #2d6a4f;
-  line-height: 1.5;
+  margin: 0;
   font-size: 1rem;
+  line-height: 1.5;
+  color: inherit;
 }
 
 /* STATUS COLORS */
@@ -265,11 +256,14 @@
 }
 
 .session-control-card {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
   gap: 15px;
   margin-bottom: 20px;
   align-items: center;
+  width: fit-content;
+  background: transparent;
+  box-shadow: none;
 }
 
 .session-btn {
