@@ -1,3 +1,4 @@
+/* eslint-env vitest */
 import { render, screen } from "@testing-library/react";
 import EmptyState from "../components/EmptyState";
 import LoadingSpinner from "../components/LoadingSpinner";
