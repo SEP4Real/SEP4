@@ -51,6 +51,34 @@ def test_get_sessions_by_device_empty(client, app):
     assert r.json() == []
 
 
+# GET /session/current
+
+def test_get_current_session_success(client, app):
+    _override(app, make_db(make_cursor(one=SESSION_ROW)))
+    r = client.get("/session/current?deviceId=dev-001")
+    assert r.status_code == 200
+    assert r.json()["id"] == 1
+
+
+def test_get_current_session_without_device_id(client, app):
+    _override(app, make_db(make_cursor(one=SESSION_ROW)))
+    r = client.get("/session/current")
+    assert r.status_code == 200
+    assert r.json()["id"] == 1
+
+
+def test_get_current_session_empty_device_id(client, app):
+    _override(app, make_db(make_cursor()))
+    r = client.get("/session/current?deviceId=   ")
+    assert r.status_code == 400
+
+
+def test_get_current_session_not_found(client, app):
+    _override(app, make_db(make_cursor(one=None)))
+    r = client.get("/session/current?deviceId=dev-001")
+    assert r.status_code == 404
+
+
 # GET /session/{id}
 
 def test_get_session_found(client, app):
