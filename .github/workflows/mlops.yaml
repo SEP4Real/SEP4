@@ -61,6 +61,21 @@ jobs:
           exit 1
         }
 
+    - name: Run unit tests with coverage
+      working-directory: MAL
+      run: |
+        python -m pytest tests/test_model_unit.py tests/test_main_endpoints.py -v \
+          --cov=ml_pipeline \
+          --cov=backend \
+          --cov-report=term-missing \
+          --cov-report=html
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: mal-coverage-report
+        path: MAL/htmlcov/
+
     - name: Start MAL service
       run: |
         cd MAL
