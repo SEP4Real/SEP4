@@ -755,17 +755,9 @@ partially met, or not met, and support the assessment with evidence.]
 
 ## 4.3 IoT Performance
 
-The embedded system reads from four sensors: a DHT11 for temperature and humidity, a photoresistor for ambient light, and an MH-Z19 CO₂ sensor over UART. In practice, all sensor reads proved reliable throughout testing, and no data loss or transmission failures were observed during normal operation.
+Sensor reads proved reliable throughout testing, with no data loss or transmission failures observed. The DHT11 is read immediately before each transmission, so temperature and humidity values are always current. The CO₂ sensor follows a request-then-read pattern across cycles due to its internal measurement delay; if a fresh reading is unavailable, the system falls back to the last cached value and continues transmitting uninterrupted.
 
-Sensor sampling is event-driven rather than interrupt-driven at the hardware level. Two software timers, created at startup, set flags (`pulse_due` and `data_due`) at 5-second and 30-second intervals respectively. The main loop checks these flags and initiates reads only when no other request is already in progress, controlled by the `request_in_progress` guard flag. This prevents race conditions between concurrent sensor reads and HTTP transmissions without requiring a scheduler or RTOS.
-
-The DHT11 is read immediately before each transmission rather than buffered in advance, meaning the temperature and humidity values sent to the server always reflect the state of the environment at the moment of transmission with no staleness. The CO₂ sensor follows a request-then-read pattern: a measurement is requested at the end of each data cycle and the result is read at the start of the next, as the MH-Z19 requires time to perform its internal measurement. If a fresh CO₂ reading is unavailable, the system falls back to the most recently cached value and logs a warning, ensuring transmission continues uninterrupted even if the sensor is momentarily slow.
-
-Memory usage is static throughout. All buffers are fixed-size and allocated at compile time: the HTTP receive buffer is 1024 bytes, and outgoing request bodies are constructed into 150–384 byte stack buffers with `snprintf`, preventing heap fragmentation on the ATmega's limited SRAM.
-
-HTTP transmission uses HTTP/1.0 with `Connection: close`, so each request opens a fresh TCP connection, transmits, waits up to 3 seconds for a response, and closes. The 3-second timeout is implemented as a busy-wait loop that also resets the watchdog timer (`wdt_reset()`) on each iteration, ensuring the watchdog does not trigger during a legitimate network wait. A 1-second settling delay after each connection close gives the ESP8266 Wi-Fi module time to fully release its socket state before the next request.
-
-Failure handling is present at two levels. Session startup retries up to five times with 2-second delays between attempts, rebooting via the watchdog if all retries are exhausted. At the session level, each keepalive pulse checks the server response for `"alive": false`, and if the session is reported dead, a new session is started automatically without requiring a device reboot. The system therefore handles the most likely failure modes — transient network errors, slow sensor responses, and stale sessions — gracefully, and no sampling drift or memory issues were observed over the testing period.
+All buffers are statically allocated at compile time, avoiding heap fragmentation on the ATmega's limited SRAM. Each HTTP request opens a TCP connection, waits up to 3 seconds for a response with watchdog resets in the busy-wait loop, then closes — keeping memory usage predictable and preventing watchdog-triggered reboots during legitimate network waits. No latency issues, sampling drift, or memory problems were observed during operation.
 
 ## 4.4 ML Performance
 
