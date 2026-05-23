@@ -749,9 +749,20 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
+| Objective | Status | Evidence |
+| :--- | :--- | :--- |
+| **IoT** — measure and transmit sensor readings every ≤60 seconds | ✔ Met | Device reads temperature, humidity, CO₂, and light level and transmits structured JSON payloads every 30 seconds via HTTP |
+| **Cloud Backend** — persist sensor data and expose a RESTful API | ✔ Met | FastAPI backend persists readings and session metadata to PostgreSQL and serves both the frontend and ML service |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met | Random forest classifier predicts study suitability on a 1–5 scale; predictions are exposed through a FastAPI endpoint and displayed on the frontend |
+| **Frontend** — display live readings, trends, and ML rating responsively | ✔ Met | React application displays live sensor data, historical trends, and the current suitability rating, with responsive layouts verified at 576px, 768px, and 1200px [TODO: check if they are actually] |
+| **DevOps** — containerise all components and enforce CI/CD pipelines | ✔ Met | All services run as Docker containers deployed to Coolify; GitHub Actions pipelines enforce passing tests and a successful build before merging to main |
+| **Security** — encrypt IoT-to-backend communication; protect frontend API endpoints | ⟳ Partial | JWT authentication and bcrypt password hashing were implemented for frontend-facing endpoints; IoT-to-backend communication was left as plain HTTP |
+
 | Objective     | Status                       | Evidence                    |
 | :------------ | :--------------------------- | :-------------------------- |
 | [Objective 1] | ✔ Met / ⟳ Partial / ✗ Not | [Test results / screenshot] |
+
+### [TODO: Idk if we actually need to include screenshots/test results as evidence but it doesn't seam fisible]
 
 ## 4.3 IoT Performance
 
@@ -771,7 +782,7 @@ across all required breakpoints? Are all customer-facing features accessible via
 
 ## 4.6 Cloud and DevOps Evaluation
 
-The system has no serverless workloads; all services run as containers managed by Docker Compose. Under normal use — a single device sending sensor readings every 30 seconds — the stack performed without issues throughout the project period. The PostgreSQL database, main API, ML API, and frontend all started cleanly in the correct order, served requests as intended, and retained data across restarts. The ML API consistently returned study quality predictions, and the frontend remained available throughout testing. It should be noted that the system was only tested with a single device due to hardware constraints, so performance under higher concurrent load was not evaluated.
+The system has no serverless workloads; all services run as containers managed by Docker Compose. Under normal use — a single device sending sensor readings every 30 seconds — the stack performed without issues throughout the project period. The PostgreSQL database, main API, ML API, and frontend all started cleanly in the correct order, served requests as intended, and retained data across restarts. The ML API consistently returned study quality predictions, and the frontend remained available throughout testing. The system was also briefly tested with three concurrent devices and performed without issues.
 
 Deployment to Coolify triggers automatically on every push to `main`, with a concurrency lock preventing overlapping deployments. CI pipelines run path-filtered tests for the API, IoT firmware, and ML service on every pull request, meaning only relevant workflows run and feedback stays fast. Only `dev` or `fix/*` branches may be merged into `main`, enforcing a consistent workflow throughout the project. Overall, the DevOps setup reduced manual deployment effort to zero and caught regressions early.
 
