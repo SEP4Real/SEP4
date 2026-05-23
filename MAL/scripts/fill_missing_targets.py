@@ -132,6 +132,7 @@ def fill_missing_targets_via_clustering(
     n_clusters: int = DEFAULT_N_CLUSTERS,
     random_state: int = RANDOM_STATE,
     strategy: str = "mean",
+    enable_overrides: bool = True,
 ) -> tuple[pd.DataFrame, dict[str, any]]:
     filled_df = df.copy()
     
@@ -284,6 +285,36 @@ def fill_missing_targets_via_clustering(
                 "status": status
             }
 
+    # 5.5 Apply post-propagation rule-based overrides for bad comfort conditions
+    if enable_overrides:
+        print("\nApplying post-propagation rule-based overrides for poor environmental conditions...")
+        
+        # Rule 1: Very Poor conditions (Rating = 1.0)
+        rule_1 = (
+            (filled_df["temperature_mean"] >= 29.0) |
+            (filled_df["co2_mean"] >= 2000.0) |
+            (filled_df["noise_mean"] >= 65.0)
+        )
+        
+        # Rule 2: Poor conditions (Rating = 2.0)
+        rule_2 = (
+            ((filled_df["temperature_mean"] >= 27.5) & (filled_df["temperature_mean"] < 29.0)) |
+            ((filled_df["co2_mean"] >= 1300.0) & (filled_df["co2_mean"] < 2000.0)) |
+            ((filled_df["noise_mean"] >= 60.0) & (filled_df["noise_mean"] < 65.0))
+        )
+        
+        # Only override ratings of rows that were originally unlabeled
+        original_unlabeled_mask = df["focus_score"].isna()
+        
+        # Apply rule_2 first, then rule_1 to make sure rule_1 takes precedence
+        filled_df.loc[original_unlabeled_mask & rule_2, "focus_score"] = 2.0
+        filled_df.loc[original_unlabeled_mask & rule_1, "focus_score"] = 1.0
+        
+        n_rule_1 = (original_unlabeled_mask & rule_1).sum()
+        n_rule_2 = (original_unlabeled_mask & rule_2).sum()
+        print(f"  Overrode {n_rule_1} unlabeled segments to 1.0 due to severe discomfort conditions.")
+        print(f"  Overrode {n_rule_2} unlabeled segments to 2.0 due to moderate discomfort conditions.")
+
     if unfillable_clusters:
         print(f"\n[WARNING] Could not fill targets for clusters: {unfillable_clusters} due to lack of labeled data!")
     else:
@@ -321,6 +352,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--clusters", type=int, default=DEFAULT_N_CLUSTERS)
     parser.add_argument("--seed", type=int, default=RANDOM_STATE)
     parser.add_argument("--strategy", type=str, default="mean", choices=["mean", "sample", "hierarchical"])
+    parser.add_argument("--disable-overrides", action="store_true", help="Disable post-propagation rule-based overrides for bad conditions.")
     return parser.parse_args()
 
 
@@ -334,6 +366,7 @@ def main() -> None:
         n_clusters=args.clusters,
         random_state=args.seed,
         strategy=args.strategy,
+        enable_overrides=not args.disable_overrides,
     )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
