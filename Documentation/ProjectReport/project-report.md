@@ -91,8 +91,8 @@ Based on the environmental challenges identified in the problem domain, this pro
 This problem is decomposed into the following sub-questions:
 
 - What are the most significant indoor environmental factors that affect the efficiency of students' studies?
-- What factors can be used to represent students' study efficiency and atmospheric quality?
-- How do students react to changes in atmospheric quality?
+- What factors can be used to represent students' study efficiency and indoor environmental quality?
+- How do students react to changes in indoor environmental quality?
 - Is there a measurable relationship between environmental factors and study efficiency?
 - How accurately can future suitability levels be predicted based on collected sensor data?
 
@@ -127,7 +127,7 @@ The StudyHelper system is scoped to a single physical IoT device deployed within
 
 **Automation:** The system provides predictive guidance but does not automate any physical actuators beyond the onboard buzzer alert triggered when the predicted study quality rating reaches the lowest level. Full HVAC or lighting automation is explicitly out of scope.
 
-**User model:** The system supports a user roles such as student who can start and stop sessions via the physical button on the device and submit a post-session quality rating through the frontend, and a teacher who assesses whether conditions are suitable for teaching. Administrator views are out of scope.
+**User model:** The system supports user roles such as student who can start and stop sessions via the physical button on the device and submit a post-session quality rating through the frontend, and a teacher who assesses whether conditions are suitable for teaching. Administrator views are out of scope.
 
 **Privacy and data collection:** The system stores environmental sensor readings and session lifecycle metadata. In addition, user accounts are stored, including name, last name, email address, and a hashed password, as well as optional profile fields such as university, study programme, study year, study goal, preferred environmental thresholds, and a profile picture reference. Post-session ratings submitted by users are also persisted, along with an optional free-text comment. No audio recordings or video are collected. All personally identifiable data is linked to a user account and is subject to standard data protection considerations; password storage uses hashing via the `pgcrypto` extension.
 
@@ -755,8 +755,17 @@ partially met, or not met, and support the assessment with evidence.]
 
 ## 4.3 IoT Performance
 
-[How reliably does the embedded system read sensors and transmit data?
-Any latency, sampling drift, memory issues, or failure modes observed?]
+The embedded system reads from four sensors: a DHT11 for temperature and humidity, a photoresistor for ambient light, and an MH-Z19 CO₂ sensor over UART. In practice, all sensor reads proved reliable throughout testing, and no data loss or transmission failures were observed during normal operation.
+
+Sensor sampling is event-driven rather than interrupt-driven at the hardware level. Two software timers, created at startup, set flags (`pulse_due` and `data_due`) at 5-second and 30-second intervals respectively. The main loop checks these flags and initiates reads only when no other request is already in progress, controlled by the `request_in_progress` guard flag. This prevents race conditions between concurrent sensor reads and HTTP transmissions without requiring a scheduler or RTOS.
+
+The DHT11 is read immediately before each transmission rather than buffered in advance, meaning the temperature and humidity values sent to the server always reflect the state of the environment at the moment of transmission with no staleness. The CO₂ sensor follows a request-then-read pattern: a measurement is requested at the end of each data cycle and the result is read at the start of the next, as the MH-Z19 requires time to perform its internal measurement. If a fresh CO₂ reading is unavailable, the system falls back to the most recently cached value and logs a warning, ensuring transmission continues uninterrupted even if the sensor is momentarily slow.
+
+Memory usage is static throughout. All buffers are fixed-size and allocated at compile time: the HTTP receive buffer is 1024 bytes, and outgoing request bodies are constructed into 150–384 byte stack buffers with `snprintf`, preventing heap fragmentation on the ATmega's limited SRAM.
+
+HTTP transmission uses HTTP/1.0 with `Connection: close`, so each request opens a fresh TCP connection, transmits, waits up to 3 seconds for a response, and closes. The 3-second timeout is implemented as a busy-wait loop that also resets the watchdog timer (`wdt_reset()`) on each iteration, ensuring the watchdog does not trigger during a legitimate network wait. A 1-second settling delay after each connection close gives the ESP8266 Wi-Fi module time to fully release its socket state before the next request.
+
+Failure handling is present at two levels. Session startup retries up to five times with 2-second delays between attempts, rebooting via the watchdog if all retries are exhausted. At the session level, each keepalive pulse checks the server response for `"alive": false`, and if the session is reported dead, a new session is started automatically without requiring a device reboot. The system therefore handles the most likely failure modes — transient network errors, slow sensor responses, and stale sessions — gracefully, and no sampling drift or memory issues were observed over the testing period.
 
 ## 4.4 ML Performance
 
