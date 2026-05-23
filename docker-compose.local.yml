@@ -7,7 +7,7 @@ services:
     ports:
       - "${MAL_API_HOST_PORT:-8000}:8000"
 
-  iot-api:
+  api:
     ports:
       - "${IOT_API_HOST_PORT:-8080}:8080"
 
