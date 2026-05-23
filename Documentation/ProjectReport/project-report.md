@@ -755,8 +755,9 @@ partially met, or not met, and support the assessment with evidence.]
 
 ## 4.3 IoT Performance
 
-[How reliably does the embedded system read sensors and transmit data?
-Any latency, sampling drift, memory issues, or failure modes observed?]
+Sensor reads proved reliable throughout testing, with no data loss or transmission failures observed. The DHT11 is read immediately before each transmission, so temperature and humidity values are always current. The CO₂ sensor follows a request-then-read pattern across cycles due to its internal measurement delay; if a fresh reading is unavailable, the system falls back to the last cached value and continues transmitting uninterrupted.
+
+All buffers are statically allocated at compile time, avoiding heap fragmentation on the ATmega's limited SRAM. Each HTTP request opens a TCP connection, waits up to 3 seconds for a response with watchdog resets in the busy-wait loop, then closes — keeping memory usage predictable and preventing watchdog-triggered reboots during legitimate network waits. No latency issues, sampling drift, or memory problems were observed during operation.
 
 ## 4.4 ML Performance
 
