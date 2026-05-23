@@ -35,7 +35,6 @@ class SessionUpdate(BaseModel):
     started_at: Optional[datetime] = Field(None, alias="startedAt")
     is_ended: Optional[bool] = Field(None, alias="isEnded")
     last_pulse_at: Optional[datetime] = Field(None, alias="lastPulseAt")
-    study_quality: Optional[int] = Field(None, alias="studyQuality", ge=1, le=5)
 
     model_config = {"populate_by_name": True}
 
@@ -46,7 +45,6 @@ class Session(BaseModel):
     started_at: datetime = Field(..., alias="startedAt")
     is_ended: bool = Field(None, alias="isEnded")
     last_pulse_at: Optional[datetime] = Field(None, alias="lastPulseAt")
-    study_quality: Optional[int] = Field(None, alias="studyQuality", ge=1, le=5)
 
     model_config = {"populate_by_name": True}
 
@@ -58,7 +56,6 @@ class Session(BaseModel):
             startedAt=row["started_at"],
             isEnded=row.get("is_ended"),
             lastPulseAt=row.get("last_pulse_at"),
-            studyQuality=row.get("study_quality"),
         )
 
 
