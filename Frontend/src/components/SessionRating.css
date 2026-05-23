@@ -52,11 +52,13 @@
 }
 
 body.dark-theme .session-rating-card {
-  background: #2a2a2a;
+  background: #242424;
+  border: 1px solid rgba(188, 255, 226, 0.16);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
 }
 
 body.dark-theme .session-rating-card h2 {
-  color: white;
+  color: #ffffff;
 }
 
 body.dark-theme .rating-button {
@@ -71,12 +73,45 @@ body.dark-theme .rating-button.active {
 }
 
 body.dark-theme .rating-submit {
-  background: rgb(188, 255, 226);
-  color: #111;
+  background: #b8ffdf;
+  color: #10251b;
 }
 
 body.dark-theme .rating-message {
   color: rgb(188, 255, 226);
+}
+
+body.dark-theme .face-rating-btn {
+  border-color: rgba(255, 255, 255, 0.85);
+  opacity: 0.95;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+body.dark-theme .face-rating-btn:nth-child(1) {
+  background: #b85c66 !important;
+}
+
+body.dark-theme .face-rating-btn:nth-child(2) {
+  background: #c98645 !important;
+}
+
+body.dark-theme .face-rating-btn:nth-child(3) {
+  background: #c7ae4a !important;
+}
+
+body.dark-theme .face-rating-btn:nth-child(4) {
+  background: #8fbf5c !important;
+}
+
+body.dark-theme .face-rating-btn:nth-child(5) {
+  background: #62b978 !important;
+}
+
+body.dark-theme .face-rating-btn.active {
+  border-color: #ffffff;
+  box-shadow:
+    0 0 0 6px rgba(184, 255, 223, 0.28),
+    0 12px 26px rgba(0, 0, 0, 0.45);
 }
 
 .rating-icon {

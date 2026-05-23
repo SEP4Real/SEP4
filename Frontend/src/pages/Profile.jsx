@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { getDashboardData } from "../services/DashboardService";
-import { getDeviceById } from "../services/DeviceService";
-import { getProfile, updateProfile } from "../services/ProfileService";
+import { ensureDeviceExists } from "../services/DeviceService";
+import { getProfile, updatePassword, updateProfile } from "../services/ProfileService";
 import { logout } from "../services/AuthService";
 import "./Profile.css";
 import SessionRating from "../components/SessionRating";
+import { useLanguage } from "../context/LanguageContext";
 import {
   Eye,
   EyeOff,
-  History,
   ImageUp,
   LogOut,
   Unplug,
@@ -35,22 +34,21 @@ const readUser = () => {
 const DEFAULT_DEVICE_ID = "arduino-device-01";
 
 const Profile = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const userData = localStorage.getItem("user");
   const user = readUser();
 
-  const [recentHistory, setRecentHistory] = useState([]);
-  const [passwordForm, setPasswordForm] = useState({ current: "", next: "" });
-  const [forgotPasswordForm, setForgotPasswordForm] = useState({
-    email: user?.email || "",
+  const [passwordForm, setPasswordForm] = useState({
+    current: "",
     next: "",
+    confirmNext: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNextPassword, setShowNextPassword] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [showForgotNextPassword, setShowForgotNextPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [deviceId, setDeviceId] = useState(DEFAULT_DEVICE_ID);
   const [connectedDeviceId, setConnectedDeviceId] = useState("");
 
@@ -95,43 +93,16 @@ const Profile = () => {
       }
     };
 
-    const loadData = async () => {
-      try {
-        const data = await getDashboardData();
-        if (Array.isArray(data) && data.length > 0) {
-          setRecentHistory([...data].reverse().slice(0, 3));
-        }
-      } catch (e) {
-        console.error("Error loading history:", e);
-      }
-    };
-
     const loadConnectedDevice = () => {
       const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
       const connectedDevice = userDevices.find(
         (device) => device.email === user?.email,
       );
-      const otherDevices = userDevices.filter(
-        (device) => device.email !== user?.email,
-      );
-      const normalizedDevice = {
-        email: user?.email,
-        deviceId: DEFAULT_DEVICE_ID,
-      };
 
-      if (!connectedDevice || connectedDevice.deviceId !== DEFAULT_DEVICE_ID) {
-        localStorage.setItem(
-          "user_devices",
-          JSON.stringify([...otherDevices, normalizedDevice]),
-        );
-        window.dispatchEvent(new Event("storage"));
-      }
-
-      setConnectedDeviceId(DEFAULT_DEVICE_ID);
-      setDeviceId(DEFAULT_DEVICE_ID);
+      setConnectedDeviceId(connectedDevice?.deviceId || "");
+      setDeviceId(connectedDevice?.deviceId || DEFAULT_DEVICE_ID);
     };
 
-    loadData();
     loadProfile();
     loadConnectedDevice();
   }, [userData, user?.email]);
@@ -159,33 +130,25 @@ const Profile = () => {
 
   const handleSaveStudent = async () => {
     try {
-      await updateProfile({
-        university: studentInfo.university,
-        study_program: studentInfo.StudyProgram,
-        study_year: studentInfo.year,
-        study_goal: studentInfo.goal,
-        preferred_temp: prefs.temp,
-        preferred_co2: prefs.co2,
-        profile_picture: studentInfo.profilePic,
-      });
+      await saveProfile();
 
       setIsEditing(false);
-      alert("Information has been saved!");
+      alert(t.profileSaved);
     } catch (e) {
       console.error(e);
-      alert("Failed to save profile");
+      alert(e.message || t.profileSaveFailed);
     }
   };
 
   const handleConnectDevice = async () => {
     const id = deviceId.trim();
     if (!id) {
-      alert("Please enter an ID");
+      alert(t.profileSaveFailed);
       return;
     }
 
     try {
-      await getDeviceById(id);
+      await ensureDeviceExists(id);
     } catch (error) {
       console.error(error);
       alert(error.message);
@@ -193,104 +156,77 @@ const Profile = () => {
     }
 
     const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
-    const alreadyConnected = userDevices.find(
-      (device) => device.email === user.email && device.deviceId === id,
+    const otherDevices = userDevices.filter(
+      (device) => device.email !== user.email,
     );
-
-    if (alreadyConnected) {
-      alert("This device is already connected to your account!");
-      return;
-    }
-
-    userDevices.push({ email: user.email, deviceId: id });
-    localStorage.setItem("user_devices", JSON.stringify(userDevices));
+    localStorage.setItem(
+      "user_devices",
+      JSON.stringify([...otherDevices, { email: user.email, deviceId: id }]),
+    );
     setConnectedDeviceId(id);
     setDeviceId(id);
     window.dispatchEvent(new Event("storage"));
-    alert("Device " + id + " connected to your account!");
+   alert(`${t.deviceConnected} ${id}`);
   };
 
-  const handleUpdatePassword = () => {
-    const { current, next } = passwordForm;
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const allUsers = JSON.parse(localStorage.getItem("users")) || [];
+  const saveProfile = async (profilePic = studentInfo.profilePic) => {
+    await updateProfile({
+      university: studentInfo.university,
+      study_program: studentInfo.StudyProgram,
+      study_year: studentInfo.year,
+      study_goal: studentInfo.goal,
+      preferred_temp: prefs.temp,
+      preferred_co2: prefs.co2,
+      profile_picture: profilePic,
+    });
+  };
 
-    if (!storedUser) {
-      alert("You are not logged in! Please log in again.");
-      return;
-    }
+  const handleUpdatePassword = async () => {
+    const { current, next, confirmNext } = passwordForm;
 
-    if (!storedUser.password) {
-      alert("Password updates are not available yet.");
-      return;
-    }
-
-    if (storedUser.password !== current) {
-      alert("Current password is incorrect!");
+    if (!current || !next || !confirmNext) {
+      alert(t.fillPasswordFields);
       return;
     }
 
     if (next.length < 8) {
-      alert("New password too short!");
+      alert(t.newPasswordTooShort);
       return;
     }
 
-    const updatedUser = { ...storedUser, password: next };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-
-    const userIdx = allUsers.findIndex((item) => item.email === storedUser.email);
-    if (userIdx !== -1) {
-      allUsers[userIdx].password = next;
-      localStorage.setItem("users", JSON.stringify(allUsers));
-    }
-
-    alert("Password changed successfully!");
-    setPasswordForm({ current: "", next: "" });
-  };
-
-  const handleForgotPasswordReset = () => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const allUsers = JSON.parse(localStorage.getItem("users")) || [];
-    const email = forgotPasswordForm.email.trim().toLowerCase();
-
-    if (!storedUser) {
-      alert("You are not logged in! Please log in again.");
+    if (next !== confirmNext) {
+      alert(t.passwordsDoNotMatch);
       return;
     }
 
-    if (email !== storedUser.email?.toLowerCase()) {
-      alert("The email does not match your current account.");
-      return;
+    try {
+      await updatePassword({
+        current_password: current,
+        new_password: next,
+      });
+
+      alert(t.passwordChanged);
+      setPasswordForm({ current: "", next: "", confirmNext: "" });
+    } catch (error) {
+      console.error(error);
+      alert(error.message || t.passwordUpdateFailed);
     }
-
-    if (forgotPasswordForm.next.length < 8) {
-      alert("New password too short!");
-      return;
-    }
-
-    const updatedUser = { ...storedUser, password: forgotPasswordForm.next };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-
-    const userIdx = allUsers.findIndex(
-      (item) => item.email?.toLowerCase() === email,
-    );
-    if (userIdx !== -1) {
-      allUsers[userIdx].password = forgotPasswordForm.next;
-      localStorage.setItem("users", JSON.stringify(allUsers));
-    }
-
-    alert("Password reset successfully!");
-    setForgotPasswordForm({ email: storedUser.email || "", next: "" });
-    setShowForgotPassword(false);
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setStudentInfo({ ...studentInfo, profilePic: reader.result });
-        localStorage.setItem("stud_pic", reader.result);
+      reader.onloadend = async () => {
+        const profilePic = reader.result;
+        setStudentInfo({ ...studentInfo, profilePic });
+
+        try {
+          await saveProfile(profilePic);
+        } catch (error) {
+          console.error(error);
+          alert(error.message || t.profilePhotoSaveFailed);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -300,7 +236,7 @@ const Profile = () => {
     try {
       await logout();
     } catch (error) {
-      console.error("Error clearing auth cookie:", error);
+      console.error(t.logoutCookieClearError, error);
     }
 
     localStorage.removeItem("user");
@@ -311,13 +247,13 @@ const Profile = () => {
   return (
     <div className="profile-page-container">
       <div className="profile-card-wrapper">
-        <h1>User Profile</h1>
-        <h1>Welcome, {user?.name}</h1>
+        <h1>{t.profileTitle}</h1>
+<h1>{t.welcome}, {user?.name}</h1>
 
         <div className="completion-container">
           <div className="completion-text">
             <span>
-              <UserRoundPen size={18} /> Profile Completion
+              <UserRoundPen size={18} /> {t.profileCompletion}
             </span>
             <strong>{calculateProgress()}%</strong>
           </div>
@@ -334,14 +270,14 @@ const Profile = () => {
             <div className="avatar-side">
               <div className="profile-avatar">
                 {studentInfo.profilePic ? (
-                  <img src={studentInfo.profilePic} alt="Profile" />
+                  <img src={studentInfo.profilePic} alt={t.profileImageAlt} />
                 ) : (
                   (user?.name || user?.email || "U").charAt(0).toUpperCase()
                 )}
               </div>
               <label className="upload-label">
                 <span>
-                  <ImageUp size={16} /> Change Photo
+                  <ImageUp size={16} /> {t.changePhoto}
                 </span>
                 <input type="file" onChange={handleImageChange} hidden />
               </label>
@@ -354,7 +290,7 @@ const Profile = () => {
                   className="logout-btn-top"
                   onClick={() => setShowRatingModal(true)}
                 >
-                  <LogOut size={16} /> Logout
+                 <LogOut size={16} /> {t.logout}
                 </button>
               </div>
 
@@ -362,7 +298,7 @@ const Profile = () => {
 
               <div className="student-details-grid">
                 <div className="detail-item">
-                  <span>University:</span>
+                  <span>{t.university}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.university}
@@ -374,11 +310,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.university || "Not set"}</strong>
+                    <strong>{studentInfo.university || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Program:</span>
+                  <span>{t.program}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.StudyProgram}
@@ -390,11 +326,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.StudyProgram || "Not set"}</strong>
+                    <strong>{studentInfo.StudyProgram || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Year:</span>
+                  <span>{t.year}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.year}
@@ -403,11 +339,11 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.year || "Not set"}</strong>
+                    <strong>{studentInfo.year || t.notSet}</strong>
                   )}
                 </div>
                 <div className="detail-item">
-                  <span>Goal:</span>
+                  <span>{t.goal}:</span>
                   {isEditing ? (
                     <input
                       value={studentInfo.goal}
@@ -416,7 +352,7 @@ const Profile = () => {
                       }
                     />
                   ) : (
-                    <strong>{studentInfo.goal || "Not set"}</strong>
+                    <strong>{studentInfo.goal || t.notSet}</strong>
                   )}
                 </div>
               </div>
@@ -424,14 +360,14 @@ const Profile = () => {
               <div className="header-action-btns">
                 {isEditing ? (
                   <button className="update-btn-full" onClick={handleSaveStudent}>
-                    Save Changes
+                    {t.saveChanges}
                   </button>
                 ) : (
                   <button
                     className="update-btn-full"
                     onClick={() => setIsEditing(true)}
                   >
-                    Edit Profile
+                    {t.editProfile}
                   </button>
                 )}
               </div>
@@ -442,10 +378,10 @@ const Profile = () => {
         <div className="profile-row-grid">
           <div className="profile-section">
             <h3>
-              <UserRoundKey size={18} /> Password & Security
+              <UserRoundKey size={18} /> {t.changePassword}
             </h3>
             <div className="setting-row">
-              <span className="setting-label">Current:</span>
+              <span className="setting-label">{t.currentPassword}:</span>
               <div className="password-input-wrapper">
                 <input
                   type={showCurrentPassword ? "text" : "password"}
@@ -463,12 +399,12 @@ const Profile = () => {
                   className="password-toggle-btn"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 >
-                  {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showCurrentPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                 </button>
               </div>
             </div>
             <div className="setting-row">
-              <span className="setting-label">New:</span>
+              <span className="setting-label">{t.newPassword}:</span>
               <div className="password-input-wrapper">
                 <input
                   type={showNextPassword ? "text" : "password"}
@@ -483,92 +419,48 @@ const Profile = () => {
                   className="password-toggle-btn"
                   onClick={() => setShowNextPassword(!showNextPassword)}
                 >
-                  {showNextPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showNextPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                </button>
+              </div>
+            </div>
+            <div className="setting-row">
+              <span className="setting-label">{t.confirmPassword}:</span>
+              <div className="password-input-wrapper">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={passwordForm.confirmNext}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      confirmNext: e.target.value,
+                    })
+                  }
+                  className="profile-input"
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                 </button>
               </div>
             </div>
             <button className="update-btn-full" onClick={handleUpdatePassword}>
-              Update Password
+              {t.updatePassword}
             </button>
-
-            <button
-              type="button"
-              className="forgot-password-toggle"
-              onClick={() => setShowForgotPassword(!showForgotPassword)}
-            >
-              Forgot password?
-            </button>
-
-            {showForgotPassword && (
-              <div className="forgot-password-box">
-                <p>
-                  Reset your password by confirming the email connected to this
-                  profile.
-                </p>
-                <div className="setting-row">
-                  <span className="setting-label">Email:</span>
-                  <input
-                    type="email"
-                    value={forgotPasswordForm.email}
-                    onChange={(e) =>
-                      setForgotPasswordForm({
-                        ...forgotPasswordForm,
-                        email: e.target.value,
-                      })
-                    }
-                    className="profile-input"
-                  />
-                </div>
-                <div className="setting-row">
-                  <span className="setting-label">New:</span>
-                  <div className="password-input-wrapper">
-                    <input
-                      type={showForgotNextPassword ? "text" : "password"}
-                      value={forgotPasswordForm.next}
-                      onChange={(e) =>
-                        setForgotPasswordForm({
-                          ...forgotPasswordForm,
-                          next: e.target.value,
-                        })
-                      }
-                      className="profile-input"
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle-btn"
-                      onClick={() =>
-                        setShowForgotNextPassword(!showForgotNextPassword)
-                      }
-                    >
-                      {showForgotNextPassword ? (
-                        <EyeOff size={18} />
-                      ) : (
-                        <Eye size={18} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <button
-                  className="update-btn-full reset-password-btn"
-                  onClick={handleForgotPasswordReset}
-                >
-                  Reset Password
-                </button>
-              </div>
-            )}
           </div>
 
           <div className="profile-section">
             <h3>
-              <Unplug size={18} /> Connect Device
-            </h3>
+              <Unplug size={18} /> {t.connectDevice}</h3>
             {connectedDeviceId && (
               <p className="connected-device-status">
-                Connected device: <strong>{connectedDeviceId}</strong>
+                {t.connectedDevice}:<strong>{connectedDeviceId}</strong>
               </p>
             )}
             <div className="setting-row">
-              <span>Device ID:</span>
+              <span>{t.deviceId}:</span>
               <input
                 type="text"
                 value={deviceId}
@@ -579,36 +471,12 @@ const Profile = () => {
               />
             </div>
             <button className="update-btn-full" onClick={handleConnectDevice}>
-              {connectedDeviceId ? "Save Device" : "Connect Now"}
+              {connectedDeviceId  ? t.saveDevice  : t.connectNow}
             </button>
           </div>
         </div>
 
-          <div className="profile-section">
-            <h3>
-              <History size={18} /> History (Last 3)
-            </h3>
-            <table className="history-table-compact">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Temp</th>
-                  <th>CO2</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentHistory.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{new Date(item.sent_at).toLocaleDateString()}</td>
-                    <td>{item.temperature}C</td>
-                    <td>{item.co2_level}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
-       
 
       {showRatingModal && (
         <div className="rating-modal">
@@ -620,7 +488,11 @@ const Profile = () => {
               ×
             </button>
 
-            <SessionRating onSuccess={completeLogout} />
+            <SessionRating
+              submitLabel={t.submitAndLogout}
+              allowSuccessOnError
+              onSuccess={completeLogout}
+            />
           </div>
         </div>
       )}
