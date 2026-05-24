@@ -84,8 +84,19 @@
 .language-toggle:hover {
   color: #8dd9bd;
 }
-/* Media Query  Mobil */
-@media (max-width: 1024px) {
+/* Desktop and smaller screens (≤ 1200px) */
+@media (max-width: 1200px) {
+  .navbar {
+    padding: 0 22px;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+}
+
+/* Tablet and mobile navigation (≤ 768px) */
+@media (max-width: 768px) {
   .hamburger {
     display: flex;
   }
@@ -115,7 +126,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
   .navbar {
     padding: 0 14px;
   }
@@ -198,8 +209,8 @@ body.light-theme .language-toggle {
   color: #111;
 }
 
-/*dark mode under 1024px */
-@media (max-width: 1024px) {
+/* Dark mode tablet and mobile navigation */
+@media (max-width: 768px) {
   body.dark-theme .nav-links {
     background: #111; 
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);

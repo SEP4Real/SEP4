@@ -4,7 +4,6 @@ import { ensureDeviceExists } from "../services/DeviceService";
 import { getProfile, updatePassword, updateProfile } from "../services/ProfileService";
 import { logout } from "../services/AuthService";
 import "./Profile.css";
-import SessionRating from "../components/SessionRating";
 import { useLanguage } from "../context/LanguageContext";
 import {
   Eye,
@@ -45,7 +44,6 @@ const Profile = () => {
     confirmNext: "",
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [showRatingModal, setShowRatingModal] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNextPassword, setShowNextPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -288,7 +286,7 @@ const Profile = () => {
                 <h2>{displayName}</h2>
                 <button
                   className="logout-btn-top"
-                  onClick={() => setShowRatingModal(true)}
+                  onClick={completeLogout}
                 >
                  <LogOut size={16} /> {t.logout}
                 </button>
@@ -451,7 +449,7 @@ const Profile = () => {
             </button>
           </div>
 
-          <div className="profile-section">
+          <div className="profile-section device-section">
             <h3>
               <Unplug size={18} /> {t.connectDevice}</h3>
             {connectedDeviceId && (
@@ -478,24 +476,6 @@ const Profile = () => {
 
         </div>
 
-      {showRatingModal && (
-        <div className="rating-modal">
-          <div className="rating-modal-content">
-            <button
-              className="close-rating-modal"
-              onClick={() => setShowRatingModal(false)}
-            >
-              ×
-            </button>
-
-            <SessionRating
-              submitLabel={t.submitAndLogout}
-              allowSuccessOnError
-              onSuccess={completeLogout}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
