@@ -271,6 +271,14 @@ useEffect(() => {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="dashboard">
+        <LoadingSpinner text="Loading environment data..." />
+      </div>
+    );
+  }
+
   if (!latestData) {
     return (
       <div className="dashboard">
