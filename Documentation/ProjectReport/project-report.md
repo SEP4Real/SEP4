@@ -481,11 +481,23 @@ If a cluster suffered from extreme sparsity (e.g., completely missing a feature 
 
 ### 3.6.2 Feature Selection
 
-[...]
+Our feature extraction pipeline aggregates ("linearize") time-series sensor data into session-level metrics including auxiliary metrics (current, min, max, and mean values) for temperature, humidity, CO2, and light which are calculated. The selected features for the Random Forest classifier are:
+
+- `currentTemperature`: The final temperature recorded during the session.
+- `maxTemp`: The maximum temperature reached during the session.
+- `minTemp`: The minimum temperature recorded.
+- `meanTemp`: The average temperature over the duration of the session.
+
+These features are used to predict the user's focus `rating`.
 
 ### 3.6.3 Data Split and Validation Strategy
 
-[...]
+To ensure robust evaluation and prevent data leakage, we implemented a 64/16/20 split for training, validation, and testing:
+
+1. **Initial Split**: The dataset is split into an 80% development set (training + validation) and a 20% hold-out test set.
+2. **Validation Split**: The development set is further split, reserving 20% of it (16% of the total data) for validation and hyperparameter tuning, leaving 64% for model training.
+
+Both splits employ **stratified sampling** based on the target `rating` variable. This guarantees that all three subsets maintain the same proportional distribution of user ratings, which is critical for handling potential class imbalances. The final models are evaluated primarily using **Accuracy** and **Macro F1-score**.
 
 ## 3.7 Frontend Implementation
 
@@ -656,11 +668,11 @@ The remaining codebase consists of low-level peripheral drivers and the main app
 
 ### 3.11.2 Unit Test Results
 
-| Module         | Tests | Passed | Failed | Coverage |
-| :------------- | :---- | :----- | :----- | :------- |
-| `wifi_http`  | 18    | 18     | 0      | 93.9%    |
-| `server_api` | 36    | 36     | 0      | 96.6%    |
-| `display_status` | 11    | 11     | 0      | 100%    |
+| Module             | Tests | Passed | Failed | Coverage |
+| :----------------- | :---- | :----- | :----- | :------- |
+| `wifi_http`      | 18    | 18     | 0      | 93.9%    |
+| `server_api`     | 36    | 36     | 0      | 96.6%    |
+| `display_status` | 11    | 11     | 0      | 100%     |
 
 ### 3.11.3 Integration and System-Level Tests
 
@@ -750,14 +762,14 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
-| Objective | Status | Evidence |
-| :--- | :--- | :--- |
-| **IoT** — measure and transmit sensor readings every ≤60 seconds | ✔ Met | Device reads temperature, humidity, CO₂, and light level and transmits structured JSON payloads every 30 seconds via HTTP |
-| **Cloud Backend** — persist sensor data and expose a RESTful API | ✔ Met | FastAPI backend persists readings and session metadata to PostgreSQL and serves both the frontend and ML service |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met | Random forest classifier predicts study suitability on a 1–5 scale; predictions are exposed through a FastAPI endpoint and displayed on the frontend |
-| **Frontend** — display live readings, trends, and ML rating responsively | ✔ Met | React application displays live sensor data, historical trends, and the current suitability rating, with responsive layouts verified at 576px, 768px, and 1200px [TODO: check if they are actually] |
-| **DevOps** — containerise all components and enforce CI/CD pipelines | ✔ Met | All services run as Docker containers deployed to Coolify; GitHub Actions pipelines enforce passing tests and a successful build before merging to main |
-| **Security** — encrypt IoT-to-backend communication; protect frontend API endpoints | ⟳ Partial | JWT authentication and bcrypt password hashing were implemented for frontend-facing endpoints; IoT-to-backend communication was left as plain HTTP |
+| Objective                                                                                  | Status     | Evidence                                                                                                                                                                                            |
+| :----------------------------------------------------------------------------------------- | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IoT** — measure and transmit sensor readings every ≤60 seconds                   | ✔ Met     | Device reads temperature, humidity, CO₂, and light level and transmits structured JSON payloads every 30 seconds via HTTP                                                                          |
+| **Cloud Backend** — persist sensor data and expose a RESTful API                    | ✔ Met     | FastAPI backend persists readings and session metadata to PostgreSQL and serves both the frontend and ML service                                                                                    |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API       | ✔ Met     | Random forest classifier predicts study suitability on a 1–5 scale; predictions are exposed through a FastAPI endpoint and displayed on the frontend                                               |
+| **Frontend** — display live readings, trends, and ML rating responsively            | ✔ Met     | React application displays live sensor data, historical trends, and the current suitability rating, with responsive layouts verified at 576px, 768px, and 1200px [TODO: check if they are actually] |
+| **DevOps** — containerise all components and enforce CI/CD pipelines                | ✔ Met     | All services run as Docker containers deployed to Coolify; GitHub Actions pipelines enforce passing tests and a successful build before merging to main                                             |
+| **Security** — encrypt IoT-to-backend communication; protect frontend API endpoints | ⟳ Partial | JWT authentication and bcrypt password hashing were implemented for frontend-facing endpoints; IoT-to-backend communication was left as plain HTTP                                                  |
 
 | Objective     | Status                       | Evidence                    |
 | :------------ | :--------------------------- | :-------------------------- |
