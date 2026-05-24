@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Exit on error
+set -e
+
+# Base directory of the repository
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "Checking dependencies..."
+if ! command -v pandoc &> /dev/null; then
+    echo "Error: 'pandoc' is not installed."
+    echo "Please install pandoc (e.g. 'sudo apt install pandoc' on Debian/Ubuntu)."
+    exit 1
+fi
+
+if ! command -v weasyprint &> /dev/null; then
+    echo "Error: 'weasyprint' is not installed."
+    echo "Please install weasyprint (e.g. 'pip install weasyprint' or check your PATH)."
+    exit 1
+fi
+
+echo "Compiling Process Report..."
+make -f "${REPO_DIR}/Misc/AcademicTemplate/Makefile" SRC="${REPO_DIR}/Documentation/ProcessReport/process-report.md" pdf
+rm -f "${REPO_DIR}/Documentation/ProcessReport/process-report.html"
+
+echo "Compiling Project Report..."
+make -f "${REPO_DIR}/Misc/AcademicTemplate/Makefile" SRC="${REPO_DIR}/Documentation/ProjectReport/project-report.md" pdf
+rm -f "${REPO_DIR}/Documentation/ProjectReport/project-report.html"
+
+echo "----------------------------------------"
+echo "Success! Reports compiled and intermediate HTML files cleaned up."
+echo "Created:"
+echo " - ${REPO_DIR}/Documentation/ProcessReport/process-report.pdf"
+echo " - ${REPO_DIR}/Documentation/ProjectReport/project-report.pdf"

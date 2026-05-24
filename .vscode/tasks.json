@@ -46,6 +46,16 @@
             "group": "test",
             "problemMatcher": [],
             "detail": "Builds the MAL Docker image and runs tests inside it, matching the simplified CI workflow."
+        },
+        {
+            "label": "Compile Reports Locally",
+            "type": "shell",
+            "command": "./compile_docs.sh",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Compiles Project and Process reports locally to PDF and cleans up intermediate HTML files."
         }
     ]
 }

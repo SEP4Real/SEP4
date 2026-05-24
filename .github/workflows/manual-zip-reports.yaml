@@ -1,0 +1,49 @@
+name: Manual Zip Reports
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-zip:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Install Python and Pip
+        run: |
+          sudo apt-get install -y python3-pip python3-setuptools python3-wheel
+
+      - name: Install WeasyPrint dependencies
+        run: |
+          sudo apt-get install -y python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
+
+      - name: Install WeasyPrint
+        run: |
+          pip3 install weasyprint
+
+      - name: Compile Process Report
+        run: |
+          make -f Misc/AcademicTemplate/Makefile SRC=Documentation/ProcessReport/process-report.md pdf
+          rm -f Documentation/ProcessReport/process-report.html
+
+      - name: Compile Project Report
+        run: |
+          make -f Misc/AcademicTemplate/Makefile SRC=Documentation/ProjectReport/project-report.md pdf
+          rm -f Documentation/ProjectReport/project-report.html
+
+      - name: Create Zip Archive
+        run: |
+          zip -j reports.zip Documentation/ProcessReport/process-report.pdf Documentation/ProjectReport/project-report.pdf
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports.zip
