@@ -648,9 +648,9 @@ What automated checks ran on every PR? What gaps remained?]
 
 ### 3.11.1 Testing Strategy for Embedded C
 
-Unit testing for the IoT application focused on the two modules containing application logic: `wifi_http`, responsible for establishing TCP connections and constructing HTTP requests, and `server_api`, responsible for session management and server communication. Tests were written using the Unity unit test framework for C and compiled natively on the host using GCC, allowing them to run in CI without any physical hardware.
+Unit testing for the IoT application focused on three modules containing application logic: wifi_http, responsible for establishing TCP connections and constructing HTTP requests; server_api, responsible for session management and server communication; and display_status, responsible for driving the four-digit segment display with status-specific patterns. Tests were written using the Unity unit test framework for C and compiled natively on the host using GCC, allowing them to run in CI without any physical hardware.
 
-Hardware-dependent components — TCP socket operations, Wi-Fi driver commands, and buzzer output — were replaced with fakes generated using the FFF (Fake Function Framework). FFF allows individual driver functions to be substituted with configurable stubs that record call counts, capture arguments, and inject return values or response payloads. This made it possible to test application logic such as session ID parsing, retry behaviour, and endpoint construction in full isolation from the underlying hardware.
+Hardware-dependent components — TCP socket operations, Wi-Fi driver commands, buzzer output, and display driver calls — were replaced with fakes generated using the FFF (Fake Function Framework). FFF allows individual driver functions to be substituted with configurable stubs that record call counts, capture arguments, and inject return values or response payloads. This made it possible to test application logic such as session ID parsing, retry behaviour, endpoint construction, and display output in full isolation from the underlying hardware.
 
 The remaining codebase consists of low-level peripheral drivers and the main application loop. Drivers are inherently hardware-dependent and cannot be meaningfully tested without the target device. The main loop contains no isolated logic of its own, acting purely as an orchestrator of the other modules. Neither lends itself to unit testing, and both were verified manually on the physical hardware.
 
@@ -658,8 +658,9 @@ The remaining codebase consists of low-level peripheral drivers and the main app
 
 | Module         | Tests | Passed | Failed | Coverage |
 | :------------- | :---- | :----- | :----- | :------- |
-| `wifi_http`  | 14    | 14     | 0      | 93.9%    |
-| `server_api` | 24    | 24     | 0      | 95.3%    |
+| `wifi_http`  | 18    | 18     | 0      | 93.9%    |
+| `server_api` | 36    | 36     | 0      | 96.6%    |
+| `display_status` | 11    | 11     | 0      | 100%    |
 
 ### 3.11.3 Integration and System-Level Tests
 
