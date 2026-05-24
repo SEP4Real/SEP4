@@ -163,9 +163,9 @@ body.dark-theme .auth-link a {
   color: rgb(188, 255, 226);
 }
 
-/* 1024px and 480px */
+/* Desktop and smaller screens (≤ 1200px) */
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .login-auth-content {
     width: 100%;
     max-width: 420px;
@@ -174,7 +174,15 @@ body.dark-theme .auth-link a {
   }
 }
 
-@media (max-width: 480px) {
+/* Tablet screens (≤ 768px) */
+@media (max-width: 768px) {
+  .login-auth-content {
+    max-width: 400px;
+  }
+}
+
+/* Small screens (≤ 576px) */
+@media (max-width: 576px) {
   .login-auth-content h1 {
     font-size: 26px;
   }

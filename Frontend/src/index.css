@@ -33,9 +33,23 @@ body.dark-theme {
   padding-top: 70px;
 }
 
+@media (max-width: 1200px) {
+  .page {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
 @media (max-width: 768px) {
   .page {
     padding-left: 10px;
     padding-right: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .page {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }

@@ -110,3 +110,14 @@ body.dark-theme .chart-toggle.light_level.active {
     height: 320px;
   }
 }
+
+@media (max-width: 576px) {
+  .chart-wrapper {
+    height: 280px;
+  }
+
+  .chart-toggle {
+    padding: 7px 10px;
+    font-size: 0.85rem;
+  }
+}

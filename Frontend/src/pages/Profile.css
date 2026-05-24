@@ -173,6 +173,10 @@
   margin-bottom: 20px;
 }
 
+.device-section {
+  border-top: 5px solid #2d6a4f;
+}
+
 .profile-section h3 {
   margin: 0 0 15px 0;
   color: #1b4332;
@@ -467,7 +471,7 @@ body.dark-theme [class*="logout"] {
   border: 1px solid #7a2f2f !important;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .profile-page-container {
     padding-top: 100px !important;
     padding-left: 15px !important;
@@ -520,7 +524,11 @@ body.dark-theme [class*="logout"] {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
+  .device-section {
+    order: -1;
+  }
+
   .profile-page-container {
     padding-left: 10px !important;
     padding-right: 10px !important;

@@ -539,9 +539,9 @@ body.dark-theme .close-rating-modal {
   background: #2d6a4f;
 }
 
-/*Small screens (≤ 480px)    */
+/* Small screens (≤ 576px) */
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
   .dashboard {
     padding-left: 14px;
     padding-right: 14px;
@@ -603,7 +603,7 @@ body.dark-theme .close-rating-modal {
 
 /*Tablets (≤ 768px)          */
 
-@media (max-width: 768px) {
+@media (min-width: 577px) and (max-width: 768px) {
   .dashboard-overview {
     grid-template-columns: 1fr;
   }
@@ -613,15 +613,15 @@ body.dark-theme .close-rating-modal {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .dashboard-overview {
     grid-template-columns: 1fr;
   }
 }
 
-/*Large screens (≥ 1024px)   */
+/* Desktop layout (769px - 1200px) */
 
-@media (min-width: 1024px) {
+@media (min-width: 769px) and (max-width: 1200px) {
   .dashboard-grid {
     gap: 15px !important;
   }
@@ -707,7 +707,7 @@ body.dark-theme .recommendation-card p {
 
 /* RESPONSIVE */
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
   .dashboard-grid {
     grid-template-columns: 1fr !important;
   }
