@@ -13,12 +13,12 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(global, 'localStorage', {
+Object.defineProperty(globalThis, 'localStorage', {
   value: localStorageMock,
   writable: true
 });
 
-global.alert = vi.fn();
+globalThis.alert = vi.fn();
 
 // TEST: PROFILE PAGE
 

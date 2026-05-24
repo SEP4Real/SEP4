@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check source branch
-        if: ${{ github.head_ref != 'dev' && !startsWith(github.head_ref, 'fix/') }}
+        if: ${{ github.base_ref == 'main' && github.head_ref != 'dev' && !startsWith(github.head_ref, 'fix/') }}
         run: |
           echo "Error: Invalid source branch."
           exit 1

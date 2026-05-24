@@ -19,7 +19,6 @@ const Navbar = () => {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    setUser(localStorage.getItem("user"));
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);

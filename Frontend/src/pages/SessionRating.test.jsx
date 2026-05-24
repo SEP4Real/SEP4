@@ -8,7 +8,7 @@ describe("SessionRating", () => {
   beforeEach(() => {
     localStorage.clear();
 
-    global.fetch = vi.fn(() =>
+    globalThis.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({}),
@@ -63,7 +63,7 @@ describe("SessionRating", () => {
     await user.click(screen.getByRole("button", { name: /submit & logout/i }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(globalThis.fetch).toHaveBeenCalled();
       expect(onSuccess).toHaveBeenCalled();
     });
   });
