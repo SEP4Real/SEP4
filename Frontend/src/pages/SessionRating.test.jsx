@@ -1,8 +1,6 @@
-/* eslint-env vitest */
-
+import { describe, test, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { vi } from "vitest";
 import SessionRating from "../components/SessionRating";
 import { LanguageProvider } from "../context/LanguageContext";
 
