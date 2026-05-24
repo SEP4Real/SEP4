@@ -19,7 +19,7 @@ build/
 /Documentation.zip
 /package-lock.json
 /ratings.csv
-/focus_dataset.csv
+/linearized_session_windows.csv
 /environment_history.csv
 
 # Generated ML artifacts

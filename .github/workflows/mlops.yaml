@@ -6,7 +6,7 @@ on:
     paths:
       - '.github/workflows/mlops.yaml'
       - 'MAL/**'
-      - 'focus_dataset.csv'
+      - 'linearized_session_windows.csv'
       - 'ratings.csv'
       - 'environment_history.csv'
   pull_request:
@@ -14,7 +14,7 @@ on:
     paths:
       - '.github/workflows/mlops.yaml'
       - 'MAL/**'
-      - 'focus_dataset.csv'
+      - 'linearized_session_windows.csv'
       - 'ratings.csv'
       - 'environment_history.csv'
 

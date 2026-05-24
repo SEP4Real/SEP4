@@ -13,7 +13,7 @@ PROCESSED_DATA_DIR = DATA_DIR / "processed"
 RAW_DATA_DIR = DATA_DIR / "raw"
 MODELS_DIR = MAL_DIR / "models"
 
-DATASET_PATH = PROCESSED_DATA_DIR / "focus_dataset.csv"
+DATASET_PATH = PROCESSED_DATA_DIR / "linearized_session_windows.csv"
 REAL_SENSOR_HISTORY_PATH = RAW_DATA_DIR / "environment_history_realdata.csv"
 REAL_FOCUS_DATASET_PATH = PROCESSED_DATA_DIR / "focus_dataset_realdata.csv"
 MODEL_PATH = MODELS_DIR / "rf_model.pkl"
@@ -28,6 +28,14 @@ def load_dataset(path: Path = DATASET_PATH) -> pd.DataFrame:
     missing_columns = [column for column in [*FEATURE_COLUMNS, TARGET_COLUMN] if column not in df.columns]
     if missing_columns:
         raise ValueError(f"Dataset is missing required columns: {', '.join(missing_columns)}")
+    
+    # Drop rows where target is missing
+    initial_len = len(df)
+    df = df.dropna(subset=[TARGET_COLUMN])
+    dropped = initial_len - len(df)
+    if dropped > 0:
+        print(f"Dropped {dropped} rows with missing targets from training dataset.")
+        
     return df
 
 
@@ -59,19 +67,27 @@ def train_validation_test_split(
     validation_size: float = 0.2,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, pd.Series]:
     x, y = split_features_target(df)
+    
+    min_class_count = y.value_counts().min() if len(y) > 0 else 0
+    stratify_y = y if min_class_count >= 2 else None
+    
     x_train_val, x_test, y_train_val, y_test = train_test_split(
         x,
         y,
         test_size=test_size,
         random_state=RANDOM_STATE,
-        stratify=y,
+        stratify=stratify_y,
     )
+    
+    min_train_val_count = y_train_val.value_counts().min() if len(y_train_val) > 0 else 0
+    stratify_train_val = y_train_val if min_train_val_count >= 2 else None
+    
     x_train, x_validation, y_train, y_validation = train_test_split(
         x_train_val,
         y_train_val,
         test_size=validation_size,
         random_state=RANDOM_STATE,
-        stratify=y_train_val,
+        stratify=stratify_train_val,
     )
     return x_train, x_validation, x_test, y_train, y_validation, y_test
 
