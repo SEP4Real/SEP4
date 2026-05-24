@@ -53,7 +53,7 @@ paragraph that lets a reader decide whether to read further.]
 
 [TODO: each team check and adjust sentences about their parts of the system so its 100% correct]
 
-StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical trends, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning model [TODO: update after making the final model] - a Random Forest classifier trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
+StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning model [TODO: update after making the final model] - a Random Forest classifier trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
 
 # 1. Introduction
 
@@ -70,12 +70,15 @@ Why is an IoT-based solution with machine learning relevant here?
 Who are the stakeholders and what do they need?]
 
 The physical environment in which learning takes place has a measurable impact on cognitive performance. Research has shown that environmental conditions such as temperature, humidity, CO₂ concentration, and lighting directly influence students' ability to concentrate and retain information (Bustamante-Mora et al., 2025) [TODO: add reference in references]. Despite growing awareness of this relationship, most study spaces - libraries, classrooms, dormitories - provide no real-time feedback on whether the ambient conditions are conducive to productive work. Students are left to rely on subjective perception, often noticing that conditions are poor only after their focus has already deteriorated.
+This makes the problem difficult to handle manually, because students may feel tired or distracted without knowing whether the cause is related to the environment. Objective measurements can help make these conditions visible before they noticeably affect the study session.
 
 The problem is particularly acute in shared environments where individual control over heating, ventilation, or lighting is limited or absent. A student in a crowded library has no practical way of knowing whether the rising CO₂ level in the room is contributing to their fatigue, or whether the ambient temperature is outside the range associated with optimal cognitive function. Existing commercial solutions either focus on a single sensor parameter or require expensive infrastructure that is not feasible in a typical university context.
+For schools and universities, this creates a practical need for a solution that can monitor indoor conditions without requiring expensive building-wide infrastructure.
 
 By combining low-cost IoT sensing with a machine learning prediction layer, the StudyHelper system closes the gap between raw environmental data and actionable guidance. Rather than simply logging sensor values, the system learns from historical patterns of user-rated study sessions and uses that knowledge to predict how suitable current conditions are likely to be - providing students and teachers with a tool to make informed decisions about when and where to study.
 
-The primary stakeholders are students, who benefit directly from improved self-awareness of their study environment; teachers, who can use condition overviews to assess classroom suitability; and study-space administrators, who could use aggregated data to inform ventilation or room management decisions. [Expand here if additional stakeholder interviews or literature sources are added.]
+The primary stakeholders are students, who benefit directly from improved self-awareness of their study environment; teachers, who can use condition overviews to assess classroom suitability.
+[Expand here if additional stakeholder interviews or literature sources are added.]
 
 ## 1.2 Problem Statement
 
@@ -86,17 +89,17 @@ missing or suboptimal, and what a successful solution would look like.]
 
 Based on the environmental challenges identified in the problem domain, this project addresses the following core question:
 
-**Main problem:** How can indoor environmental data be monitored and analyzed to understand the relationship between environmental conditions and students' focus during study sessions?
+**Main problem:** How can indoor environmental data be monitored and analyzed to better understand how environmental conditions affect the quality of students' study sessions?
 
 This problem is decomposed into the following sub-questions:
 
-- What are the most significant indoor environmental factors that affect the efficiency of students' studies?
-- What factors can be used to represent students' study efficiency and indoor environmental quality?
+- What are the most significant indoor environmental factors that affect students' study conditions?
+- What factors can be used to represent study session quality and indoor environmental quality?
 - How do students react to changes in indoor environmental quality?
-- Is there a measurable relationship between environmental factors and study efficiency?
-- How accurately can future suitability levels be predicted based on collected sensor data?
+- Is there a measurable relationship between environmental factors and user-provided study ratings?
+- How accurately can study suitability be predicted based on collected sensor data?
 
-A successful solution would continuously collect real-world sensor data from study environments, expose this data through a structured API, and deliver ML-driven suitability predictions to students via a responsive web interface - all without requiring any manual data entry beyond an optional post-session quality rating.
+A successful solution would continuously collect real-world sensor data from study environments, expose this data through a structured API, and deliver ML-driven suitability predictions to students via a responsive web interface. The system should require minimal manual input from the user, apart from connecting a device and optionally submitting a post-session quality rating.
 
 ## 1.3 Project Objectives
 
@@ -108,7 +111,7 @@ The concrete objectives of the StudyHelper project are as follows:
 - **IoT:** The embedded device shall measure temperature, humidity, CO₂ concentration, and light level using the ATmega2560 MCU and transmit structured JSON payloads to the cloud backend via HTTP at a regular interval not exceeding sixty seconds.
 - **Cloud Backend:** The Core API (FastAPI) shall act as the central gateway - persisting sensor readings and session metadata in a shared PostgreSQL database and exposing a RESTful API consumed by both the frontend and the MAL service.
 - **Machine Learning:** The ML component shall train a classifier capable of predicting a Study Suitability Rating on an integer scale of one to five, using aggregated temperature window features derived from historical sensor data, and expose predictions through a FastAPI endpoint.
-- **Frontend:** The React web application shall display live sensor readings, historical trends, and the current ML-predicted suitability rating in a responsive layout that adapts to screen widths of 576 px, 768 px, and 1200 px.
+- **Frontend:** The React web application shall display live sensor readings and the current ML-predicted suitability rating in a responsive layout that adapts to screen widths of 576 px, 768 px, and 1200 px.
 - **DevOps:** All components shall be containerised with Docker, deployed to a public cloud host, and supported by automated CI/CD pipelines on GitHub Actions that enforce unit-test passing and successful build compilation before merging to the main branch.
 - **Security:** Communication between the IoT device and the backend shall be protected by [encryption scheme to be specified]; frontend-facing API endpoints shall be protected by [JWT / API key to be confirmed].
 
@@ -119,9 +122,10 @@ The concrete objectives of the StudyHelper project are as follows:
 [Define the boundaries. What is explicitly in scope for each component?
 What has been consciously left out, and why? Important given the 60-page limit.]
 
-The StudyHelper system is scoped to a single physical IoT device deployed within one or more campus study environments for the duration of the project semester. The following delimitations were agreed at project inception and are reflected in the implemented system:
+The system is designed around a physical IoT device that can be connected to a user account and used in different study environments, such as classrooms, libraries, or personal study spaces.
+The following delimitations were agreed at project inception and are reflected in the implemented system:
 
-**Geographical scope:** The device is designed and tested within a single campus environment. Multi-building deployment is out of scope for this iteration.
+**Geographical scope:** The device is designed and tested within a campus-related study context, such as classrooms, libraries, or personal study spaces. The IoT device is treated as a portable physical sensor that can be connected to a user account and used in the environment where the user is currently studying. Multi-building deployment is out of scope for this iteration.
 
 **Sensor coverage:** The system measures temperature, humidity, CO₂ concentration, and light. Sound level measurement is not currently implemented by the active firmware, despite being noted as a candidate sensor in the project description due to the malfunctioning and inaccurate quality of the sound sensor.
 
@@ -129,7 +133,7 @@ The StudyHelper system is scoped to a single physical IoT device deployed within
 
 **User model:** The system supports user roles such as student who can start and stop sessions via the physical button on the device and submit a post-session quality rating through the frontend, and a teacher who assesses whether conditions are suitable for teaching. Administrator views are out of scope.
 
-**Privacy and data collection:** The system stores environmental sensor readings and session lifecycle metadata. In addition, user accounts are stored, including name, last name, email address, and a hashed password, as well as optional profile fields such as university, study programme, study year, study goal, preferred environmental thresholds, and a profile picture reference. Post-session ratings submitted by users are also persisted, along with an optional free-text comment. No audio recordings or video are collected. All personally identifiable data is linked to a user account and is subject to standard data protection considerations; password storage uses hashing via the `pgcrypto` extension.
+**Privacy and data collection:** The system stores environmental sensor readings and session lifecycle metadata. In addition, user accounts are stored, including name, last name, email address, and a hashed password, as well as optional profile fields such as university, study programme, study year, study goal, and a profile picture reference. Connected device information and post-session ratings submitted by users are persisted so ratings can be associated with the correct device and study session. No audio recordings or video are collected. All personally identifiable data is linked to a user account and is subject to standard data protection considerations; password storage uses hashing.
 
 **Medical and psychological analysis:** The system does not attempt to measure or infer physiological state, stress levels, or cognitive load directly. The Study Suitability Rating is an environmental proxy, not a clinical assessment.
 
@@ -171,7 +175,7 @@ Reference the domain model diagram:]
 [Walk through the most important entities and associations.
 Justify the key modelling decisions.]
 
-The domain model captures the core concepts of the StudyHelper system and the relationships between them. The central entity is the **StudyEnvironment**, which represents the physical room or space being monitored. A StudyEnvironment has measurable attributes - temperature, humidity, CO₂ level, light level, and noise level [TODO: remove noise level or not depending on the choice] - as well as derived attributes: a current suitability level and a predicted suitability level with an associated trend direction.
+The domain model captures the core concepts of the StudyHelper system and the relationships between them. The central entity is the **StudyEnvironment**, which represents the physical room or space being monitored. A StudyEnvironment has measurable attributes - temperature, humidity, CO₂ level, light level, and noise level [TODO: remove noise level or not depending on the choice] - as well as derived attributes: a current suitability level and a predicted suitability level .
 
 Two actors interact with the StudyEnvironment: the **Student**, who monitors conditions to decide whether to begin or continue a study session, and the **Teacher**, who assesses whether conditions are suitable for teaching. Both actors share a common monitoring relationship with the StudyEnvironment; however, only the Student can submit a session rating, which feeds back into the ML training pipeline.
 
@@ -199,6 +203,11 @@ The following user stories were derived from the use cases defined in the projec
 | US05 | As a Student, I want to start and stop a monitored study session using a physical button on the device, so that I do not need to interact with any software to begin monitoring. | Must have   | IoT                         |
 | US06 | As a Teacher, I want an overview of current and predicted environmental conditions, so that I can decide if the environment is suitable for teaching.                            | Could have  | Frontend / ML               |
 | US07 | As a Student, I want the web application to work correctly on my phone, tablet, and laptop, so that I can check conditions from any device.                                      | Should have | Frontend                    |
+| US08 | As a User, I want to register, log in, and log out securely, so that my personal data and study information are protected. | Must have | Frontend|
+| US09 | As a Student, I want to connect my physical device to my account, so that the dashboard can show data from my own study device. | Must have | Frontend|
+| US10 | As a Student, I want to manage my profile information, so that the application can be personalized to me. | Should have | Frontend|
+| US11 | As a Student, I want to manage calendar events, so that I can plan study sessions in the same application. | Could have | Frontend|
+| US12 | As a User, I want to switch between English and Danish and use dark mode, so that the application is easier to use in different contexts. | Could have | Frontend |
 
 [Review this table and add any user stories created during sprint planning that are not listed here. Assign MoSCoW priorities consistent with what was actually implemented.]
 
@@ -773,7 +782,7 @@ partially met, or not met, and support the assessment with evidence.]
 | **IoT** — measure and transmit sensor readings every ≤60 seconds                   | ✔ Met     | Device reads temperature, humidity, CO₂, and light level and transmits structured JSON payloads every 30 seconds via HTTP                                                                          |
 | **Cloud Backend** — persist sensor data and expose a RESTful API                    | ✔ Met     | FastAPI backend persists readings and session metadata to PostgreSQL and serves both the frontend and ML service                                                                                    |
 | **Machine Learning** — train a 1–5 suitability classifier and expose via API       | ✔ Met     | Random forest classifier predicts study suitability on a 1–5 scale; predictions are exposed through a FastAPI endpoint and displayed on the frontend                                               |
-| **Frontend** — display live readings, trends, and ML rating responsively            | ✔ Met     | React application displays live sensor data, historical trends, and the current suitability rating, with responsive layouts verified at 576px, 768px, and 1200px [TODO: check if they are actually] |
+| **Frontend** — display live readings and ML rating responsively            | ✔ Met     | React application displays live sensor data, historical sensor readings, and the current suitability rating, with responsive layouts verified at 576px, 768px, and 1200px [TODO: check if they are actually] |
 | **DevOps** — containerise all components and enforce CI/CD pipelines                | ✔ Met     | All services run as Docker containers deployed to Coolify; GitHub Actions pipelines enforce passing tests and a successful build before merging to main                                             |
 | **Security** — encrypt IoT-to-backend communication; protect frontend API endpoints | ⟳ Partial | JWT authentication and bcrypt password hashing were implemented for frontend-facing endpoints; IoT-to-backend communication was left as plain HTTP                                                  |
 

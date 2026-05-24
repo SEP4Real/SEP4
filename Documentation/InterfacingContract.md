@@ -49,19 +49,23 @@ We need to mock the IOT sensor data immediately so we can train our ML model and
 # FrontEnd Interfacing contract
 
 ### How should we split the responsibilities between the teams?
-FrontEnd is responsible for data visualization and user input collection — we will use **JavaScript + React**. FronEnd will also be responsible for baackend in case something is needed outside the mentioned scope of IOT and MAL teams (e.g. user authentication, user preferences, etc.). 
+FrontEnd is responsible for data visualization and user input collection — we will use **JavaScript + React** to build web interface. FrontEnd also handles user-facing features such as authentication pages, profile settings, calendar events, connected device setup, and post-session ratings.
 
 ### What data is send between the various parts of the system?
-We receive ML predictions/suggestions, current sensor values (CO₂, temperature, humidity, noise, light) and historical data from ML/IoT and showing current values, history, and predictions in the web app. We send data to backend: user commands (change LED color) and user interactions (select room, preferences).
+The frontend receives current sensor values, historical sensor data, and study suitability predictions from the backend. The frontend displays this data on the dashboard through sensor cards, charts, history, and recommendations.
+
+The frontend sends user interactions to the backend, such as login/register requests, profile updates, calendar events, connected device information, and post-session ratings. The connected device ID is used to show the correct sensor data and to save ratings for the correct study session.
 
 ### What is the format of the data? How is it sent?
 JSON data converted to standard units (i.e. °C) over REST API; standard HTTP methods (GET requests).
 
 ### How frequently is the data updated?
-Every **1 minute**, dynamically updated UI based on IOT transmission:
-1. New data is received.
-2. State updates.
-3. React re-renders the relevant components.
+The frontend updates dynamically based on the IoT data stored in the backend.
+At a regular interval, dynamically updated UI based on IOT transmission:
+1. New sensor data is received by the backend from the IoT device.
+2. The frontend fetches the latest data from backend.
+3. React state updates.
+4. React re-renders the relevant components.
 
 ### Do you need to mock parts of the system early on or will real data be available?
-Yes, frontend will do mock API to build the UI component while the hardware and ML models are still in development stage. The mock will be based on the agreed JSON structure.
+Yes, in early development, frontend will used mock data to build and test the UI component before the hardware and backend were fully connected . The mock will be based on the agreed JSON structure.
