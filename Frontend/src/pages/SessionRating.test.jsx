@@ -40,7 +40,7 @@ describe("SessionRating", () => {
       </LanguageProvider>
     );
 
-    await user.click(screen.getByRole("button", { name: /submit & logout/i }));
+    await user.click(screen.getByRole("button", { name: /submit rating/i }));
 
     expect(
       screen.getByText("Please select a rating.")
@@ -53,14 +53,14 @@ describe("SessionRating", () => {
 
     render(
       <LanguageProvider>
-        <SessionRating onSuccess={onSuccess} />
+        <SessionRating onSuccess={onSuccess} sessionId={1} />
       </LanguageProvider>
     );
 
     const buttons = screen.getAllByRole("button");
 
     await user.click(buttons[2]);
-    await user.click(screen.getByRole("button", { name: /submit & logout/i }));
+    await user.click(screen.getByRole("button", { name: /submit rating/i }));
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalled();
