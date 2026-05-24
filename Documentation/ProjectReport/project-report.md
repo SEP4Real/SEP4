@@ -400,7 +400,11 @@ Correlation analysis further revealed insights into data quality. Healthy datase
 
 ### 3.3.3 ML Problem Formulation
 
-The ML task is formulated as a supervised learning problem aimed at predicting the Study Suitability Rating. [...]
+The ML task is formulated as a supervised learning problem aimed at predicting the Study Suitability Rating. Specifically, this is defined as a **Multi-Class Classification** problem:
+
+- **Inputs (X):** The features are derived from continuous, time-series sensor telemetry (Temperature, Humidity, CO2, and Light). These raw readings are dynamically aggregated into structured vectors (capturing current, minimum, maximum, and mean values) to summarize the state and variance of the environment over an active session.
+- **Output (Y):** The target variable is the Study Suitability Rating, consisting of discrete integer classes ranging from 1 (poor suitability) to 5 (excellent suitability).
+- **Objective:** The goal is to learn the complex, non-linear relationships between the physical characteristics of a room and subjective human sustainability raiting. By mapping environmental metrics to historical user ratings, the model enables the system to automatically predict the quality of an environment in real-time.
 
 ## 3.4 Frontend Design
 
@@ -481,14 +485,14 @@ If a cluster suffered from extreme sparsity (e.g., completely missing a feature 
 
 ### 3.6.2 Feature Selection
 
-Our feature extraction pipeline aggregates ("linearize") time-series sensor data into session-level metrics including auxiliary metrics (current, min, max, and mean values) for temperature, humidity, CO2, and light which are calculated. The selected features for the Random Forest classifier are:
+Our feature extraction pipeline aggregates ("linearize") time-series sensor data into session-level metrics that are calculated dynamically for the active session. This generates a comprehensive 16-feature vector encompassing current (last non-null), maximum, minimum, and mean values for all four sensor types evaluated over the entire active session up to the prediction request:
 
-- `currentTemperature`: The final temperature recorded during the session.
-- `maxTemp`: The maximum temperature reached during the session.
-- `minTemp`: The minimum temperature recorded.
-- `meanTemp`: The average temperature over the duration of the session.
+- **Temperature**: `currentTemperature`, `maxTemp`, `minTemp`, `meanTemp`
+- **Humidity**: `currentHumidity`, `maxHumidity`, `minHumidity`, `meanHumidity`
+- **CO2**: `currentCO2`, `maxCO2`, `minCO2`, `meanCO2`
+- **Light**: `currentLight`, `maxLight`, `minLight`, `meanLight`
 
-These features are used to predict the user's focus `rating`.
+This complete set of linearized features is passed to the `/predict` API endpoint to evaluate the user's current focus `rating`, providing the ML service with the full spectrum of environmental data.
 
 ### 3.6.3 Data Split and Validation Strategy
 
@@ -497,7 +501,9 @@ To ensure robust evaluation and prevent data leakage, we implemented a 64/16/20 
 1. **Initial Split**: The dataset is split into an 80% development set (training + validation) and a 20% hold-out test set.
 2. **Validation Split**: The development set is further split, reserving 20% of it (16% of the total data) for validation and hyperparameter tuning, leaving 64% for model training.
 
-Both splits employ **stratified sampling** based on the target `rating` variable. This guarantees that all three subsets maintain the same proportional distribution of user ratings, which is critical for handling potential class imbalances. The final models are evaluated primarily using **Accuracy** and **Macro F1-score**.
+Both splits employ **stratified sampling** based on the target `rating` variable to guarantee that all three subsets maintain the same proportional distribution of user ratings. However, a dynamic fallback is implemented to temporarily disable stratification if extreme class imbalances are present (e.g., if a rating class has fewer than two samples). The final models are evaluated primarily using **Accuracy** and **Macro F1-score**.
+
+Initially ideal test set would be the one taken from the real usage of the system (both iot and frontend) but since not enough data was received this could not have been accomplished.
 
 ## 3.7 Frontend Implementation
 
