@@ -130,8 +130,11 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     preferred_temp INT DEFAULT 22,
     preferred_co2 INT DEFAULT 800,
 
+    connected_device_id VARCHAR(255),
     profile_picture TEXT
 );
+
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS connected_device_id VARCHAR(255);
 
 CREATE TABLE IF NOT EXISTS ratings (
     id BIGSERIAL PRIMARY KEY,

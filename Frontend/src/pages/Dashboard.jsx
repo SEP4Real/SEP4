@@ -3,6 +3,7 @@ import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
 import { getDashboardData } from "../services/DashboardService";
 import { getDeviceSessions } from "../services/SessionService";
+import { getProfile } from "../services/ProfileService";
 import SensorChart from "../components/SensorChart";
 import SessionRating from "../components/SessionRating";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -76,6 +77,13 @@ const DEFAULT_DEVICE_ID = "arduino-device-01";
 const getSessionStorageKey = (email) =>
   email ? `dashboard_session_active:${email}` : null;
 
+const getStoredDeviceForUser = (email) => {
+  const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+  const connectedDevice = userDevices.find((device) => device.email === email);
+
+  return connectedDevice?.deviceId || "";
+};
+
 const normalizeDashboardRecord = (item = {}) => {
   const predictedStudyQuality =
     item.predictedStudyQuality ?? item.predicted_study_quality ?? 0;
@@ -117,6 +125,7 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState([]);
   const [hasDevice, setHasDevice] = useState(false);
+  const [connectedDeviceId, setConnectedDeviceId] = useState("");
   const [loading, setLoading] = useState(true);
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -152,15 +161,18 @@ useEffect(() => {
     const checkConnection = async () => {
       setLoading(true);
 
-      const userDevices =
-        JSON.parse(localStorage.getItem("user_devices")) || [];
+      let savedDeviceId = getStoredDeviceForUser(user?.email);
 
-      const connectedDevice = userDevices.find(
-        (device) => device.email === user?.email
-      );
+      try {
+        const result = await getProfile();
+        savedDeviceId = result.profile?.connected_device_id || savedDeviceId;
+      } catch (error) {
+        console.error("Error loading profile device:", error);
+      }
 
-      if (!connectedDevice) {
+      if (!savedDeviceId) {
         setHasDevice(false);
+        setConnectedDeviceId("");
         setIsSessionActive(false);
         setRatingSessionId(null);
         setDashboardData([]);
@@ -169,6 +181,7 @@ useEffect(() => {
       }
 
       setHasDevice(true);
+      setConnectedDeviceId(savedDeviceId);
 
       await loadDashboardData();
 
@@ -251,7 +264,7 @@ useEffect(() => {
 
   const openRatingModal = async () => {
     try {
-      const sessions = await getDeviceSessions(DEFAULT_DEVICE_ID);
+      const sessions = await getDeviceSessions(connectedDeviceId || DEFAULT_DEVICE_ID);
       const latestSession = [...sessions].sort((a, b) => {
         return new Date(b.startedAt || b.started_at) - new Date(a.startedAt || a.started_at);
       })[0];
@@ -411,7 +424,7 @@ return {
             <SessionRating
               submitLabel="Submit rating"
               allowSuccessOnError
-              deviceId={DEFAULT_DEVICE_ID}
+              deviceId={connectedDeviceId || DEFAULT_DEVICE_ID}
               sessionId={ratingSessionId}
               onSuccess={() => {
                 setShowRatingModal(false);
