@@ -3,7 +3,7 @@
 title MAL Data Flow & Pipeline Dependencies
 
 ' Layout and Spacing Settings
-skinparam ranksep 40
+skinparam ranksep 45
 skinparam nodesep 40
 skinparam componentStyle rectangle
 skinparam PackageBackgroundColor #FAFAFA
@@ -52,7 +52,8 @@ package "Mock / Development Data Pipeline" as mock_pipeline {
     file "unified_environment_focus_dataset.csv" as proc_unified
   }
 
-  package "Unified Dataset Cleaning" as mock_l6 {
+  package "Unified Dataset Cleaning & Imputation" as mock_l6 {
+    component "clean_and_impute_dataset.py" as scr_clean_impute <<Script>>
     component "3_unified_dataset_analysis.ipynb" as nb_unified_analysis <<Notebook>>
   }
 
@@ -102,20 +103,20 @@ package "Mock / Development Data Pipeline" as mock_pipeline {
   
   scr_build_unified --> proc_unified
   
-  proc_unified --> nb_unified_analysis
-  nb_unified_analysis ..> proc_final_mock #orange;line.dashed : [DUPLICATE WRITE]
+  proc_unified --> scr_clean_impute
+  proc_unified ..> nb_unified_analysis : read-only
+  nb_unified_analysis ..> scr_clean_impute #blue;line.dotted : [TRIGGERS]
+  scr_clean_impute --> proc_final_mock
   
   proc_final_mock --> scr_linearize
-  proc_final_mock --> nb_session_lin
-  
+  proc_final_mock ..> nb_session_lin : read-only
+  nb_session_lin ..> scr_linearize #blue;line.dotted : [TRIGGERS]
   scr_linearize --> proc_missing
-  nb_session_lin ..> proc_missing #orange;line.dashed : [DUPLICATE WRITE]
   
   proc_missing --> scr_fill_targets
-  proc_missing --> nb_fill_targets
-  
+  proc_missing ..> nb_fill_targets : read-only
+  nb_fill_targets ..> scr_fill_targets #blue;line.dotted : [TRIGGERS]
   scr_fill_targets --> proc_session_windows
-  nb_fill_targets ..> proc_session_windows #orange;line.dashed : [DUPLICATE WRITE]
   
   proc_session_windows --> scr_train
   scr_train --> model_rf
@@ -152,10 +153,10 @@ package "Real Production Pipeline" as real_pipeline {
   scr_extract --> real_raw
   
   real_raw --> scr_linearize_glue
-  real_raw --> nb_real_prep
+  real_raw ..> nb_real_prep : read-only
+  nb_real_prep ..> scr_linearize_glue #blue;line.dotted : [TRIGGERS]
   
   scr_linearize_glue --> real_linearized
-  nb_real_prep ..> real_linearized #orange;line.dashed : [DUPLICATE WRITE]
 }
 
 ' Force layout side-by-side
@@ -166,7 +167,7 @@ legend right
   | <back:#E2F0D9>    </back> | Python Scripts (Production / Automated pipeline) |
   | <back:#FFF2CC>    </back> | Jupyter Notebooks (Exploration / Redundant logic) |
   | <back:#F5F5F5>    </back> | CSV Files |
-  | #orange;line.dashed | **Duplicate Write**: Notebook writing to script output (conflict risk) |
+  | #blue;line.dotted | **Triggers**: Notebook triggering production script (Zero conflict risk) |
 endlegend
 
 @enduml
