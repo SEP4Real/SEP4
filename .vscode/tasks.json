@@ -56,6 +56,16 @@
             },
             "problemMatcher": [],
             "detail": "Compiles Project and Process reports locally to PDF and cleans up intermediate HTML files."
+        },
+        {
+            "label": "Build Final Hand-in Package",
+            "type": "shell",
+            "command": "./build_submission.sh",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Compiles reports, converts PNG diagrams to PDF, and packages everything into StudyHelper_Final_Handin.zip"
         }
     ]
 }

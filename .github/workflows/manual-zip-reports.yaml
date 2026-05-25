@@ -1,4 +1,4 @@
-name: Manual Zip Reports
+name: Build Final Hand-in Package
 
 on:
   workflow_dispatch:
@@ -26,24 +26,21 @@ jobs:
 
       - name: Install WeasyPrint
         run: |
-          pip3 install weasyprint
+          pip3 install weasyprint Pillow
 
-      - name: Compile Process Report
+      - name: Run Build Submission Script
         run: |
-          make -f Misc/AcademicTemplate/Makefile SRC=Documentation/ProcessReport/process-report.md pdf
-          rm -f Documentation/ProcessReport/process-report.html
+          chmod +x ./build_submission.sh
+          ./build_submission.sh
 
-      - name: Compile Project Report
-        run: |
-          make -f Misc/AcademicTemplate/Makefile SRC=Documentation/ProjectReport/project-report.md pdf
-          rm -f Documentation/ProjectReport/project-report.html
-
-      - name: Create Zip Archive
-        run: |
-          zip -j reports.zip Documentation/ProcessReport/process-report.pdf Documentation/ProjectReport/project-report.pdf
-
-      - name: Upload Artifact
+      - name: Upload Merged PDF Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: reports
-          path: reports.zip
+          name: StudyHelper_Final_Handin_PDF
+          path: Documentation/StudyHelper_Final_Handin.pdf
+
+      - name: Upload Final ZIP Submission
+        uses: actions/upload-artifact@v4
+        with:
+          name: StudyHelper_Final_Handin_ZIP
+          path: StudyHelper_Final_Handin.zip

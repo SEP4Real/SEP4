@@ -43,7 +43,10 @@ build/
 
 # Compiled reports and final hand-in archives
 /Documentation/**/*.pdf
-/Documentation/**/*.html
 !/Documentation/guidelines/*.pdf
+!/Documentation/ProcessReport/process-report.pdf
+!/Documentation/ProjectReport/project-report.pdf
+!/Documentation/Appendices/**/*.pdf
+/Documentation/**/*.html
 /*.zip
 /build_staging/
