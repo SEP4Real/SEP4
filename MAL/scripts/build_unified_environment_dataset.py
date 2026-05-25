@@ -37,7 +37,7 @@ DEFAULT_SOURCES: tuple[SourceSpec, ...] = (
     # Data 8 
     SourceSpec(
         "smart_campus_room_measurements",
-        DATA_DIR / "raw" / "data_8" / "smart-campus-comfort-data" / "1_room_measurements.csv",
+        DATA_DIR / "raw" / "DATA_8" / "smart-campus-comfort-data" / "1_room_measurements.csv",
     ),
 )
 
