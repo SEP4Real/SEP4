@@ -1,7 +1,22 @@
 ---
-title: "Process Report – [Your Project Title]"
-date: "[Month] [Day], [Year]"
-author: "SEP4 Group 3"
+title: "Process Report – StudyHelper"
+date: "May 25, 2026"
+author:
+- Alexandru Savin(354790)
+- Cristina Aurelia Matei (354776)
+- Damian Michal Choina (354789)
+- Eduard Fekete (355323)
+- Jakub Maciej Baczek (354814)
+- Karina Rubahova (354565)
+- Mara-Ioana Statie (354536)
+- Marta Zrno (355351)
+- Piotr Junosz (355502)
+- Tymoteusz Krzysztof Zydkiewicz (355413)
+supervisor:
+- Erland Ketil Larsen
+- Joseph Chukwudi Okika
+- Kasper Knop Rasmussen
+- Markéta Tranberg
 course: "SEP4"
 semester: "4th Semester"
 institution: "VIA University College"
@@ -23,12 +38,14 @@ institution: "VIA University College"
      Give a factual overview of the project timeline and progress.
      Base this on actual data: logbook entries, meeting minutes, sprint records. -->
 
-[Briefly describe the project and its context. Explain what motivated your group to
-choose this particular problem domain. Why did it interest you technically or practically?
-
 Provide a factual, chronological overview of the project from kick-off to submission,
 grounded in concrete sources (logbook entries, meeting minutes, sprint retrospectives).
 Highlight major milestones and any significant pivots in direction.]
+
+We chose the project StudyHelper probably because of the relevance of the topic in all our lives. The idea of a device that can help navigate in choosing the best environment for studying was at the intersection of our interests and feasibility within the project scope. 
+
+The initial phase of the project involved heavy brainstorming sessions and discussions. The main point of these debates was refining our problem statement to ensure it would be meaningful to solve with a solution that would be technically relevant for all sub-teams in a way that satisfies the overall expectations of the project.
+
 
 # 2. Group Work
 

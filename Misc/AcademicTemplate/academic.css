@@ -91,30 +91,101 @@ h3 {
 
 .front-page h1 {
   border-bottom: none;
-  font-size: 42pt;
+  font-size: 36pt; /* Reduced size slightly to prevent overflow with logo and lists */
   line-height: 1.1;
-  margin-top: 1.5em;
+  margin-top: 0.5em; /* Adjusted top margin for logo */
   text-transform: none;
   font-weight: 700;
   color: var(--primary-color);
 }
 
 .front-page .subtitle {
-  font-size: 20pt;
+  font-size: 18pt;
   font-family: var(--heading-font);
   color: #555;
-  margin-top: 0.5em;
+  margin-top: 0.3em;
+}
+
+.front-page .logo {
+  max-height: 60px;
+  width: auto;
+  margin: 0 0 1em 0;
+  display: block;
 }
 
 .front-page .meta {
-  font-size: 11pt;
+  font-size: 10pt; /* Slightly smaller font size to prevent layout overflow */
   font-family: var(--heading-font);
   margin-top: auto;
   border-top: 2px solid var(--accent-color);
-  padding-top: 1.5em;
+  padding-top: 1em;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.8em 1.5em;
+}
+
+.front-page .meta-item strong {
+  color: var(--primary-color);
+}
+
+.front-page .meta-item ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.2em 0 0 0;
+}
+
+.front-page .meta-item li {
+  margin-bottom: 0.1em;
+  font-weight: normal;
+  color: var(--secondary-color);
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+/* Figure and Table Auto-Numbering */
+body {
+  counter-reset: figure-counter table-counter;
+}
+
+figure {
+  counter-increment: figure-counter;
+  margin: 2em auto;
+  display: block;
+  text-align: center;
+}
+
+figcaption {
+  font-family: var(--heading-font);
+  font-size: 10pt;
+  color: var(--secondary-color);
+  margin-top: 0.8em;
+  text-align: center;
+}
+
+figcaption::before {
+  content: "Figure " counter(figure-counter) ": ";
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+table {
+  counter-increment: table-counter;
+}
+
+table caption {
+  font-family: var(--heading-font);
+  font-size: 10pt;
+  color: var(--secondary-color);
+  margin-bottom: 0.5em;
+  text-align: left;
+}
+
+table caption::before {
+  content: "Table " counter(table-counter) ": ";
+  font-weight: 700;
+  color: var(--accent-color);
 }
 
 /* Table of Contents Auto-Generation */
