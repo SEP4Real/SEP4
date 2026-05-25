@@ -1,5 +1,5 @@
 ---
-title: "Process Report – StudyHelper"
+itle: "Process Report – StudyHelper"
 date: "May 25, 2026"
 author:
 - Alexandru Savin(354790)
@@ -42,10 +42,9 @@ Provide a factual, chronological overview of the project from kick-off to submis
 grounded in concrete sources (logbook entries, meeting minutes, sprint retrospectives).
 Highlight major milestones and any significant pivots in direction.]
 
-We chose the project StudyHelper probably because of the relevance of the topic in all our lives. The idea of a device that can help navigate in choosing the best environment for studying was at the intersection of our interests and feasibility within the project scope. 
+We chose the project StudyHelper probably because of the relevance of the topic in all our lives. The idea of a device that can help navigate in choosing the best environment for studying was at the intersection of our interests and feasibility within the project scope.
 
 The initial phase of the project involved heavy brainstorming sessions and discussions. The main point of these debates was refining our problem statement to ensure it would be meaningful to solve with a solution that would be technically relevant for all sub-teams in a way that satisfies the overall expectations of the project.
-
 
 # 2. Group Work
 
