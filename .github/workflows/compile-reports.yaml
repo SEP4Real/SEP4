@@ -48,5 +48,5 @@ jobs:
       - name: Commit and push updated PDFs
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore(docs): auto-compile reports to PDF [skip ci]"
+          commit_message: "[Compile] reports to PDF [skip ci]"
           file_pattern: 'Documentation/**/*.pdf'
