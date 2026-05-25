@@ -366,37 +366,104 @@ The repository is hosted at [insert GitHub URL]. [Add any tag naming conventions
 
 <!-- Design of the embedded C application on ATmega2560 + WiFi. -->
 
+## 3.2 IoT Design
+
+*Authors: [Jakub Maciej Baczek, Tymoteusz Krzysztof Zydkiewicz]*
+
+The IoT component is the physical sensing layer of the StudyHelper system. Its main responsibility is to collect indoor environmental data from the study space and transmit it to the backend, where the readings can be stored, displayed in the frontend, and used as input for machine-learning-based study suitability prediction.
+
+The design is based on three central requirements. First, the device must measure the environmental factors selected for the project: temperature, humidity, CO2 concentration, and light level. Second, it must support a simple study-session workflow controlled through physical buttons, so the user can start and stop monitoring without interacting with the web interface. Third, it must communicate with the backend using structured HTTP requests over Wi-Fi.
+
+The IoT design therefore combines sensors, user input, local status feedback, and network communication in one embedded prototype. The firmware is divided into small modules with clear responsibilities, so that hardware drivers, backend communication, display status logic, and the main session controller can be developed and tested separately.
+
 ### 3.2.1 Hardware Architecture
 
-[Describe the physical setup: ATmega2560 MCU, WiFi module, and all connected sensors
-and actuators. Explain interface decisions (I2C, SPI, UART, ADC, GPIO, PWM).
-Reference a hardware block diagram:]
+<p align="center">
+  <img src="image/iot-design/iot-hardware-block-diagram.svg" alt="IoT Hardware Block Diagram" width="50%">
+</p>
 
-<!-- ![Hardware Block Diagram](../../Documentation/Design/IoT/hardware_block.svg) -->
 
-| Component              | Interface | Purpose             |
-| :--------------------- | :-------- | :------------------ |
-| Air temperature sensor | [I2C/ADC] | [What is measured]  |
-| Air humidity sensor    | [I2C/ADC] | [What is measured]  |
-| Soil humidity sensor   | [ADC]     | [What is measured]  |
-| Light sensor           | [ADC]     | [What is measured]  |
-| Proximity sensor       | [...]     | [What is detected]  |
-| PIR sensor             | [GPIO]    | [What is detected]  |
-| Servo motor            | [PWM]     | [What it controls]  |
-| Water pump             | [GPIO]    | [What it controls]  |
-| 7-segment display      | [...]     | [What it displays]  |
-| LEDs                   | [GPIO]    | [Indicator purpose] |
+*Figure 3.x: Hardware block diagram of the IoT device.*
+
+The hardware architecture is centred around an ATmega2560-based microcontroller board. The ATmega2560 was chosen because it provides sufficient GPIO pins, ADC channels, timers, and UART interfaces for a multi-sensor embedded prototype, while remaining compatible with the Arduino and PlatformIO development environment used in the project.
+
+The device uses the following main hardware components:
+
+| Component | Interface | Purpose |
+| :--- | :--- | :--- |
+| ATmega2560 microcontroller | GPIO, ADC, UART, timers | Main controller for sensors, buttons, display, buzzer, and communication |
+| DHT11 temperature and humidity sensor | Single-wire digital GPIO | Measures air temperature and relative humidity |
+| MH-Z19B CO2 sensor | UART3 at 9600 baud | Measures CO2 concentration in ppm |
+| KY-018 light sensor | ADC channel PK7 | Measures ambient light level |
+| Wi-Fi module | UART / AT commands | Provides TCP/IP communication with the backend API |
+| Button 1 | GPIO input with pull-up | Starts and stops a study session |
+| Button 2 | GPIO input with pull-up | Triggers an instant measurement mode |
+| Four-digit display | Shift-register style GPIO output, refreshed by timer interrupt | Shows local device state |
+| Buzzer | GPIO output | Alerts the user when predicted study quality is poor |
+
+The selected sensors match the environmental factors used by the StudyHelper system. The DHT11 provides temperature and humidity, the MH-Z19B provides CO2 concentration, and the KY-018 light sensor provides a simple analogue measure of room brightness. The light driver inverts the raw ADC value so that higher values represent brighter conditions, making the reading easier to interpret in the rest of the system.
+
+The CO2 sensor requires a different interaction pattern from the DHT11 and light sensor. The firmware sends a read command to the sensor and receives a nine-byte UART response frame. The frame is validated with a checksum before the measured ppm value is accepted. This design avoids using invalid or corrupted CO2 readings in the transmitted sensor payload.
+
+The device also includes local user interaction and feedback. Button 1 controls the study-session lifecycle. Button 2 is used for instant measurement mode when no session is active. The four-digit display shows status patterns for boot, idle, active-session, and instant-measurement states. The buzzer is used as an alert mechanism when the backend returns the lowest study quality rating.
+
+Sound measurement was considered during the project, but it is not part of the final active IoT design because the available sound sensor did not provide reliable enough readings. The final hardware design therefore focuses on temperature, humidity, CO2, and light, which are the sensor values actually transmitted by the firmware.
 
 ### 3.2.2 Embedded Software Architecture
 
-[Describe the software architecture of the C application:
+<p align="center">
+  <img src="image/iot-design/iot-firmware-module-diagram.svg" alt="IoT Firmware Module Diagram" width="80%">
+</p>
 
-- Module/task decomposition
-- Communication protocol chosen for cloud uplink (MQTT, HTTP) and justification
-- Data serialisation format for sensor payloads
-- Scheduling approach (superloop, cooperative, interrupt-driven)]
 
-<!-- ![Embedded Software Architecture](../../Documentation/Design/IoT/sw_architecture.svg) -->
+*Figure 3.x: Firmware module structure for the IoT component.*
+
+The embedded software is implemented in C for the ATmega2560 and follows a modular architecture. The `main.c` file coordinates the application flow, while individual modules handle backend communication, HTTP request construction, display status patterns, sensors, buttons, timers, and local alerts.
+
+The most important firmware modules are:
+
+| Module | Responsibility |
+| :--- | :--- |
+| `main.c` | Coordinates boot, Wi-Fi setup, button handling, timers, session state, and sensor reading |
+| `server_api.c` / `server_api.h` | Implements backend-specific actions such as device registration, session creation, keepalive pulses, data upload, instant prediction requests, and local alert handling |
+| `wifi_http.c` / `wifi_http.h` | Resolves the backend host, creates TCP connections, builds HTTP requests, transmits payloads, and reads responses |
+| `dht11.c` | Reads temperature and humidity from the DHT11 sensor |
+| `co2.c` | Handles UART communication and checksum validation for the CO2 sensor |
+| `light.c` | Wraps ADC access for the light sensor |
+| `button.c` | Reads physical button states with pull-up inputs |
+| `timer.c` | Provides software timers used for periodic session actions |
+| `display_status.c` | Maps firmware states to four-digit display patterns |
+| `buzzer.c` | Produces local audio alerts |
+
+The firmware uses a cooperative superloop design. After startup, the program continuously checks button states and timer flags. Time-critical and periodic behaviour is represented by flags such as `pulse_due` and `data_due`, which are set by timer callbacks and then handled in the main loop. This keeps the main control flow explicit and avoids introducing a full real-time operating system, which would be unnecessary for the scope of the device.
+
+Three software timers define the main runtime schedule:
+
+| Timer | Interval | Purpose |
+| :--- | :--- | :--- |
+| Pulse timer | 5 seconds | Sends a keepalive pulse while a session is active |
+| Data timer | 30 seconds | Sends environmental measurements while a session is active |
+| Button cooldown timer | 10 seconds | Prevents accidental repeated start/stop actions |
+
+The device communicates with the backend using HTTP over TCP through the Wi-Fi module. HTTP was chosen because the rest of the StudyHelper system exposes REST-style endpoints and JSON payloads. This keeps the interface between the IoT firmware and backend simple, transparent, and easy to test. Each request opens a TCP connection, sends an HTTP request, waits for a response for up to three seconds, and then closes the connection.
+
+<p align="center">
+  <img src="image/iot-design/iot-session-flow-diagram.svg" alt="IoT Session Flow Diagram" width="30%">
+</p>
+
+
+*Figure 3.x: Session flow between the user, IoT device, and backend API.*
+
+The session flow begins during boot. The firmware initialises the display, UART, sensors, Wi-Fi module, and backend host resolution. It then registers the physical device ID with the backend. After this setup, the device enters idle mode and waits for user input.
+
+When Button 1 is pressed, the firmware sends a `POST /session` request containing the configured device ID. If the backend returns a valid session ID, this ID is stored locally and used for later requests. During an active session, the device sends `PATCH /session/{id}/pulse` every five seconds and `POST /data` every thirty seconds. The data payload contains the session ID, temperature, humidity, light level, and CO2 level in JSON format.
+
+The firmware stores request and response data in statically allocated buffers. This design avoids dynamic memory allocation and reduces the risk of heap fragmentation on the ATmega2560. Watchdog resets are performed during network waiting periods so that normal communication delays do not incorrectly reset the device, while still protecting the firmware from longer hangs.
+
+If the backend reports that a session is no longer alive, the firmware clears the local session ID and attempts to start a new session. If a sensor data response contains a study quality rating of `1`, the buzzer is activated to warn the user that the current conditions are poor. This creates a local feedback loop where the IoT device does not only collect data, but also reacts to the study suitability prediction returned by the system.
+
+The firmware also includes an instant measurement mode controlled by Button 2. This mode allows the device to take a one-time measurement and request a prediction without entering the normal periodic session loop. It was designed as a quick check of the current environment and reuses the same sensor-reading and backend-communication modules as the session workflow.
+
 
 ## 3.3 Machine Learning — Data Exploration
 

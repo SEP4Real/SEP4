@@ -1,0 +1,13 @@
+flowchart TD
+    MAIN[main.c] --> SERVER[server_api.c]
+    SERVER --> HTTP[wifi_http.c]
+    HTTP --> WIFI[wifi driver]
+
+    MAIN --> DHT[dht11 driver]
+    MAIN --> CO2[co2 driver]
+    MAIN --> LIGHT[light driver]
+    MAIN --> BUTTON[button driver]
+    MAIN --> TIMER[timer driver]
+    MAIN --> DISPLAY_STATUS[display_status.c]
+    DISPLAY_STATUS --> DISPLAY[display driver]
+    MAIN --> BUZZER[buzzer driver]
