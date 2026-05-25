@@ -11,7 +11,7 @@ import numpy as np
 MAL_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = MAL_DIR / "data"
 
-DEFAULT_INPUT_PATH = DATA_DIR / "processed" / "unified_environment_focus_dataset.csv"
+DEFAULT_INPUT_PATH = DATA_DIR / "processed" / "final_mock_dataset.csv"
 DEFAULT_OUTPUT_PATH = DATA_DIR / "processed" / "linearized_sessions_with_missing_targets.csv"
 DEFAULT_REPORT_PATH = DATA_DIR / "processed" / "linearized_sessions_with_missing_targets_report.csv"
 
