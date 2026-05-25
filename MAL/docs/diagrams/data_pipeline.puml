@@ -87,9 +87,27 @@ package "Layer 5: Unified Datasets" {
 scr_build_unified --> proc_unified
 
 ' ==========================================================
-' LAYER 6: SESSION LINEARIZATION
+' LAYER 6: UNIFIED DATASET CLEANING & ANALYSIS
 ' ==========================================================
-package "Layer 6: Session Linearization" {
+package "Layer 6: Unified Dataset Cleaning & Analysis" {
+  component "3_unified_dataset_analysis.ipynb" as nb_unified_analysis <<Notebook>>
+}
+
+proc_unified --> nb_unified_analysis
+
+' ==========================================================
+' LAYER 7: CLEANED UNIFIED DATASETS
+' ==========================================================
+package "Layer 7: Cleaned Unified Datasets" {
+  file "final_mock_dataset.csv" as proc_final_mock
+}
+
+nb_unified_analysis ..> proc_final_mock #orange;line.dashed : [DUPLICATE WRITE]
+
+' ==========================================================
+' LAYER 8: SESSION LINEARIZATION
+' ==========================================================
+package "Layer 8: Session Linearization" {
   component "linearize_session_windows.py" as scr_linearize <<Script>>
   component "4_session_linearization.ipynb" as nb_session_lin <<Notebook>>
   
@@ -98,39 +116,35 @@ package "Layer 6: Session Linearization" {
   
   component "linearize_and_glue.py" as scr_linearize_glue <<Script>>
   component "6_real_data_analysis_and_preprocessing.ipynb" as nb_real_prep <<Notebook>>
-  
-  component "3_unified_dataset_analysis.ipynb" as nb_unified_analysis <<Notebook>>
 }
 
-' Level 5 feeds into Level 6
-proc_unified --> scr_linearize
-proc_unified --> nb_session_lin
-proc_unified --> nb_unified_analysis
+' Level 7 feeds into Level 8
+proc_final_mock --> scr_linearize
+proc_final_mock --> nb_session_lin
+proc_final_mock --> scr_linearize_score
+proc_final_mock --> nb_lin_score
 
 real_raw --> scr_linearize_glue
 real_raw --> nb_real_prep
 
 ' ==========================================================
-' LAYER 7: LINEARIZED & INTERMEDIATE FILES
+' LAYER 9: LINEARIZED & INTERMEDIATE FILES
 ' ==========================================================
-package "Layer 7: Linearized Intermediate CSVs" {
+package "Layer 9: Linearized Intermediate CSVs" {
   file "linearized_sessions_with_missing_targets.csv" as proc_missing
-  file "final_mock_dataset.csv" as proc_final_mock
   file "sessions_linearized_30min.csv" as proc_lin_30min
 }
 
 scr_linearize --> proc_missing
 nb_session_lin ..> proc_missing #orange;line.dashed : [DUPLICATE WRITE]
 
-nb_unified_analysis ..> proc_final_mock #orange;line.dashed : [DUPLICATE WRITE]
-
 scr_linearize_score --> proc_lin_30min
 nb_lin_score ..> proc_lin_30min #orange;line.dashed : [DUPLICATE WRITE]
 
 ' ==========================================================
-' LAYER 8: TARGET IMPUTATION & SCORING
+' LAYER 10: TARGET IMPUTATION & SCORING
 ' ==========================================================
-package "Layer 8: Imputation & Scoring" {
+package "Layer 10: Imputation & Scoring" {
   component "fill_missing_targets.py" as scr_fill_targets <<Script>>
   component "5_fill_missing_targets.ipynb" as nb_fill_targets <<Notebook>>
   
@@ -141,13 +155,13 @@ package "Layer 8: Imputation & Scoring" {
 proc_missing --> scr_fill_targets
 proc_missing --> nb_fill_targets
 
-proc_final_mock --> scr_score
-proc_final_mock --> nb_score
+proc_lin_30min --> scr_score
+proc_lin_30min --> nb_score
 
 ' ==========================================================
-' LAYER 9: MODEL-READY DATASETS
+' LAYER 11: MODEL-READY DATASETS
 ' ==========================================================
-package "Layer 9: Model-Ready Datasets" {
+package "Layer 11: Model-Ready Datasets" {
   file "linearized_session_windows.csv" as proc_session_windows
   file "linearized_session_windows_30min.csv" as proc_session_windows_30min
   file "sessions_scored_30min.csv" as proc_scored_30min
@@ -164,9 +178,9 @@ scr_linearize_glue --> real_linearized
 nb_real_prep ..> real_linearized #orange;line.dashed : [DUPLICATE WRITE]
 
 ' ==========================================================
-' LAYER 10: TRAINING & EXPERIMENTS (Bottom)
+' LAYER 12: TRAINING & EXPERIMENTS (Bottom)
 ' ==========================================================
-package "Layer 10: Training, Models & Experiments" {
+package "Layer 12: Training, Models & Experiments" {
   component "train_model.py\n(ml_pipeline/model.py)" as scr_train <<Script>>
   file "rf_model.pkl" as model_rf
   
@@ -190,7 +204,9 @@ raw_keti -[hidden]down-> scr_resample
 scr_resample -[hidden]down-> int_keti
 int_keti -[hidden]down-> scr_build_unified
 scr_build_unified -[hidden]down-> proc_unified
-proc_unified -[hidden]down-> scr_linearize
+proc_unified -[hidden]down-> nb_unified_analysis
+nb_unified_analysis -[hidden]down-> proc_final_mock
+proc_final_mock -[hidden]down-> scr_linearize
 proc_missing -[hidden]down-> scr_fill_targets
 proc_session_windows -[hidden]down-> scr_train
 

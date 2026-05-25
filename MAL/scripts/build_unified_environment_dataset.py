@@ -236,6 +236,29 @@ def standardise_source(spec: SourceSpec) -> tuple[pd.DataFrame, dict[str, object
     raw_row_count = len(raw_df)
     source_slug = slugify(spec.name)
 
+    if spec.name == "smart_campus_room_measurements":
+        comfort_path = spec.path.parent / "4_comfort_perception.csv"
+        if comfort_path.exists():
+            print(f"  Matching comfort perception ratings from {comfort_path.name}...")
+            comfort_df = pd.read_csv(comfort_path, low_memory=False)
+            comfort_df["_parsed_ts"] = pd.to_datetime(comfort_df["timestamp"], errors="coerce", utc=True)
+            raw_df["_parsed_ts"] = pd.to_datetime(raw_df["timestamp"], errors="coerce", utc=True)
+            raw_df["focus_score"] = pd.NA
+            
+            for room_name, room_comfort in comfort_df.groupby("room"):
+                room_raw_mask = raw_df["room"] == room_name
+                room_raw = raw_df[room_raw_mask]
+                if room_raw.empty:
+                    continue
+                for idx, comfort_row in room_comfort.iterrows():
+                    if pd.isna(comfort_row["_parsed_ts"]):
+                        continue
+                    time_diffs = (room_raw["_parsed_ts"] - comfort_row["_parsed_ts"]).abs()
+                    nearest_idx = time_diffs.idxmin()
+                    if time_diffs.loc[nearest_idx] <= pd.Timedelta(minutes=5):
+                        raw_df.loc[nearest_idx, "focus_score"] = comfort_row["comfortValue"]
+            raw_df = raw_df.drop(columns=["_parsed_ts"])
+
     timestamps = parse_timestamps(coalesce_columns(raw_df, TIMESTAMP_CANDIDATES))
     timestamp_strings = timestamps.dt.strftime("%Y-%m-%dT%H:%M:%SZ")
     timestamp_strings = timestamp_strings.mask(timestamps.isna(), pd.NA)
