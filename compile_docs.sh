@@ -27,8 +27,23 @@ echo "Compiling Project Report..."
 make -f "${REPO_DIR}/Misc/AcademicTemplate/Makefile" SRC="${REPO_DIR}/Documentation/ProjectReport/project-report.md" pdf
 rm -f "${REPO_DIR}/Documentation/ProjectReport/project-report.html"
 
+# Merge Reports into a single PDF
+if command -v pdfunite &> /dev/null; then
+    echo "Merging reports into a single PDF for final hand-in..."
+    pdfunite "${REPO_DIR}/Documentation/ProjectReport/project-report.pdf" \
+              "${REPO_DIR}/Documentation/ProcessReport/process-report.pdf" \
+              "${REPO_DIR}/Documentation/StudyHelper_Final_Handin.pdf"
+    echo "Merged report created: ${REPO_DIR}/Documentation/StudyHelper_Final_Handin.pdf"
+else
+    echo "Warning: 'pdfunite' is not installed. Reports could not be merged automatically."
+    echo "Please install poppler-utils to enable merging."
+fi
+
 echo "----------------------------------------"
 echo "Success! Reports compiled and intermediate HTML files cleaned up."
 echo "Created:"
 echo " - ${REPO_DIR}/Documentation/ProcessReport/process-report.pdf"
 echo " - ${REPO_DIR}/Documentation/ProjectReport/project-report.pdf"
+if [ -f "${REPO_DIR}/Documentation/StudyHelper_Final_Handin.pdf" ]; then
+    echo " - ${REPO_DIR}/Documentation/StudyHelper_Final_Handin.pdf (Merged Hand-in File)"
+fi

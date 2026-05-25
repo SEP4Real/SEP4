@@ -1,7 +1,22 @@
 ---
-title: "Project Report – [Your Project Title]"
-date: "[Month] [Day], [Year]"
-author: "SEP4 Group 3"
+title: "Project Report – StudyHelper"
+date: "May 25, 2026"
+author: 
+- Alexandru Savin(354790)
+- Cristina Aurelia Matei (354776) 
+- Damian Michal Choina (354789)
+- Eduard Fekete (355323)
+- Jakub Maciej Baczek (354814)
+- Karina Rubahova (354565)
+- Mara-Ioana Statie (354536)
+- Marta Zrno (355351)
+- Piotr Junosz (355502)
+- Tymoteusz Krzysztof Zydkiewicz (355413)
+supervisor:
+- Erland Ketil Larsen
+- Joseph Chukwudi Okika
+- Kasper Knop Rasmussen
+- Markéta Tranberg
 course: "SEP4"
 semester: "4th Semester"
 institution: "VIA University College"

@@ -40,3 +40,10 @@ build/
 
 # gitignore processed data
 /MAL/data/processed/*.csv
+
+# Compiled reports and final hand-in archives
+/Documentation/**/*.pdf
+/Documentation/**/*.html
+!/Documentation/guidelines/*.pdf
+/*.zip
+/build_staging/
