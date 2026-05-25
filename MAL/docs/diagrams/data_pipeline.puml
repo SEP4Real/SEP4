@@ -3,8 +3,8 @@
 title MAL Data Flow & Pipeline Dependencies
 
 ' Layout and Spacing Settings
-skinparam ranksep 80
-skinparam nodesep 50
+skinparam ranksep 45
+skinparam nodesep 40
 skinparam componentStyle rectangle
 skinparam PackageBackgroundColor #FAFAFA
 skinparam PackageBorderColor #DDDDDD
@@ -22,184 +22,152 @@ skinparam file {
 }
 
 ' ==========================================================
-' LAYER 1: RAW INPUTS (Top)
+' MOCK / DEVELOPMENT PIPELINE (LEFT COLUMN)
 ' ==========================================================
-package "Layer 1: Raw Input Sources" {
-  file "DATA_6/KETI/*/*.csv\n(Distributed Sensors)" as raw_keti
-  file "DATA_7/HomeCoach_5min_*.csv\n(HomeCoach CSVs)" as raw_homecoach
-  file "DATA_1/room_conditions.csv\n(Room Occupancy)" as raw_conditions
-  file "DATA_8/.../1_room_measurements.csv\n(Smart Campus)" as raw_campus
-  database "PostgreSQL DB\n(Real Production Data)" as db
-}
-
-' ==========================================================
-' LAYER 2: RESAMPLING & PREPARATION
-' ==========================================================
-package "Layer 2: Resampling & Extraction" {
-  component "resample_keti_data.py" as scr_resample <<Script>>
-  component "prepare_homecoach.py" as scr_homecoach <<Script>>
-  component "extract_data.py" as scr_extract <<Script>>
-  component "1_data_preparation.ipynb\n2_source_datasets_analysis.ipynb" as nb_prep <<Notebook>>
-}
-
-raw_keti --> scr_resample
-raw_homecoach --> scr_homecoach
-db --> scr_extract
-
-' Represent read-only exploration
-raw_keti ..> nb_prep : read-only
-raw_homecoach ..> nb_prep : read-only
-raw_conditions ..> nb_prep : read-only
-raw_campus ..> nb_prep : read-only
-
-' ==========================================================
-' LAYER 3: INTERIM DATA & RAW EXPORTS
-' ==========================================================
-package "Layer 3: Interim & Database Exports" {
-  file "keti_1min_resampled.csv" as int_keti
-  file "HomeCoach_combined.csv" as int_homecoach
-  file "real/sensor_history.csv\nreal/sessions.csv" as real_raw
-}
-
-scr_resample --> int_keti
-scr_homecoach --> int_homecoach
-scr_extract --> real_raw
-
-' ==========================================================
-' LAYER 4: MERGING & UNIFYING
-' ==========================================================
-package "Layer 4: Unified Dataset Merging" {
-  component "build_unified_environment_dataset.py" as scr_build_unified <<Script>>
-}
-
-int_keti --> scr_build_unified
-int_homecoach --> scr_build_unified
-raw_conditions --> scr_build_unified
-raw_campus --> scr_build_unified
-
-' ==========================================================
-' LAYER 5: UNIFIED DATASETS
-' ==========================================================
-package "Layer 5: Unified Datasets" {
-  file "unified_environment_focus_dataset.csv" as proc_unified
-}
-
-scr_build_unified --> proc_unified
-
-' ==========================================================
-' LAYER 6: SESSION LINEARIZATION
-' ==========================================================
-package "Layer 6: Session Linearization" {
-  component "linearize_session_windows.py" as scr_linearize <<Script>>
-  component "4_session_linearization.ipynb" as nb_session_lin <<Notebook>>
+package "Mock / Development Data Pipeline" as mock_pipeline {
   
-  component "session_linearize_and_score.py\n(Stage 1 — Linearize)" as scr_linearize_score <<Script>>
-  component "4_2_linearize_and_score_profiles.ipynb\n(Stage 1 — Linearize)" as nb_lin_score <<Notebook>>
+  package "Mock Raw Inputs" as mock_l1 {
+    file "DATA_6/KETI/*/*.csv\n(Distributed Sensors)" as raw_keti
+    file "DATA_7/HomeCoach_5min_*.csv\n(HomeCoach CSVs)" as raw_homecoach
+    file "DATA_1/room_conditions.csv\n(Room Occupancy)" as raw_conditions
+    file "DATA_8/.../1_room_measurements.csv\n(Smart Campus)" as raw_campus
+  }
+
+  package "Resampling & Preparation" as mock_l2 {
+    component "resample_keti_data.py" as scr_resample <<Script>>
+    component "prepare_homecoach.py" as scr_homecoach <<Script>>
+    component "1_data_preparation.ipynb\n2_source_datasets_analysis.ipynb" as nb_prep <<Notebook>>
+  }
+
+  package "Interim Mock Data" as mock_l3 {
+    file "keti_1min_resampled.csv" as int_keti
+    file "HomeCoach_combined.csv" as int_homecoach
+  }
+
+  package "Merging & Unifying" as mock_l4 {
+    component "build_unified_environment_dataset.py" as scr_build_unified <<Script>>
+  }
+
+  package "Unified Dataset" as mock_l5 {
+    file "unified_environment_focus_dataset.csv" as proc_unified
+  }
+
+  package "Unified Dataset Cleaning & Imputation" as mock_l6 {
+    component "clean_and_impute_dataset.py" as scr_clean_impute <<Script>>
+    component "3_unified_dataset_analysis.ipynb" as nb_unified_analysis <<Notebook>>
+  }
+
+  package "Cleaned Unified Dataset" as mock_l7 {
+    file "final_mock_dataset.csv" as proc_final_mock
+  }
+
+  package "Session Linearization" as mock_l8 {
+    component "linearize_session_windows.py" as scr_linearize <<Script>>
+    component "4_session_linearization.ipynb" as nb_session_lin <<Notebook>>
+  }
+
+  package "Linearized Intermediate" as mock_l9 {
+    file "linearized_sessions_with_missing_targets.csv" as proc_missing
+  }
+
+  package "Target Imputation" as mock_l10 {
+    component "fill_missing_targets.py" as scr_fill_targets <<Script>>
+    component "5_fill_missing_targets.ipynb" as nb_fill_targets <<Notebook>>
+  }
+
+  package "Model-Ready Mock Dataset" as mock_l11 {
+    file "linearized_session_windows.csv" as proc_session_windows
+  }
+
+  package "Training & Artifacts" as mock_l12 {
+    component "train_model.py" as scr_train <<Script>>
+    file "rf_model.pkl" as model_rf
+  }
   
-  component "linearize_and_glue.py" as scr_linearize_glue <<Script>>
-  component "6_real_data_analysis_and_preprocessing.ipynb" as nb_real_prep <<Notebook>>
+  ' Flow links for Mock Pipeline
+  raw_keti --> scr_resample
+  raw_homecoach --> scr_homecoach
   
-  component "3_unified_dataset_analysis.ipynb" as nb_unified_analysis <<Notebook>>
-}
-
-' Level 5 feeds into Level 6
-proc_unified --> scr_linearize
-proc_unified --> nb_session_lin
-proc_unified --> nb_unified_analysis
-
-real_raw --> scr_linearize_glue
-real_raw --> nb_real_prep
-
-' ==========================================================
-' LAYER 7: LINEARIZED & INTERMEDIATE FILES
-' ==========================================================
-package "Layer 7: Linearized Intermediate CSVs" {
-  file "linearized_sessions_with_missing_targets.csv" as proc_missing
-  file "final_mock_dataset.csv" as proc_final_mock
-  file "sessions_linearized_30min.csv" as proc_lin_30min
-}
-
-scr_linearize --> proc_missing
-nb_session_lin ..> proc_missing #orange;line.dashed : [DUPLICATE WRITE]
-
-nb_unified_analysis ..> proc_final_mock #orange;line.dashed : [DUPLICATE WRITE]
-
-scr_linearize_score --> proc_lin_30min
-nb_lin_score ..> proc_lin_30min #orange;line.dashed : [DUPLICATE WRITE]
-
-' ==========================================================
-' LAYER 8: TARGET IMPUTATION & SCORING
-' ==========================================================
-package "Layer 8: Imputation & Scoring" {
-  component "fill_missing_targets.py" as scr_fill_targets <<Script>>
-  component "5_fill_missing_targets.ipynb" as nb_fill_targets <<Notebook>>
+  raw_keti ..> nb_prep : read-only
+  raw_homecoach ..> nb_prep : read-only
+  raw_conditions ..> nb_prep : read-only
+  raw_campus ..> nb_prep : read-only
   
-  component "session_linearize_and_score.py\n(Stage 2 — Scoring)" as scr_score <<Script>>
-  component "4_2_linearize_and_score_profiles.ipynb\n(Stage 2 — Scoring)" as nb_score <<Notebook>>
-}
-
-proc_missing --> scr_fill_targets
-proc_missing --> nb_fill_targets
-
-proc_final_mock --> scr_score
-proc_final_mock --> nb_score
-
-' ==========================================================
-' LAYER 9: MODEL-READY DATASETS
-' ==========================================================
-package "Layer 9: Model-Ready Datasets" {
-  file "linearized_session_windows.csv" as proc_session_windows
-  file "linearized_session_windows_30min.csv" as proc_session_windows_30min
-  file "sessions_scored_30min.csv" as proc_scored_30min
-  file "real/linearized_sessions_with_target.csv" as real_linearized
-}
-
-scr_fill_targets --> proc_session_windows
-nb_fill_targets ..> proc_session_windows #orange;line.dashed : [DUPLICATE WRITE]
-
-scr_score --> proc_scored_30min
-nb_score ..> proc_scored_30min #orange;line.dashed : [DUPLICATE WRITE]
-
-scr_linearize_glue --> real_linearized
-nb_real_prep ..> real_linearized #orange;line.dashed : [DUPLICATE WRITE]
-
-' ==========================================================
-' LAYER 10: TRAINING & EXPERIMENTS (Bottom)
-' ==========================================================
-package "Layer 10: Training, Models & Experiments" {
-  component "train_model.py\n(ml_pipeline/model.py)" as scr_train <<Script>>
-  file "rf_model.pkl" as model_rf
+  scr_resample --> int_keti
+  scr_homecoach --> int_homecoach
   
-  component "Model Experiments Notebooks\n(NN, LR, RF, Logistic)" as nb_experiments <<Notebook>>
-  component "quick_demo.ipynb" as nb_quick_demo <<Notebook>>
-  file "quick_linearized_focus_model.joblib" as model_quick
+  int_keti --> scr_build_unified
+  int_homecoach --> scr_build_unified
+  raw_conditions --> scr_build_unified
+  raw_campus --> scr_build_unified
+  
+  scr_build_unified --> proc_unified
+  
+  proc_unified --> scr_clean_impute
+  proc_unified ..> nb_unified_analysis : read-only
+  nb_unified_analysis ..> scr_clean_impute #blue;line.dotted : [TRIGGERS]
+  scr_clean_impute --> proc_final_mock
+  
+  proc_final_mock --> scr_linearize
+  proc_final_mock ..> nb_session_lin : read-only
+  nb_session_lin ..> scr_linearize #blue;line.dotted : [TRIGGERS]
+  scr_linearize --> proc_missing
+  
+  proc_missing --> scr_fill_targets
+  proc_missing ..> nb_fill_targets : read-only
+  nb_fill_targets ..> scr_fill_targets #blue;line.dotted : [TRIGGERS]
+  scr_fill_targets --> proc_session_windows
+  
+  proc_session_windows --> scr_train
+  scr_train --> model_rf
 }
 
-proc_session_windows --> scr_train
-scr_train --> model_rf
+' ==========================================================
+' REAL PRODUCTION PIPELINE (RIGHT COLUMN)
+' ==========================================================
+package "Real Production Pipeline" as real_pipeline {
 
-' Experiments reading datasets
-proc_scored_30min --> nb_experiments : reads (RF / Logistic)
-proc_session_windows_30min --> nb_experiments : reads (NN / LR / First Model)
+  package "Production Data Source" as real_l1 {
+    database "PostgreSQL DB\n(Real Production Data)" as db
+  }
 
-proc_session_windows_30min --> nb_quick_demo
-nb_quick_demo --> model_quick
+  package "Data Extraction" as real_l2 {
+    component "extract_data.py" as scr_extract <<Script>>
+  }
 
-' --- Layout ordering constraints (forces top-to-bottom sequence) ---
-raw_keti -[hidden]down-> scr_resample
-scr_resample -[hidden]down-> int_keti
-int_keti -[hidden]down-> scr_build_unified
-scr_build_unified -[hidden]down-> proc_unified
-proc_unified -[hidden]down-> scr_linearize
-proc_missing -[hidden]down-> scr_fill_targets
-proc_session_windows -[hidden]down-> scr_train
+  package "Database Exports" as real_l3 {
+    file "real/sensor_history.csv\nreal/sessions.csv" as real_raw
+  }
+
+  package "Real Linearization & Preprocessing" as real_l8 {
+    component "linearize_and_glue.py" as scr_linearize_glue <<Script>>
+    component "6_real_data_analysis_and_preprocessing.ipynb" as nb_real_prep <<Notebook>>
+  }
+
+  package "Real Model-Ready Dataset" as real_l11 {
+    file "real/linearized_sessions_with_target.csv" as real_linearized
+  }
+
+  ' Flow links for Real Pipeline
+  db --> scr_extract
+  scr_extract --> real_raw
+  
+  real_raw --> scr_linearize_glue
+  real_raw ..> nb_real_prep : read-only
+  nb_real_prep ..> scr_linearize_glue #blue;line.dotted : [TRIGGERS]
+  
+  scr_linearize_glue --> real_linearized
+}
+
+' Force layout side-by-side
+mock_pipeline -[hidden]right-> real_pipeline
 
 legend right
   |= Color / Line style |= Description |
   | <back:#E2F0D9>    </back> | Python Scripts (Production / Automated pipeline) |
   | <back:#FFF2CC>    </back> | Jupyter Notebooks (Exploration / Redundant logic) |
   | <back:#F5F5F5>    </back> | CSV Files |
-  | #orange;line.dashed | **Duplicate Write**: Notebook writing to script output (conflict risk) |
+  | #blue;line.dotted | **Triggers**: Notebook triggering production script (Zero conflict risk) |
 endlegend
 
 @enduml
