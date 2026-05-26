@@ -105,7 +105,7 @@ void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8
         {
             int quality_val = atoi(colon_ptr + 1);
             printf("[DATA] Server returned study quality: %d\n", quality_val);
-            if (quality_val == 1)
+            if (quality_val < 4)
             {
                 printf("[ALERT] Quality is 1 - sounding buzzer...\n");
                 for (int i = 0; i < 120; i++)
