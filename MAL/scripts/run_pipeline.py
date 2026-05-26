@@ -71,7 +71,7 @@ def main():
     # Step 5: Model Training
     run_step(
         [python_bin, str(scripts_dir / "train_model.py")],
-        "RandomForest Model Training"
+        "Neural Network Model Training"
     )
 
     # Step 6: Real Data Linearization (runs only if real sensor history exists)

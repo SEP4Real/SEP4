@@ -25,15 +25,53 @@ class PredictionRequest(BaseModel):
     maxTemp: float = Field(allow_inf_nan=False)
     minTemp: float = Field(allow_inf_nan=False)
     meanTemp: float = Field(allow_inf_nan=False)
+    currentHumidity: float = Field(allow_inf_nan=False)
+    maxHumidity: float = Field(allow_inf_nan=False)
+    minHumidity: float = Field(allow_inf_nan=False)
+    meanHumidity: float = Field(allow_inf_nan=False)
+    currentCO2: float = Field(allow_inf_nan=False)
+    maxCO2: float = Field(allow_inf_nan=False)
+    minCO2: float = Field(allow_inf_nan=False)
+    meanCO2: float = Field(allow_inf_nan=False)
+    currentLight: float = Field(allow_inf_nan=False)
+    maxLight: float = Field(allow_inf_nan=False)
+    minLight: float = Field(allow_inf_nan=False)
+    meanLight: float = Field(allow_inf_nan=False)
 
     @model_validator(mode="after")
-    def validate_temperature_window(self) -> "PredictionRequest":
+    def validate_prediction_window(self) -> "PredictionRequest":
+        # Validate temperature window
         if self.maxTemp < self.minTemp:
             raise ValueError("maxTemp must be greater than or equal to minTemp")
         if not self.minTemp <= self.meanTemp <= self.maxTemp:
             raise ValueError("meanTemp must be between minTemp and maxTemp")
         if not self.minTemp <= self.currentTemperature <= self.maxTemp:
             raise ValueError("currentTemperature must be between minTemp and maxTemp")
+
+        # Validate humidity window
+        if self.maxHumidity < self.minHumidity:
+            raise ValueError("maxHumidity must be greater than or equal to minHumidity")
+        if not self.minHumidity <= self.meanHumidity <= self.maxHumidity:
+            raise ValueError("meanHumidity must be between minHumidity and maxHumidity")
+        if not self.minHumidity <= self.currentHumidity <= self.maxHumidity:
+            raise ValueError("currentHumidity must be between minHumidity and maxHumidity")
+
+        # Validate CO2 window
+        if self.maxCO2 < self.minCO2:
+            raise ValueError("maxCO2 must be greater than or equal to minCO2")
+        if not self.minCO2 <= self.meanCO2 <= self.maxCO2:
+            raise ValueError("meanCO2 must be between minCO2 and maxCO2")
+        if not self.minCO2 <= self.currentCO2 <= self.maxCO2:
+            raise ValueError("currentCO2 must be between minCO2 and maxCO2")
+
+        # Validate light window
+        if self.maxLight < self.minLight:
+            raise ValueError("maxLight must be greater than or equal to minLight")
+        if not self.minLight <= self.meanLight <= self.maxLight:
+            raise ValueError("meanLight must be between minLight and maxLight")
+        if not self.minLight <= self.currentLight <= self.maxLight:
+            raise ValueError("currentLight must be between minLight and maxLight")
+
         return self
 
 
@@ -199,10 +237,10 @@ def get_model_info() -> dict[str, object]:
         return {
             "status": "available",
             "last_modified": last_modified,
-            "model": "RandomForestClassifier",
+            "model": "MLPClassifier",
             "features": FEATURE_COLUMNS,
         }
-    return {"status": "not_found", "model": "RandomForestClassifier", "features": FEATURE_COLUMNS}
+    return {"status": "not_found", "model": "MLPClassifier", "features": FEATURE_COLUMNS}
 
 
 @app.post("/predict", response_model=PredictionResponse)
@@ -212,6 +250,18 @@ async def get_prediction(data: PredictionRequest) -> PredictionResponse:
         data.maxTemp,
         data.minTemp,
         data.meanTemp,
+        data.currentHumidity,
+        data.maxHumidity,
+        data.minHumidity,
+        data.meanHumidity,
+        data.currentCO2,
+        data.maxCO2,
+        data.minCO2,
+        data.meanCO2,
+        data.currentLight,
+        data.maxLight,
+        data.minLight,
+        data.meanLight,
     )
     return PredictionResponse(rating=rating)
 
