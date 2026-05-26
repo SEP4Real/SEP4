@@ -96,7 +96,7 @@ void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8
     printf("[DATA] Sending temp=%d.%d, hum=%d.%d, light=%u, co2=%u\n", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
     http_post("/data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 
-    char *quality_ptr = strstr(tcp_rx_buf, "\"study_quality\"");
+    char *quality_ptr = strstr(tcp_rx_buf, "\"rating\"");
     if (quality_ptr != NULL)
     {
 
@@ -132,7 +132,7 @@ void server_send_onetime_measurement(uint8_t temp_int, uint8_t temp_dec, uint8_t
         if (colon_ptr != NULL)
         {
             int quality_val = atoi(colon_ptr + 1);
-            printf("[ONETIME] ML returned study quality: %d\n", quality_val);
+            printf("[ONETIME] ML returned rating: %d\n", quality_val);
 
             if (quality_val < 4)
             {

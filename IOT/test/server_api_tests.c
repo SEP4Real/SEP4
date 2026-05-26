@@ -367,7 +367,7 @@ void test_onetime_body_contains_sensor_values(void)
 void test_onetime_quality_1_triggers_long_beep(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"study_quality\": 1}";
+    inject_post_response = "{\"rating\": 1}";
     server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
     // Source code beeps 120 times when quality == 1
     TEST_ASSERT_EQUAL(120, buzzer_beep_fake.call_count);
@@ -376,7 +376,7 @@ void test_onetime_quality_1_triggers_long_beep(void)
 void test_onetime_quality_good_triggers_short_beep(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"study_quality\": 4}";
+    inject_post_response = "{\"rating\": 4}";
     server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_EQUAL(40, buzzer_beep_fake.call_count);
 }

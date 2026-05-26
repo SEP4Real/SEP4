@@ -87,7 +87,8 @@ def test_get_data_by_session_empty(client, app):
 
 def _mock_httpx(rating=3):
     mock_response = MagicMock()
-    mock_response.json = MagicMock(return_value={"rating": rating})
+    mock_response.json = MagicMock(return_value={"study_quality": rating})
+    mock_response.raise_for_status = MagicMock()
     mock_client = AsyncMock()
     mock_client.post = AsyncMock(return_value=mock_response)
     mock_client.__aenter__ = AsyncMock(return_value=mock_client)
