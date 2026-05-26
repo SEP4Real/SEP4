@@ -960,20 +960,14 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
-| Objective                                                                                  | Status     | Evidence                                                                                                                                                                                                     |
-| :----------------------------------------------------------------------------------------- | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IoT** — measure and transmit sensor readings every ≤60 seconds                   | ✔ Met     | Device reads temperature, humidity, CO₂, and light level and transmits structured JSON payloads every 30 seconds via HTTP                                                                                   |
-| **Cloud Backend** — persist sensor data and expose a RESTful API                    | ✔ Met     | FastAPI backend persists readings and session metadata to PostgreSQL and serves both the frontend and ML service                                                                                             |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API       | ✔ Met     | Random forest classifier predicts study suitability on a 1–5 scale; predictions are exposed through a FastAPI endpoint and displayed on the frontend                                                        |
-| **Frontend** — display live readings and ML rating responsively                     | ✔ Met     | React application displays live sensor data, historical sensor readings, and the current suitability rating, with responsive layouts verified at 576px, 768px, and 1200px [TODO: check if they are actually] |
-| **DevOps** — containerise all components and enforce CI/CD pipelines                | ✔ Met     | All services run as Docker containers deployed to Coolify; GitHub Actions pipelines enforce passing tests and a successful build before merging to main                                                      |
-| **Security** — encrypt IoT-to-backend communication; protect frontend API endpoints | ⟳ Partial | JWT authentication and bcrypt password hashing were implemented for frontend-facing endpoints; IoT-to-backend communication was left as plain HTTP                                                           |
-
-| Objective     | Status                       | Evidence                    |
-| :------------ | :--------------------------- | :-------------------------- |
-| [Objective 1] | ✔ Met / ⟳ Partial / ✗ Not | [Test results / screenshot] |
-
-### [TODO: Idk if we actually need to include screenshots/test results as evidence but it doesn't seam fisible]
+| Objective | Status | Evidence |
+| :--- | :--- | :--- |
+| **IoT** — measure and transmit sensor readings every ≤60 s | ✔ Met | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission |
+| **Cloud Backend** — persist sensor data and expose a RESTful API | ✔ Met | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03[TODO: uncomment section when ready]; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy-todo-update-after-the-py-cov) `/predict` endpoint verified |
+| **Frontend** — display live readings and ML rating responsively | ✔ Met | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05 [TODO: The referenced section is still not complete]|
+| **DevOps** — containerise all components and enforce CI/CD pipelines | ✔ Met | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#23-system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml` [TODO: the referenced 3.1.3 section is still not done, 2.3 needs to be uncommented]|
 
 ## 4.3 IoT Performance
 

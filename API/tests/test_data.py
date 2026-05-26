@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, patch, MagicMock
 from tests.conftest import make_cursor, make_db
 from datetime import datetime, timezone
+from app.models import DataPointResponse
 
 NOW = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
@@ -87,7 +88,8 @@ def test_get_data_by_session_empty(client, app):
 
 def _mock_httpx(rating=3):
     mock_response = MagicMock()
-    mock_response.json = MagicMock(return_value={"rating": rating})
+    mock_response.json = MagicMock(return_value={"study_quality": rating})
+    mock_response.raise_for_status = MagicMock()
     mock_client = AsyncMock()
     mock_client.post = AsyncMock(return_value=mock_response)
     mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -100,12 +102,10 @@ def test_create_data_success(client, app):
     cur.fetchone = AsyncMock(side_effect=[
         {"is_ended": False},
         DATA_ROW,
-        TEMP_STATS,
-        None,
     ])
     _override(app, make_db(cur))
 
-    with patch("app.routers.data.httpx.AsyncClient", return_value=_mock_httpx(3)):
+    with patch("app.routers.data.predict_study_quality", new=AsyncMock(return_value=DataPointResponse(study_quality=3))):
         r = client.post("/data", json=DATA_PAYLOAD)
 
     assert r.status_code == 201
