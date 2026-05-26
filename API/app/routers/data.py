@@ -6,7 +6,6 @@ from psycopg import AsyncConnection
 from app.database import get_db
 from app.models import DataCreate, DataPoint, DataPointResponse
 
-from datetime import timedelta
 import httpx
 
 import os
@@ -74,34 +73,15 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
         row = await cur.fetchone()
     await db.commit()
 
-    cutoff = sent_at - timedelta(minutes=30)
-    async with db.cursor() as cur:
-        await cur.execute(
-            """
-            SELECT 
-                MIN(temperature) as min_temp,
-                MAX(temperature) as max_temp,
-                AVG(temperature) as avg_temp
-            FROM data
-            WHERE session_id = %s AND sent_at >= %s
-            """,
-            (body.session_id, cutoff),
-        )
-        temp_stats = await cur.fetchone()
     predicted_quality = -1
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{os.getenv('MAL_API_HOST_PORT')}/predict",
-                json={
-                    "currentTemperature": body.temperature,
-                    "maxTemp": temp_stats["max_temp"],
-                    "minTemp": temp_stats["min_temp"],
-                    "meanTemp": float(temp_stats["avg_temp"])
-                },
+                f"{os.getenv('API_BASE_URL', 'http://localhost:8080')}/predict",
+                params={"sessionId": body.session_id},
             )
         response.raise_for_status()
-        predicted_quality = response.json().get("rating", -1)
+        predicted_quality = response.json().get("study_quality", -1)
     except Exception:
         pass
 

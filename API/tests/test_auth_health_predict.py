@@ -211,7 +211,7 @@ def test_predict_returns_study_quality(client, app):
     _override(app, make_db(cur))
 
     with patch("app.routers.prediction.httpx.AsyncClient", return_value=_mock_httpx(3)):
-        r = client.post("/predict")
+        r = client.post("/predict?sessionId=1")
 
     assert r.status_code == 201
     body = r.json()

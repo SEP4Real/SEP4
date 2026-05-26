@@ -23,7 +23,8 @@ static WIFI_ERROR_MESSAGE_t capture_and_inject_post(const char *endpoint, const 
 {
     strncpy(captured_endpoint, endpoint, sizeof(captured_endpoint) - 1);
     strncpy(captured_body, body, sizeof(captured_body) - 1);
-    if (inject_post_response && rx_buf){
+    if (inject_post_response && rx_buf)
+    {
         strncpy(rx_buf, inject_post_response, rx_buf_size - 1);
     }
     return WIFI_OK;
@@ -33,7 +34,8 @@ static WIFI_ERROR_MESSAGE_t capture_and_inject_patch(const char *endpoint, const
 {
     (void)body;
     strncpy(captured_patch_endpoint, endpoint, sizeof(captured_patch_endpoint) - 1);
-    if (inject_patch_response && rx_buf){
+    if (inject_patch_response && rx_buf)
+    {
         strncpy(rx_buf, inject_patch_response, rx_buf_size - 1);
     }
     return WIFI_OK;
@@ -46,10 +48,12 @@ static WIFI_ERROR_MESSAGE_t retry_fake(const char *ep, const char *body, char *r
     (void)ep;
     (void)body;
     retry_call_count++;
-    if (retry_call_count == 1){
+    if (retry_call_count == 1)
+    {
         strncpy(rx_buf, "{\"error\":\"bad\"}", rx_buf_size - 1);
     }
-    else{
+    else
+    {
         strncpy(rx_buf, "{\"id\":7}", rx_buf_size - 1);
     }
     return WIFI_OK;
@@ -323,17 +327,16 @@ void test_normal_study_conditions_dont_sound_buzzer(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"study_quality\": 2}";
+    inject_post_response = "{\"study_quality\": 4}";
     server_send_data(22, 5, 60, 3, 856, 1200);
     TEST_ASSERT_EQUAL(0, buzzer_beep_fake.call_count);
 }
-
 
 void test_onetime_posts_to_predict_endpoint(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
     server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
-    TEST_ASSERT_EQUAL_STRING("/predict", captured_endpoint);
+    TEST_ASSERT_EQUAL_STRING("/instant-measurement", captured_endpoint);
 }
 
 void test_onetime_works_without_active_session(void)
@@ -364,7 +367,7 @@ void test_onetime_body_contains_sensor_values(void)
 void test_onetime_quality_1_triggers_long_beep(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"study_quality\": 1}";
+    inject_post_response = "{\"rating\": 1}";
     server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
     // Source code beeps 120 times when quality == 1
     TEST_ASSERT_EQUAL(120, buzzer_beep_fake.call_count);
@@ -373,7 +376,7 @@ void test_onetime_quality_1_triggers_long_beep(void)
 void test_onetime_quality_good_triggers_short_beep(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"study_quality\": 2}";
+    inject_post_response = "{\"rating\": 4}";
     server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_EQUAL(40, buzzer_beep_fake.call_count);
 }

@@ -96,35 +96,34 @@ void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8
     printf("[DATA] Sending temp=%d.%d, hum=%d.%d, light=%u, co2=%u\n", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
     http_post("/data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 
-    char *quality_ptr = strstr(tcp_rx_buf, "\"study_quality\"");
-    if (quality_ptr != NULL){
+    char *quality_ptr = strstr(tcp_rx_buf, "\"rating\"");
+    if (quality_ptr != NULL)
+    {
 
         char *colon_ptr = strchr(quality_ptr, ':');
         if (colon_ptr != NULL)
         {
             int quality_val = atoi(colon_ptr + 1);
             printf("[DATA] Server returned study quality: %d\n", quality_val);
-            if (quality_val == 1)
+            if (quality_val < 4)
             {
                 printf("[ALERT] Quality is 1 - sounding buzzer...\n");
                 for (int i = 0; i < 120; i++)
                 {
                     wdt_reset();
-                    buzzer_beep(); 
+                    buzzer_beep();
                 }
             }
-            
         }
-        
     }
-    
 }
 
-void server_send_onetime_measurement(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec, uint16_t light_raw, uint16_t co2_ppm){
+void server_send_onetime_measurement(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8_t hum_dec, uint16_t light_raw, uint16_t co2_ppm)
+{
     char body[150];
-    snprintf(body, sizeof(body),"{\"sessionId\":1,\"temperature\":%d.%d,\"humidity\":%d.%d,\"lightLevel\":%u,\"co2Level\":%u}", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
+    snprintf(body, sizeof(body), "{\"sessionId\":1,\"temperature\":%d.%d,\"humidity\":%d.%d,\"lightLevel\":%u,\"co2Level\":%u}", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
     printf("[ONETIME] Sending data to alternate the endpoint...\n");
-    http_post("/predict", body, tcp_rx_buf, sizeof(tcp_rx_buf));
+    http_post("/instant-measurement", body, tcp_rx_buf, sizeof(tcp_rx_buf));
     char *quality_ptr = strstr(tcp_rx_buf, "\"study_quality\"");
 
     if (quality_ptr != NULL)
@@ -133,20 +132,22 @@ void server_send_onetime_measurement(uint8_t temp_int, uint8_t temp_dec, uint8_t
         if (colon_ptr != NULL)
         {
             int quality_val = atoi(colon_ptr + 1);
-            printf("[ONETIME] ML returned study quality: %d\n", quality_val);
+            printf("[ONETIME] ML returned rating: %d\n", quality_val);
 
-            if (quality_val == 1) 
+            if (quality_val < 4)
             {
                 printf("[ALERT] Bad conditions detected!\n");
-                for (int i = 0; i < 120; i++) {
+                for (int i = 0; i < 120; i++)
+                {
                     wdt_reset();
                     buzzer_beep();
                 }
             }
-            else 
+            else
             {
                 printf("[ALERT] Good conditions.\n");
-                for (int i = 0; i < 40; i++) {
+                for (int i = 0; i < 40; i++)
+                {
                     wdt_reset();
                     buzzer_beep();
                 }
