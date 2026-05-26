@@ -104,12 +104,17 @@ async def predict_study_quality(body: DataCreate, db: AsyncConnection = Depends(
     rows = await _get_session_rows(db, session_id)
     payload = _linearize_session(rows)
 
-    required = ["currentTemperature", "maxTemp", "minTemp", "meanTemp"]
+    required = [
+        "currentTemperature", "maxTemp", "minTemp", "meanTemp",
+        "currentHumidity", "maxHumidity", "minHumidity", "meanHumidity",
+        "currentCO2", "maxCO2", "minCO2", "meanCO2",
+        "currentLight", "maxLight", "minLight", "meanLight"
+    ]
     missing = [name for name in required if payload.get(name) is None]
     if missing:
         raise HTTPException(
             status_code=422,
-            detail=f"Missing required temperature data: {', '.join(missing)}",
+            detail=f"Missing required sensor data: {', '.join(missing)}",
         )
 
     mal_base = os.getenv("MAL_API_HOST_PORT")

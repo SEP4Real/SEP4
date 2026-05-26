@@ -28,6 +28,18 @@ _VALID_PAYLOAD = {
     "maxTemp": 25.0,
     "minTemp": 20.0,
     "meanTemp": 22.5,
+    "currentHumidity": 50.0,
+    "maxHumidity": 55.0,
+    "minHumidity": 45.0,
+    "meanHumidity": 50.0,
+    "currentCO2": 850.0,
+    "maxCO2": 900.0,
+    "minCO2": 800.0,
+    "meanCO2": 850.0,
+    "currentLight": 320.0,
+    "maxLight": 350.0,
+    "minLight": 300.0,
+    "meanLight": 320.0,
 }
 
 
@@ -41,13 +53,13 @@ def test_root_endpoint_with_get_returns_hello_world(client):
 
 
 def test_model_info_endpoint_returns_200_with_classifier_name(client):
-    # Arrange - rf_model.pkl is committed to the repo and available
+    # Arrange - nn_model.pkl is committed to the repo and available
     # Act
     response = client.get("/model-info")
     # Assert
     assert response.status_code == 200
     body = response.json()
-    assert body["model"] == "RandomForestClassifier"
+    assert body["model"] == "MLPClassifier"
     assert "features" in body
 
 
@@ -119,7 +131,7 @@ def test_predict_with_current_outside_window_returns_422(client):
 
 def test_predict_accepts_negative_temperatures(client):
     # Arrange
-    payload = {
+    payload = _VALID_PAYLOAD | {
         "currentTemperature": -2.0,
         "maxTemp": 1.0,
         "minTemp": -5.0,

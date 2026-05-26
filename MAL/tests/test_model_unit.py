@@ -10,7 +10,8 @@ Naming convention: <what_is_tested>_<scenario>_<expected_outcome>
 """
 import pytest
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
 
 from ml_pipeline.model import (
     FEATURE_COLUMNS,
@@ -31,17 +32,29 @@ _MOCK_DF = pd.DataFrame(
         "maxTemp": [25.0, 25.0, 27.0, 29.0, 30.0, 32.0],
         "minTemp": [18.0, 20.0, 22.0, 24.0, 26.0, 28.0],
         "meanTemp": [21.0, 22.5, 24.0, 26.0, 27.5, 29.5],
+        "humidity_latest": [45.0, 50.0, 55.0, 60.0, 65.0, 70.0],
+        "humidity_mean": [44.0, 48.0, 54.0, 59.0, 64.0, 69.0],
+        "humidity_min": [40.0, 45.0, 50.0, 55.0, 60.0, 65.0],
+        "humidity_max": [48.0, 52.0, 58.0, 62.0, 68.0, 72.0],
+        "co2_latest": [800.0, 850.0, 900.0, 950.0, 1000.0, 1050.0],
+        "co2_mean": [790.0, 840.0, 890.0, 940.0, 990.0, 1040.0],
+        "co2_min": [750.0, 800.0, 850.0, 900.0, 950.0, 1000.0],
+        "co2_max": [820.0, 860.0, 920.0, 970.0, 1020.0, 1080.0],
+        "light_latest": [300.0, 320.0, 340.0, 360.0, 380.0, 400.0],
+        "light_mean": [290.0, 310.0, 330.0, 350.0, 370.0, 390.0],
+        "light_min": [250.0, 270.0, 290.0, 310.0, 330.0, 350.0],
+        "light_max": [320.0, 340.0, 360.0, 380.0, 400.0, 420.0],
         "rating": [3, 4, 4, 3, 2, 2],
     }
 )
 
 
-def test_build_model_default_returns_random_forest_classifier():
+def test_build_model_default_returns_mlp_classifier():
     # Arrange - nothing required
     # Act
     model = build_model()
     # Assert
-    assert isinstance(model, RandomForestClassifier)
+    assert isinstance(model, MLPClassifier)
 
 
 def test_build_model_uses_fixed_random_state():
@@ -70,22 +83,24 @@ def test_split_features_target_target_matches_configured_column():
     assert y.name == TARGET_COLUMN
 
 
-def test_train_model_with_dataframe_returns_fitted_classifier():
+def test_train_model_with_dataframe_returns_fitted_classifier_and_scaler():
     # Arrange
     df = _MOCK_DF.copy()
     # Act
-    model = train_model(df=df)
+    model, scaler = train_model(df=df)
     # Assert
-    assert isinstance(model, RandomForestClassifier)
-    assert hasattr(model, "estimators_")
+    assert isinstance(model, MLPClassifier)
+    assert hasattr(model, "coefs_")
+    assert isinstance(scaler, StandardScaler)
 
 
 def test_evaluate_model_returns_accuracy_and_macro_f1():
     # Arrange
-    model = train_model(df=_MOCK_DF)
+    model, scaler = train_model(df=_MOCK_DF)
     x, y = split_features_target(_MOCK_DF)
+    x_scaled = scaler.transform(x)
     # Act
-    metrics = evaluate_model(model, x, y)
+    metrics = evaluate_model(model, x_scaled, y)
     # Assert
     assert "accuracy" in metrics
     assert "macro_f1" in metrics
@@ -95,10 +110,10 @@ def test_evaluate_model_returns_accuracy_and_macro_f1():
 
 def test_save_model_creates_file_at_given_path(tmp_path):
     # Arrange
-    model = train_model(df=_MOCK_DF)
+    model, scaler = train_model(df=_MOCK_DF)
     output_path = tmp_path / "test_model.pkl"
     # Act
-    returned_path = save_model(model, path=output_path)
+    returned_path = save_model(model, scaler, path=output_path)
     # Assert
     assert output_path.exists()
     assert returned_path == output_path
@@ -121,10 +136,17 @@ def test_load_model_raises_when_file_is_missing(tmp_path):
 
 
 def test_predict_with_valid_input_returns_integer_in_rating_range():
-    # Arrange - the committed rf_model.pkl is loaded automatically
+    # Arrange
+    model, scaler = train_model(df=_MOCK_DF)
+    save_model(model, scaler)
     load_model.cache_clear()
     # Act
-    result = predict(22.0, 25.0, 20.0, 22.5)
+    result = predict(
+        22.0, 25.0, 20.0, 22.5,  # temp
+        50.0, 48.0, 45.0, 52.0,  # hum
+        850.0, 840.0, 800.0, 860.0,  # co2
+        320.0, 310.0, 270.0, 340.0,  # light
+    )
     # Assert
     assert isinstance(result, int)
     assert 1 <= result <= 5
@@ -174,6 +196,18 @@ def test_train_validation_test_split_produces_three_non_overlapping_sets():
             "maxTemp": [25.0] * 15,
             "minTemp": [18.0] * 15,
             "meanTemp": [21.5] * 15,
+            "humidity_latest": [50.0] * 15,
+            "humidity_mean": [48.0] * 15,
+            "humidity_min": [45.0] * 15,
+            "humidity_max": [52.0] * 15,
+            "co2_latest": [800.0] * 15,
+            "co2_mean": [790.0] * 15,
+            "co2_min": [750.0] * 15,
+            "co2_max": [820.0] * 15,
+            "light_latest": [300.0] * 15,
+            "light_mean": [290.0] * 15,
+            "light_min": [250.0] * 15,
+            "light_max": [320.0] * 15,
             "rating": [2] * 5 + [3] * 5 + [4] * 5,
         }
     )
