@@ -741,7 +741,7 @@ In our project, we developed two distinct kinds of models to tackle different as
 - **Random Forest Classifier (RFC):** Treats the 1-5 comfort ratings as distinct classes, aiming to accurately predict the exact category.
 - **Gradient Boosting Classifier (GBC):** An advanced ensemble technique evaluated for its ability to sequentially correct prediction errors, offering potentially higher accuracy for the subjective ratings.
 - **Multi-Layer Perceptron (MLP):** A feedforward artificial neural network evaluated to see if deep, non-linear pattern recognition could better map raw sensors to human comfort.
-- **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating. Those "perception" values already existed in original data that was found together with the comfort raiting, so this experiment was supposed to see if this way models can predict more accurately - it turned out that not really.
+- **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating.
 
 ### 3.9.2 Training and Hyperparameter Tuning
 
@@ -793,42 +793,49 @@ The models were evaluated strictly on the holdout test set to determine how well
 | Two-Stage Pipeline           | Hybrid     | MAE / Acc   | 0.667 / 48.5% |
 
 **Linear Regression**
-![LR Error Plot](../../Documentation/Design/ML/cm_experiements_LR_1.png)
+![LR Error Plot](../../Documentation/Design/ML/cm_LR_updated.png)
 
-In the basic linear regression model the predicted values were all around the most common value (3) which suggested that the problem might need more complex model than linear. 
+In the basic linear regression model the predicted values were all around the most common value (3) which suggested that the problem might need more complex model than linear.
 
 **Random Forest Regressor**
-![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_1.png)
+![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_updated.png)
 
 Random forest regressor did a little better - it preserved more variance and the predicted values where compressed in the middle most common value but not as much as in the linear regression, due to [continue].
 
 **Random Forest Classifier**
-![RFC Confusion Matrix](../../Documentation/Design/ML/cm_RFC_1.png)
+![RFC Best Model: CV vs Test](../../Documentation/Design/ML/cm_RFC_best.png)
+![RFC Overfit: Train vs Test](../../Documentation/Design/ML/cm_RFC_overfit.png)
 
-First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. 
+First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. Of course the goal was to achieve this beautiful diagonal line on the test confusion matrix but unfortunatelly this was not possible, because then the model started to overfit a lot on the training set which can be seen on the oferfiting model confusion matrix above.
 
 **Gradient Boosting Classifier**
-![GBC Confusion Matrix 1](../../Documentation/Design/ML/cm_GBC_1.png)
-![GBC Confusion Matrix 2](../../Documentation/Design/ML/cm_GBC_2.png)
-![GBC Confusion Matrix 3](../../Documentation/Design/ML/cm_GBC_3.png)
+![GBC Best Model: CV vs Test](../../Documentation/Design/ML/cm_GBC_best.png)
+![GBC Overfit: Train vs Test](../../Documentation/Design/ML/cm_GBC_overfit.png)
+
+[TODO: Sasha]
 
 **Multi-Layer Perceptron**
-![MLP Confusion Matrix 1](../../Documentation/Design/ML/cm_MLP_1.png)
-![MLP Confusion Matrix 2](../../Documentation/Design/ML/cm_MLP_2.png)
-![MLP Confusion Matrix 3](../../Documentation/Design/ML/cm_MLP_3.png)
+![MLP Best Model: CV vs Test](../../Documentation/Design/ML/cm_MLP_best.png)
+![MLP Overfit: Train vs Test](../../Documentation/Design/ML/cm_MLP_overfit.png)
+
+[TODO: Sasha]
 
 **Two-Stage Pipeline**
-![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_pipeline_1.png)
+![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_best.png)
 
-#### Critical Evaluation: The "Subjectivity Paradox"
+The goal of this 2 stage pipeline was to use "perception" values already existing in original data that was found together with the comfort raiting. The idea was to see if this way models can predict more accurately - it turned out that not really. It lead again to overfitting on the train set and squizzing most of predictions around the mode of targets both for regressor and classifier.
+
+#### Final Evaluation
 
 As clearly visible in the confusion matrices, the instant measurement models struggled to capture a robust predictive signal. The models typically exhibited two failure modes: they either heavily overfitted to the training data, or they collapsed into predicting the majority class.
 
-Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding the feasibility of the feature. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding whether the feature could actually be built with data that was found and agreed between teems plan. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
 
 A universal instant-comfort model cannot exist. To solve this, future iterations of the system must rely on personalized, user-specific profiling or hardcoded rules per user rather than attempting to map objective sensor data to a generalized subjective comfort scale.
 
-### 3.9.4 Result ExportThe best performing models were serialized into `.pkl` files (Pickle format). This allows the backend API to dynamically load the model into memory and instantly run predictions when receiving new raw sensor arrays from the physical IoT devices.
+### 3.9.4 Result export
+
+The best performing models were serialized into `.pkl` files as artifacts. To ensure accurate predictions, the input data must be scaled using the same parameters as the training set. Therefore, the scalers are saved as artifacts alongside the models. This allows the deployed API to build the model and expose the prediction endpoints for receiving new raw sensor arrays from the physical IoT devices.
 
 ## 3.10 Frontend CI/CD
 
