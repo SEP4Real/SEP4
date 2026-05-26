@@ -5,6 +5,7 @@ from psycopg import AsyncConnection
 
 from app.database import get_db
 from app.models import DataCreate, DataPoint, DataPointResponse
+from app.routers.prediction import predict_study_quality
 
 import httpx
 
@@ -75,15 +76,11 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
 
     predicted_quality = -1
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{os.getenv('API_BASE_URL', 'http://localhost:8080')}/predict",
-                params={"sessionId": body.session_id},
-            )
-        response.raise_for_status()
-        predicted_quality = response.json().get("study_quality", -1)
-    except Exception:
-        pass
+        result = await predict_study_quality(session_id=body.session_id, db=db)
+        predicted_quality = result.study_quality
+    except Exception as e:
+        print(f"Prediction failed: {e}")
+
 
     if predicted_quality != -1:
         async with db.cursor() as cur:
