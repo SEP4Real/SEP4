@@ -216,7 +216,7 @@ def _mock_httpx(rating=3):
 
 def test_predict_returns_study_quality(client, app):
     cur = make_cursor(rows=DATA_ROWS)
-    cur.fetchone = AsyncMock(side_effect=[SESSION_ROW])
+    cur.fetchone = AsyncMock(side_effect=[{"exists": False}, SESSION_ROW])
     _override(app, make_db(cur))
 
     with patch("app.routers.prediction.httpx.AsyncClient", return_value=_mock_httpx(3)):

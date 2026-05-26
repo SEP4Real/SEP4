@@ -1,5 +1,5 @@
 ---
-title: "Process Report – StudyHelper"
+itle: "Process Report – StudyHelper"
 date: "May 25, 2026"
 author:
 - Alexandru Savin(354790)
