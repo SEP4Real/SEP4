@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant User
+    participant Device as IoT Device
+    participant API as Backend API
+
+    Device->>Device: Boot and initialise sensors
+    Device->>API: Register device
+    User->>Device: Press Button 1
+    Device->>API: POST /session
+    API-->>Device: Session ID
+
+    loop Active session
+        Device->>API: PATCH /session/{id}/pulse
+        Device->>API: POST /data with sensor values
+        API-->>Device: Predicted study quality
+        alt Study quality is 1
+            Device->>Device: Activate buzzer
+        end
+    end
+
+    User->>Device: Press Button 1 again
+    Device->>Device: Stop local session state
