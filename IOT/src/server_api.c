@@ -96,7 +96,7 @@ void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8
     printf("[DATA] Sending temp=%d.%d, hum=%d.%d, light=%u, co2=%u\n", temp_int, temp_dec, hum_int, hum_dec, light_raw, co2_ppm);
     http_post("/data", body, tcp_rx_buf, sizeof(tcp_rx_buf));
 
-    char *quality_ptr = strstr(tcp_rx_buf, "\"rating\"");
+    char *quality_ptr = strstr(tcp_rx_buf, "\"study_quality\"");
     if (quality_ptr != NULL)
     {
 
