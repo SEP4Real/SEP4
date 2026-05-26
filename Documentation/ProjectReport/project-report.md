@@ -279,7 +279,7 @@ Two system sequence diagrams capture the primary interaction flows in the StudyH
 <!-- SHARED section — written as one coherent unit BEFORE branching.
      Present the overall system architecture and cloud design here. -->
 
-*Authors: [Name, Name, Cristina Aurelia Matei]*
+*Authors: [Name, Name]*
 
 ### 3.1.1 System Architecture
 
@@ -322,6 +322,8 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 **Continuous delivery:** On every push to `main`, a GitHub Actions workflow sends a webhook to Coolify, which pulls updated images from GHCR and restarts the affected containers. Pre-built images for `mal-api` and `frontend` are published to GHCR as part of the MLOps and frontend CI/CD pipelines.
 
 ### 3.1.3 Security Design
+
+*Authors: [Cristina Matei]*
 
 <!-- SEP4 requires: encryption for IoT–cloud (symmetric or asymmetric),
      and JWT (or equivalent) protection for frontend-facing API endpoints. --
@@ -506,7 +508,7 @@ The ML task is formulated as a supervised learning problem aimed at predicting t
 
 ## 3.4 Frontend Design
 
-*Authors: [Cristina Aurelia Matei]*
+*Authors: [Cristina Matei]*
 
 <!-- Design of the React web application. -->
 
@@ -663,12 +665,11 @@ Initially ideal test set would be the one taken from the real usage of the syste
 
 ## 3.7 Frontend Implementation
 
-*Authors: [Cristina Aurelia Matei]*
-
 /* Include a representative React component illustrating a key implementation
    decision — e.g. a data-fetching hook, a chart component, or an API call. */
 
 ### 3.7.1 Core Features Implementation
+*Authors: [Cristina Matei]*
 
 The frontend implements the main user-facing workflows of the system: authentication, dashboard monitoring, session rating, profile management, device connection, calendar planning, theme switching, and language switching. Each workflow is built as a React page or reusable component, while backend communication is kept in service files under `src/services`.
 
@@ -677,6 +678,8 @@ The application uses protected routes to separate public pages from authenticate
 The following subsections describe the most important frontend features in more detail.
 
 ### 3.7.1.1 Dashboard Implementation
+
+*Authors: [Cristina Matei]*
 
 The dashboard is the main part of the frontend. It loads environment data through `DashboardService`, prepares the data for display, and shows the newest values in sensor cards. The cards show temperature, humidity, CO2, light level, and suitability level. They use the reusable `SensorCard` component, so the same structure can be reused for each sensor value.
 
@@ -717,6 +720,8 @@ This service function is used by the dashboard to retrieve the latest sensor rea
 
 ### 3.7.1.2 Profile and Device Connection
 
+*Authors: [Cristina Matei]*
+
 The profile page handles both user information and device connection. When the page loads, it reads the logged-in user and then requests the profile from the backend through `ProfileService`. The user can update profile information such as university, study programme, study year, study goal, and profile picture. The page also includes password change fields with basic checks before sending the update request.
 
 The device connection part uses `DeviceService`. The user enters a device ID, and the frontend checks if that device exists in the backend. If the device is not found, the frontend tries to register it. After this, the device ID is stored locally together with the user's email. The dashboard uses this information to decide whether it should show environment data or show the "no device connected" empty state.
@@ -739,7 +744,7 @@ export async function ensureDeviceExists(deviceId) {
 ```
 This function is used when a user connects a device from the profile page. First, the frontend checks if the device already exists in the backend. If it exists, the device can be connected. If the backend returns that the device was not found, the frontend tries to register it. Other backend errors are not hidden, because they may mean the API is unavailable or the request failed for another reason.
 
-#### Calendar
+### 3.7.1.3 Calendar
 
 *Authors: [Marta Zrno]*
 
@@ -785,9 +790,7 @@ Figure x: request model in calendar.py
 
 *Authors: [Marta Zrno]*
 
-[How does the frontend communicate with the backend?
-Describe error handling, loading states, polling vs websocket decisions,
-and how ML predictions are retrieved and displayed.]
+[How does the frontend communicate with the backend? Describe error handling, loading states, polling vs websocket decisions, and how ML predictions are retrieved and displayed.]
 
 The frontend communicates with backend services through REST API requests, which are implemented with Fetch API. Fetch API is a provider of a JS interface used for making HTTP requests. Polling-based communication was selected because the IoT device transmits sensor values at fixed time intervals, which makes two-way communication unnecessary.
 
@@ -836,10 +839,10 @@ Figure x: visualization of prediction
 
 ### 3.7.3 Hosting and Deployment
 
+*Authors: [Marta Zrno]*
 <!-- Required: must be hosted and accessible online. -->
 
 [Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
-
 
 
 The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers. It is build using Vite- a fast frontend building tool which optimizes React's code.
@@ -860,6 +863,7 @@ Deployment was automated through GitHub Actions workflows. When new changes were
 Figure x: deployment workflow
 
 The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
+
 
 
 ## 3.8 IoT CI/CD
@@ -1175,22 +1179,6 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
-<<<<<<< HEAD
-| Objective                                                                                  | Status     | Evidence                                                                                                                                                                                                     |
-| :----------------------------------------------------------------------------------------- | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IoT** — measure and transmit sensor readings every ≤60 seconds                   | ✔ Met     | Device reads temperature, humidity, CO₂, and light level and transmits structured JSON payloads every 30 seconds via HTTP                                                                                   |
-| **Cloud Backend** — persist sensor data and expose a RESTful API                    | ✔ Met     | FastAPI backend persists readings and session metadata to PostgreSQL and serves both the frontend and ML service                                                                                             |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API       | ✔ Met     | Random forest classifier predicts study suitability on a 1–5 scale; predictions are exposed through a FastAPI endpoint and displayed on the frontend                                                        |
-| **Frontend** — display live readings and ML rating responsively                     | ✔ Met     | React application displays live sensor data, historical sensor readings, and the current suitability rating, with responsive layouts verified at 576px, 768px, and 1200px|
-| **DevOps** — containerise all components and enforce CI/CD pipelines                | ✔ Met     | All services run as Docker containers deployed to Coolify; GitHub Actions pipelines enforce passing tests and a successful build before merging to main                                                      |
-| **Security** — encrypt IoT-to-backend communication; protect frontend API endpoints | ⟳ Partial | JWT authentication and bcrypt password hashing were implemented for frontend-facing endpoints; IoT-to-backend communication was left as plain HTTP                                                           |
-
-| Objective     | Status                       | Evidence                    |
-| :------------ | :--------------------------- | :-------------------------- |
-| [Objective 1] | ✔ Met / ⟳ Partial / ✗ Not | [Test results / screenshot] |
-
-### [TODO: Idk if we actually need to include screenshots/test results as evidence but it doesn't seam fisible]
-=======
 | Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                                                    |
 | :----------------------------------------------------------------------------------- | :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                                                   |
@@ -1199,7 +1187,6 @@ partially met, or not met, and support the assessment with evidence.]
 | **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05 [TODO: The referenced section is still not complete] |
 | **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort                                                                         |
 | **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#23-system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml` [TODO: the referenced 3.1.3 section is still not done, 2.3 needs to be uncommented]                            |
->>>>>>> origin/dev
 
 ## 4.3 IoT Performance
 
@@ -1231,8 +1218,12 @@ What are the system's remaining weaknesses? What assumptions constrain the findi
 What would need to change for this to be a production-grade system?
 Address limitations per component where the issues differ significantly.]
 
-<<<<<<< HEAD
-From a frontend perspective, the final application supports the main user workflows: login and registration, dashboard monitoring, profile management, device connection, calendar planning, and session rating. The dashboard can show live sensor values, historical readings, recommendations, and the predicted study suitability value returned from the backend. The Start Session flow was also improved so the frontend does not create the real IoT session itself, but checks whether the connected device has an active backend session before unlocking the live dashboard view.
+**MAL Evaluation**
+The biggest hurdle we faced in the ML part was what we call the "Subjectivity Paradox" already explained in paragraphs above. Because our training data came from different sources and different people, the model often got confused when two identical sensor readings had two different comfort ratings attached to them. This essentially caps the maximum possible accuracy for any generalized model.
+
+Also, another thing is that our team did not get enough data from our sensors and real people raitings so the team relied on datasets found on the internet such as the KETI and HomeCoach which means that the models were not trained on "our" sensor data. While we attempted to unify the data using MICE imputation and clustering, it remained difficult to account for the 'data drift' that occurs when integrating external, pre-existing datasets with measurements captured directly from our own IoT devices. If we were to take this to a production level, we would need firstly to gather more data than just environemntal sensors data and also make the system learn the specific preferences of the user sitting in front of it, rather than trying to guess based on a general average. Without this personalization, the suitability rating remains a helpful hint rather than a definitive truth.
+
+**From a frontend perspective**, the final application supports the main user workflows: login and registration, dashboard monitoring, profile management, device connection, calendar planning, and session rating. The dashboard can show live sensor values, historical readings, recommendations, and the predicted study suitability value returned from the backend. The Start Session flow was also improved so the frontend does not create the real IoT session itself, but checks whether the connected device has an active backend session before unlocking the live dashboard view.
 
 There are still limitations in the frontend implementation. The dashboard depends on the backend and IoT device having an active session. If no active session exists, the frontend can show a clear message, but it cannot start real measurement by itself. This is correct for the system design, but it also means the full dashboard flow can only be tested properly when the IoT/backend session flow is running.
 
@@ -1243,12 +1234,6 @@ Another limitation is that the frontend has to handle missing or incomplete data
 The session rating flow works as a frontend workflow, but it depends on a valid backend session ID. The popup requires the user to choose a rating before submitting, and the rating is sent with the device and session identifiers. More end-to-end testing would be needed to fully verify the complete flow from IoT session creation to frontend rating submission and database storage.
 
 The frontend also includes automated tests for several important flows, such as login, dashboard states, active session handling, stop-session rating popup, profile device connection, language switching, theme switching, and session rating submission. A limitation is that these are still mostly component and flow-level tests. More end-to-end tests against the full deployed system would give stronger confidence that the frontend, backend, database, and IoT session flow work together correctly.
-=======
-**MAL Evaluation**
-The biggest hurdle we faced in the ML part was what we call the "Subjectivity Paradox" already explained in paragraphs above. Because our training data came from different sources and different people, the model often got confused when two identical sensor readings had two different comfort ratings attached to them. This essentially caps the maximum possible accuracy for any generalized model.
-
-Also, another thing is that our team did not get enough data from our sensors and real people raitings so the team relied on datasets found on the internet such as the KETI and HomeCoach which means that the models were not trained on "our" sensor data. While we attempted to unify the data using MICE imputation and clustering, it remained difficult to account for the 'data drift' that occurs when integrating external, pre-existing datasets with measurements captured directly from our own IoT devices. If we were to take this to a production level, we would need firstly to gather more data than just environemntal sensors data and also make the system learn the specific preferences of the user sitting in front of it, rather than trying to guess based on a general average. Without this personalization, the suitability rating remains a helpful hint rather than a definitive truth.
->>>>>>> origin/dev
 
 # 5. Conclusions
 
@@ -1263,7 +1248,7 @@ Also, another thing is that our team did not get enough data from our sensors an
 
 # 6. Future Work
 
-*Authors: [Cristina Aurelia Matei]*
+*Authors: [Cristina Matei]*
 
 [Describe the most important directions for continuing or improving the system.
 Be specific and actionable.]
@@ -1274,8 +1259,10 @@ Be specific and actionable.]
 - **Cloud/DevOps**: full CD with staged environments, infrastructure-as-code (Terraform),
   monitoring and alerting (Grafana, Prometheus), load testing...]
 
-Future work should mainly focus on making the prototype more reliable and easier to use. 
 
+
+**Frontend**
+Future work should mainly focus on making the prototype more reliable and easier to use. 
 The frontend could be improved with a mobile app or progressive web app, since many students would probably check the system from a phone. Push notifications could warn the user when the environment becomes poor during a session. The dashboard could also become customisable, so users can choose which cards or charts they want to see. 
 The connected device is currently stored in the backend user profile, which allows it to be restored after logout and login. A future improvement would be to support multiple devices per user and enforce device ownership fully in the backend. This would allow users to manage several devices and would ensure that session and rating data can only be accessed for devices assigned to the logged-in account.
 
