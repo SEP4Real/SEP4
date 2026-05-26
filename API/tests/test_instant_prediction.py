@@ -20,6 +20,14 @@ BAD_PAYLOAD = {
 }
 
 
+OUT_OF_RANGE_PAYLOAD = {
+    "temperature": 71.5,
+    "humidity": 135.0,
+    "co2Level": 15000.0,
+    "lightLevel": 150000.0,
+}
+
+
 LATEST_GOOD_ROW = {
     "temperature": 22.5,
     "humidity": 45.0,
@@ -80,6 +88,14 @@ def test_instant_measurement_returns_leave_for_bad_conditions(client, monkeypatc
 
     assert response.status_code == 201
     assert response.json() == {"study_quality": 1}
+
+
+def test_instant_measurement_accepts_values_outside_old_validation_limits(client, monkeypatch):
+    _mock_mal_instant_prediction(monkeypatch, rating=3)
+    response = client.post("/instant-measurement", json=OUT_OF_RANGE_PAYLOAD)
+
+    assert response.status_code == 201
+    assert response.json() == {"study_quality": 3}
 
 
 def test_latest_instant_measurement_reads_database_snapshot(client, app, monkeypatch):

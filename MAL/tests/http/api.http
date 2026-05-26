@@ -47,10 +47,10 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "temperature": 20,
-  "humidity": 100,
-  "co2Level": 10000,
-  "lightLevel": 100000
+  "temperature": 21,
+  "humidity": 10000,
+  "co2Level": 1,
+  "lightLevel": 10000
 }
 
 ###
@@ -59,9 +59,9 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "temperature": 12,
-  "humidity": 12,
-  "co2Level": 12,
-  "lightLevel": 12,
+  "temperature": 21,
+  "humidity": 3000,
+  "co2Level": 500,
+  "lightLevel": 10002,
   "noise": 29
 }

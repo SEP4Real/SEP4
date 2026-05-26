@@ -12,10 +12,10 @@ router = APIRouter(prefix="/instant-measurement", tags=["instant-measurement"])
 
 
 class InstantMeasurementRequest(BaseModel):
-    temperature: float = Field(..., ge=-20, le=60)
-    humidity: float = Field(..., ge=0, le=100)
-    co2_level: float = Field(..., alias="co2Level", ge=0, le=10000)
-    light_level: float = Field(..., alias="lightLevel", ge=0, le=100000)
+    temperature: float = Field(..., allow_inf_nan=False)
+    humidity: float = Field(..., allow_inf_nan=False)
+    co2_level: float = Field(..., alias="co2Level", allow_inf_nan=False)
+    light_level: float = Field(..., alias="lightLevel", allow_inf_nan=False)
 
     model_config = {"populate_by_name": True}
 

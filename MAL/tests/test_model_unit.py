@@ -24,7 +24,12 @@ from ml_pipeline.model import (
     split_features_target,
     train_model,
 )
-from ml_pipeline.instant_model import load_instant_model, predict_instant
+from ml_pipeline.instant_model import (
+    INSTANT_FEATURE_COLUMNS,
+    load_instant_model,
+    load_instant_scaler,
+    predict_instant,
+)
 
 _MOCK_DF = pd.DataFrame(
     {
@@ -135,6 +140,20 @@ def test_load_instant_model_raises_when_file_is_missing(tmp_path):
         instant_model_module.load_instant_model.cache_clear()
 
 
+def test_load_instant_scaler_raises_when_file_is_missing(tmp_path):
+    import ml_pipeline.instant_model as instant_model_module
+
+    original_path = instant_model_module.INSTANT_SCALER_PATH
+    instant_model_module.INSTANT_SCALER_PATH = tmp_path / "nonexistent_instant_scaler.pkl"
+    instant_model_module.load_instant_scaler.cache_clear()
+    try:
+        with pytest.raises(FileNotFoundError):
+            instant_model_module.load_instant_scaler()
+    finally:
+        instant_model_module.INSTANT_SCALER_PATH = original_path
+        instant_model_module.load_instant_scaler.cache_clear()
+
+
 def test_predict_with_valid_input_returns_integer_in_rating_range():
     # Arrange - the committed rf_model.pkl is loaded automatically
     load_model.cache_clear()
@@ -147,6 +166,7 @@ def test_predict_with_valid_input_returns_integer_in_rating_range():
 
 def test_predict_instant_returns_integer_in_rating_range():
     load_instant_model.cache_clear()
+    load_instant_scaler.cache_clear()
 
     result = predict_instant(
         humidity=40.0,
@@ -158,6 +178,51 @@ def test_predict_instant_returns_integer_in_rating_range():
 
     assert isinstance(result, int)
     assert 1 <= result <= 5
+
+
+def test_predict_instant_applies_scaler_before_model_prediction(monkeypatch):
+    import ml_pipeline.instant_model as instant_model_module
+
+    class DummyScaler:
+        def __init__(self):
+            self.received = None
+
+        def transform(self, input_df):
+            self.received = input_df.copy()
+            return [[-1.0, -2.0, -3.0, -4.0, -5.0]]
+
+    class DummyModel:
+        def __init__(self):
+            self.received = None
+
+        def predict(self, scaled_input):
+            self.received = scaled_input
+            return [4]
+
+    scaler = DummyScaler()
+    model = DummyModel()
+
+    monkeypatch.setattr(instant_model_module, "load_instant_scaler", lambda: scaler)
+    monkeypatch.setattr(instant_model_module, "load_instant_model", lambda: model)
+
+    result = predict_instant(
+        humidity=40.0,
+        light=300.0,
+        temperature=22.0,
+        noise=29.0,
+        co2=600.0,
+    )
+
+    assert result == 4
+    assert list(scaler.received.columns) == INSTANT_FEATURE_COLUMNS
+    assert scaler.received.iloc[0].to_dict() == {
+        "humidity": 40.0,
+        "light": 300.0,
+        "temperature": 22.0,
+        "noise": 29.0,
+        "co2": 600.0,
+    }
+    assert model.received == [[-1.0, -2.0, -3.0, -4.0, -5.0]]
 
 
 def test_load_dataset_raises_when_required_columns_are_missing(tmp_path):
