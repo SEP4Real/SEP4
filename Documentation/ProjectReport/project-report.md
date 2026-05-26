@@ -969,12 +969,6 @@ partially met, or not met, and support the assessment with evidence.]
 | **DevOps** — containerise all components and enforce CI/CD pipelines | ✔ Met | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort |
 | **Security** — encrypt IoT-to-backend; protect frontend API endpoints | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#23-system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml` [TODO: the referenced 3.1.3 section is still not done, 2.3 needs to be uncommented]|
 
-| Objective     | Status                       | Evidence                    |
-| :------------ | :--------------------------- | :-------------------------- |
-| [Objective 1] | ✔ Met / ⟳ Partial / ✗ Not | [Test results / screenshot] |
-
-### [TODO: Idk if we actually need to include screenshots/test results as evidence but it doesn't seam fisible]
-
 ## 4.3 IoT Performance
 
 Sensor reads proved reliable throughout testing, with no data loss or transmission failures observed. The DHT11 is read immediately before each transmission, so temperature and humidity values are always current. The CO₂ sensor follows a request-then-read pattern across cycles due to its internal measurement delay; if a fresh reading is unavailable, the system falls back to the last cached value and continues transmitting uninterrupted.
