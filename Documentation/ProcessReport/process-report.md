@@ -1,5 +1,5 @@
 ---
-itle: "Process Report – StudyHelper"
+title: "Process Report – StudyHelper"
 date: "May 25, 2026"
 author:
 - Alexandru Savin(354790)
@@ -209,35 +209,13 @@ Were there tools you wished you had used, or tools you regret choosing?]
 
 # 5. Personal Reflections
 
-
-## Piotr Junosz
-
-Fourth semester work was so far the most challanging in terms of communication, expectations, performing and coordination within the big 11 people group. It was my first time trying to develop a solid project in such a big team consisting of 3 subteams, trying to make sense out of the important assigment.
-
-The first significant change I noticed was how the motivation was working. It is well described by Victor Vroom's book "Work and motivation" where he says that effort is tied up to expectations (Vroom, 1964). So if you believe your hard work will result in a finished project, you are highly motivated, but if you look around and see that other people are not working, your expectation of success drops, and your motivation completely collapses. This was seen during this semester project period and led to periods of members not motivating themself as much as in previous semesters. Personally, this made the process of developing the system a lot less exciting.
-
-Another correlated phenomenon that occured is called diffusion of responsibility where a person is less likely to take responsibility for an action when others are present (Darley & Latane, 1968). This has grown even more because the group had 11 people and it is easier to "hide" in this group than group consisting of 4-5 people. The larger a group becomes, the less individual work each member will take. This combined with problem of motivation made me realised few times that I have to work more as individual in order our project to succeed but then I understood that alone I cannot finish it fully which made me loose motivation and not enjoy the process of work on this project.
-
-Having experienced those problems, I think what makes a big difference between a real job team and what i call "company simulation" of our big group is the role of a manager or a leader. Even though we were using Scrum roles such as Product owner and Scrum master, we were missing someone whos only responsibility would be focusing on connecting subteams work and generally leading the whole project process. I believe this could be a solution to at least the problem with motivation.
-
-## Damian Michal Choina
-
-This project was my first time writing embedded systems code in C, and the learning curve at the start was real. Getting used to manual memory management, configuring hardware registers by hand, and thinking about timing and interrupts in a way I never had to before took some adjustment. However, once the initial unfamiliarity wore off the work became genuinely enjoyable. I also had no previous experience setting up CI/CD at this scale. Building a GitHub Actions pipeline that automatically compiles the firmware, runs the full test suite, and uploads coverage reports on every pull request was something entirely new to me, and seeing it catch issues before they reached the hardware made the investment feel immediately worthwhile.
-
-What made the technical challenges manageable was the sub-team dynamic. Because we already knew each other from previous SEP projects, we skipped the awkward early phase of figuring out how to work together and moved straight into productive collaboration. There was an existing level of trust that made it easy to ask for help, split work naturally, and review each other's code without it feeling like criticism. Communication with the ML and Frontend teams was also smooth throughout. We agreed on API contracts early and checked in regularly enough that integration never became a crisis.
-
-Looking back, the things I would do differently are straightforward. I would get a minimal end-to-end path working in the first week rather than building depth in one area before the pieces connect. I would write tests as the code is written rather than treating them as something to catch up on later. And I would set up the CI pipeline at the very start of the project, not once the codebase is already growing. The automation overhead feels expensive early on but pays back quickly once the project reaches any real complexity.
-
 <!-- INDIVIDUAL section — each group member writes their own subsection.
      Focus on YOUR OWN contribution, learning, and growth.
      Key requirements:
        - Refer to valid and reliable sources to support your reflections
        - "Reflect forward": define concrete future actions
        - Address: What did I learn? How did I learn it? What will I do differently?
-     This section demonstrates your ability to identify and organise your own learning. -
-
-
-
+     This section demonstrates your ability to identify and organise your own learning.
 
 ## 5.1 [Your Name]
 
@@ -264,6 +242,59 @@ How did you respond to these challenges? What does this tell you about how you w
 Identify 2–3 concrete actions. Reference learning theory or professional frameworks
 if relevant (e.g. Kolb's learning cycle, growth mindset research).]
 
+-->
+
+## Piotr Junosz
+
+Fourth semester work was so far the most challanging in terms of communication, expectations, performing and coordination within the big 11 people group. It was my first time trying to develop a solid project in such a big team consisting of 3 subteams, trying to make sense out of the important assigment.
+
+The first significant change I noticed was how the motivation was working. It is well described by Victor Vroom's book "Work and motivation" where he says that effort is tied up to expectations (Vroom, 1964). So if you believe your hard work will result in a finished project, you are highly motivated, but if you look around and see that other people are not working, your expectation of success drops, and your motivation completely collapses. This was seen during this semester project period and led to periods of members not motivating themself as much as in previous semesters. Personally, this made the process of developing the system a lot less exciting.
+
+Another correlated phenomenon that occured is called diffusion of responsibility where a person is less likely to take responsibility for an action when others are present (Darley & Latane, 1968). This has grown even more because the group had 11 people and it is easier to "hide" in this group than group consisting of 4-5 people. The larger a group becomes, the less individual work each member will take. This combined with problem of motivation made me realised few times that I have to work more as individual in order our project to succeed but then I understood that alone I cannot finish it fully which made me loose motivation and not enjoy the process of work on this project.
+
+Having experienced those problems, I think what makes a big difference between a real job team and what i call "company simulation" of our big group is the role of a manager or a leader. Even though we were using Scrum roles such as Product owner and Scrum master, we were missing someone whos only responsibility would be focusing on connecting subteams work and generally leading the whole project process. I believe this could be a solution to at least the problem with motivation.
+
+## Damian Michal Choina
+
+This project was my first time writing embedded systems code in C, and the learning curve at the start was real. Getting used to manual memory management, configuring hardware registers by hand, and thinking about timing and interrupts in a way I never had to before took some adjustment. However, once the initial unfamiliarity wore off the work became genuinely enjoyable. I also had no previous experience setting up CI/CD at this scale. Building a GitHub Actions pipeline that automatically compiles the firmware, runs the full test suite, and uploads coverage reports on every pull request was something entirely new to me, and seeing it catch issues before they reached the hardware made the investment feel immediately worthwhile.
+
+What made the technical challenges manageable was the sub-team dynamic. Because we already knew each other from previous SEP projects, we skipped the awkward early phase of figuring out how to work together and moved straight into productive collaboration. There was an existing level of trust that made it easy to ask for help, split work naturally, and review each other's code without it feeling like criticism. Communication with the ML and Frontend teams was also smooth throughout. We agreed on API contracts early and checked in regularly enough that integration never became a crisis.
+
+Looking back, the things I would do differently are straightforward. I would get a minimal end-to-end path working in the first week rather than building depth in one area before the pieces connect. I would write tests as the code is written rather than treating them as something to catch up on later. And I would set up the CI pipeline at the very start of the project, not once the codebase is already growing. The automation overhead feels expensive early on but pays back quickly once the project reaches any real complexity.
+
+## Eduard Fekete
+
+### Learning Outcomes
+
+[What new knowledge or skills did you gain during this project?
+Were the learning goals from the course description met?
+Be specific — "I learned X by doing Y, which resulted in Z."]
+
+This take may sound paradoxical but I believe now in some power of pointless meetings. I believed that if there is no agenda, then there is no reason to meet. I can see that both supervisor meetings with merely explaining what we have done would be great early on and also some team meetings when we would just talk about what we have done, alternatively with some team-building aspect could have had a large impact.
+
+I also learned that information should be structured in a more hierarchical way. Strongest project-shaping decisions should always be visible in a simple format, more details can be linked to that and so on... I often referenced details and technicalities by saying "there is a file in the repo" or "you can see it on Figma", which in my head made sense, as I could fully orient in these environments but I could see towards the end that a large failure on my side as a Product Owner was that many people did not have a clear idea of what was where. 
+
+I also learned that there is a whole parallel universe going on besides school and work. It would be a nice utilitarianistic utopia to just let everyone deal with their own lives but it literally would improve collaboration to know what's going on with people besides the project. Sometimes I just feel like an hour of talking and 2 hours of work could have been more efficient than even 4 hours of working.
+
+### Contribution and Role
+
+[Honestly assess your own contribution to the group. Were you satisfied with
+your level of involvement? Were there areas where you could have contributed more?
+Were there areas where you exceeded your own expectations?]
+
+I was the Product Owner of the project, which meant that I was responsible for defining the product vision, managing the backlog, and ensuring that the team was aligned with our goals. I took this role seriously and tried to be as proactive as possible in communicating with the team and the supervisors. I tried to develop and communicate a strong product vision since the beginning, maintaining many of the diagrams and overall documentation. On top of that, I often ended up being "the person" for people who needed to quickly check on various decisions about to be made in the project, meaning I often found a lot of work even besides my typical work in my scrum team.
+
+### Challenges and Growth
+
+[What was personally most challenging — technically, socially, or organisationally?
+How did you respond to these challenges? What does this tell you about how you work?]
+
+### Reflection Forward
+
+[Based on this project, what will you deliberately do differently in future projects?
+Identify 2–3 concrete actions. Reference learning theory or professional frameworks
+if relevant (e.g. Kolb's learning cycle, growth mindset research).]
+
 # 6. Reflection on Supervision
 
 <!-- Reflect on the supervisor relationship from a student perspective.
@@ -276,11 +307,19 @@ if relevant (e.g. Kolb's learning cycle, growth mindset research).]
 [Describe how supervision was conducted. How often did you meet?
 How did you prepare for meetings? What format did sessions typically take?]
 
+### 6.1.1 MAL
+
+Although we found brief moments of asking for advice in the beginning, around the elaboration phase we missed guidance that we could have sought. Towards the end, we set a goal of meeting every 1-2 weeks to never go off the path too much. Overall, we could have started earlier with asking for supervisor feedback and could have easily had less meetings towards the end if we had the correct trajectory from the start.
+
 ## 6.2 Impact on the Project
 
 [In what specific ways did supervision change or improve the project?
 Were there suggestions or challenges from the supervisor that redirected your work?
 Were there times you disagreed with feedback — how did you handle that?]
+
+### 6.2.1 MAL
+
+The feedback radically changed and shaped the final approaches in the project. Not only did the advice mostly turn out to be true (predicting IoT data may be insufficient, mentioning which features could hinder or improve accuracy, etc.) but it also made us think about the problem in a more structured way. We had to justify our decisions and approaches to the supervisor, which forced us to be more critical of our own work and assumptions. This was a very valuable process that we could have benefited from even more if we had started it earlier.
 
 ## 6.3 Lessons for Future Projects
 
@@ -288,6 +327,8 @@ Were there times you disagreed with feedback — how did you handle that?]
 Examples: prepare more structured agendas, present partial results earlier,
 ask more targeted questions, be more proactive about seeking feedback.
 Be concrete and actionable.]
+
+As often, the main lesson is to be more proactive about seeking feedback and perhaps searching for efficient middle ground in many aspects. We correctly identified meetings of all to be inefficient and pointless, however, we suffered from alignment throughout the whole project. We sought supervision towards the end and missed it a lot in the middle. Overall, having a more structured start could have been of most advantage, it must, however, be noted that the semester project required utilizing the knowledge from other subjects which in the beginning made it difficult to have an accurate overview of the tasks to be accomplished and the approaches to be taken. We also had a lot of "silence and pointing fingers", which is expected of large groups, where everyone expects someone else to bear the responsibility. Better defined roles and responsibilities as well as more structure and alignment could have fixed this problem and made the project more efficient and enjoyable.
 
 # 7. Conclusion
 
@@ -309,13 +350,19 @@ project. These should be grounded in your actual experience — not generic advi
 
 **Do:**
 
-- ...
-- ...
+- seek supervision early and often
+- establish clear communication channels and regular check-ins
+- define roles and responsibilities clearly from the start
+- set up CI/CD pipelines early in the development process
+- use tools to track progress and accountability
 
 **Avoid:**
 
-- ...
-- ...]
+- leaving integration until the end
+- neglecting testing until late in the project
+- allowing motivation to drop without addressing it
+- letting conflict fester without resolution
+- assuming everyone is on the same page without regular alignment checks
 
 # 8. References
 
