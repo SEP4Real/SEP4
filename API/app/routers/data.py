@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from psycopg import AsyncConnection
@@ -54,7 +54,7 @@ async def create_data(body: DataCreate, db: AsyncConnection = Depends(get_db)):
     if session["is_ended"]:
         raise HTTPException(status_code=409, detail="Cannot add data to an ended session")
 
-    sent_at = datetime.now(tz=timezone.utc)
+    sent_at = datetime.now(tz=timezone(timedelta(hours=2)))
     async with db.cursor() as cur:
         await cur.execute(
             """

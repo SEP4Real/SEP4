@@ -107,7 +107,7 @@ void server_send_data(uint8_t temp_int, uint8_t temp_dec, uint8_t hum_int, uint8
             printf("[DATA] Server returned study quality: %d\n", quality_val);
             if (quality_val < 4)
             {
-                printf("[ALERT] Quality is 1 - sounding buzzer...\n");
+                printf("[ALERT] Quality is bad - sounding buzzer...\n");
                 for (int i = 0; i < 120; i++)
                 {
                     wdt_reset();
