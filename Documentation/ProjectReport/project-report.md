@@ -648,11 +648,102 @@ Initially ideal test set would be the one taken from the real usage of the syste
    decision — e.g. a data-fetching hook, a chart component, or an API call. */
 ```
 
+#### Calendar
+
+*Authors: [Marta Zrno]*
+
+The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
+
+![alt text](image-9.png)
+Figure x: FullCalendar in CalendarPage.jsx
+
+The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
+
+![alt text](image-10.png)
+Figure x: useEffect in CalendarPage.jsx
+
+Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes. 
+
+![alt text](image-11.png) 
+Figure x: handleSelect() in CalendarPage.jsx
+
+If the user decides to edit, the handleEventClick() function loads event data into the form.
+
+![alt text](image-12.png) 
+Figure x: handleEventClick() in CalendarPage.jsx
+
+CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
+
+![alt text](image-13.png)
+Figure x: createCalendarEvent() in CalendarService.js
+
+Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
+
+![alt text](image-14.png)
+Figure x: credentials check in CalendarService.js requests
+
+REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries. 
+
+![alt text](image-15.png)
+Figure x: GET endpoint in calendar.py
+
+![alt text](image-16.png)
+Figure x: request model in calendar.py
+ 
+
 ### 3.7.2 API Integration
+
+*Authors: [Marta Zrno]*
 
 [How does the frontend communicate with the backend?
 Describe error handling, loading states, polling vs websocket decisions,
 and how ML predictions are retrieved and displayed.]
+
+The frontend communicates with backend services through REST API requests, which are implemented with Fetch API. Fetch API is a provider of a JS interface used for making HTTP requests. Polling-based communication was selected because the IoT device transmits sensor values at fixed time intervals, which makes two-way communication unnecessary. 
+
+In order to separate API communication from frontend components and pages, a new layer was created for authentication, calendar and profile management, and other system features. This resulted in the code being reusable, modular and easily maintainable. 
+
+Fetch API performs the requests to the backend and is used to load the data in the webpages. Data is exchanged using JSON format, since it is human-readable and is supported by various environments. 
+
+For local and deployed environment, an API configuration was created:
+
+![alt text](image.png)
+Figure x: apiConfig.js
+
+To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
+
+![alt text](image-1.png)
+Figure x: getDashboardData in DashboardService.js
+
+Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
+
+![alt text](image-2.png)
+Figure x: login() in AuthService.js
+
+These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful. 
+
+![alt text](image-3.png)
+Figure x: handleSubmit() in LoginPage.jsx
+
+In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available. 
+
+![alt text](image-4.png)
+Figure x: LoadingSpinner() in LoadinSpinner.jsx
+ 
+![alt text](image-5.png)
+Figure x: EmptyState() in EmptyState.jsx
+
+MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
+
+![alt text](image-6.png)
+Figure x: getPrediction() in malService.js
+
+Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
+
+![alt text](image-7.png)
+![alt text](image-8.png)
+Figure x: visualization of prediction
+
 
 ### 3.7.3 Hosting and Deployment
 
