@@ -800,7 +800,7 @@ In the basic linear regression model the predicted values were all around the mo
 **Random Forest Regressor**
 ![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_updated.png)
 
-Random forest regressor did a little better - it preserved more variance and the predicted values where compressed in the middle most common value but not as much as in the linear regression, due to [continue].
+Random forest regressor did a little better - it preserved more variance and the predicted values where compressed in the middle most common value but not as much as in the linear regression, due to its ensemble nature and ability to model non-linear boundaries. However, it still could not effectively address the lack of precision in the labels - the same environmental conditions often resulted in different reported comfort levels.
 
 **Random Forest Classifier**
 ![RFC Best Model: CV vs Test](../../Documentation/Design/ML/cm_RFC_best.png)
@@ -812,13 +812,13 @@ First classification model experiments were done on Random Forest Classifier and
 ![GBC Best Model: CV vs Test](../../Documentation/Design/ML/cm_GBC_best.png)
 ![GBC Overfit: Train vs Test](../../Documentation/Design/ML/cm_GBC_overfit.png)
 
-[TODO: Sasha]
+The Gradient Boosting Classifier performed slightly better than the Random Forest, reaching 40.7% accuracy. By focusing on the errors of previous iterations, it managed to sharpen the decision boundaries between the middle classes, though the extreme values (1 and 5) remained difficult to predict due to their rarity in the dataset.
 
 **Multi-Layer Perceptron**
 ![MLP Best Model: CV vs Test](../../Documentation/Design/ML/cm_MLP_best.png)
 ![MLP Overfit: Train vs Test](../../Documentation/Design/ML/cm_MLP_overfit.png)
 
-[TODO: Sasha]
+The Multi-Layer Perceptron was our best standalone classifier at 46.1%. The neural network's ability to create complex internal representations allowed it to find patterns that the tree-based models missed. However, as seen in the overfitting plots, it was very prone to memorizing the training data, requiring heavy regularization to stay useful on the test set.
 
 **Two-Stage Pipeline**
 ![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_best.png)
@@ -992,8 +992,9 @@ All buffers are statically allocated at compile time, avoiding heap fragmentatio
 
 ## 4.4 ML Performance
 
-[Summarise the final model performance in context. Are predictions accurate enough
-to be useful for the application? How does the model compare to a naive baseline?]
+Our instant ML models ended up being very not precise. If one of the models managed to achieve accuracy around 50% it was highly overfitting and if we wanted to prevent it than accuracy was dropping down to around 37%. But most importantly that percentage did not mean that the models are correctly learning and accurately predicting on the level of 37% - it was just because the results were often squizzed into same most common class in the dataset. Basically, it was found that environmental sensor values and human subjective raiting of the room are not enough data to use as features to make usable models. It was lacking for example a feature that would suggest what type of person is assesing the raiting, because right now two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+
+All in all compared to a naive baseline, the team built something that actually learns, even if the subjective nature of comfort makes it impossible to get a perfect score.
 
 ## 4.5 Frontend Quality
 
@@ -1012,6 +1013,11 @@ Deployment to Coolify triggers automatically on every push to `main`, with a con
 What are the system's remaining weaknesses? What assumptions constrain the findings?
 What would need to change for this to be a production-grade system?
 Address limitations per component where the issues differ significantly.]
+
+**MAL Evaluation**
+The biggest hurdle we faced in the ML part was what we call the "Subjectivity Paradox" already explained in paragraphs above. Because our training data came from different sources and different people, the model often got confused when two identical sensor readings had two different comfort ratings attached to them. This essentially caps the maximum possible accuracy for any generalized model.
+
+Also, another thing is that our team did not get enough data from our sensors and real people raitings so the team relied on datasets found on the internet such as the KETI and HomeCoach which means that the models were not trained on "our" sensor data. While we attempted to unify the data using MICE imputation and clustering, it remained difficult to account for the 'data drift' that occurs when integrating external, pre-existing datasets with measurements captured directly from our own IoT devices. If we were to take this to a production level, we would need firstly to gather more data than just environemntal sensors data and also make the system learn the specific preferences of the user sitting in front of it, rather than trying to guess based on a general average. Without this personalization, the suitability rating remains a helpful hint rather than a definitive truth.
 
 # 5. Conclusions
 
