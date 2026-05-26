@@ -318,7 +318,7 @@ void test_bad_study_conditions_sound_buzzer(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"study_quality\": 1}";
+    inject_post_response = "{\"rating\": 1}";
     server_send_data(22, 5, 60, 3, 856, 1200);
     TEST_ASSERT_NOT_EQUAL(0, buzzer_beep_fake.call_count);
 }
@@ -364,10 +364,10 @@ void test_onetime_body_contains_sensor_values(void)
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "1200"));
 }
 
-void test_onetime_quality_1_triggers_long_beep(void)
+void test_onetime_quality_3_triggers_long_beep(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"rating\": 1}";
+    inject_post_response = "{\"study_quality\": 3}";
     server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
     // Source code beeps 120 times when quality == 1
     TEST_ASSERT_EQUAL(120, buzzer_beep_fake.call_count);
@@ -376,7 +376,7 @@ void test_onetime_quality_1_triggers_long_beep(void)
 void test_onetime_quality_good_triggers_short_beep(void)
 {
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"rating\": 4}";
+    inject_post_response = "{\"study_quality\": 4}";
     server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
     TEST_ASSERT_EQUAL(40, buzzer_beep_fake.call_count);
 }
@@ -430,7 +430,7 @@ int main(void)
     RUN_TEST(test_onetime_works_without_active_session);
     RUN_TEST(test_onetime_body_contains_all_fields);
     RUN_TEST(test_onetime_body_contains_sensor_values);
-    RUN_TEST(test_onetime_quality_1_triggers_long_beep);
+    RUN_TEST(test_onetime_quality_3_triggers_long_beep);
     RUN_TEST(test_onetime_quality_good_triggers_short_beep);
     RUN_TEST(test_onetime_no_quality_field_no_beep);
 
