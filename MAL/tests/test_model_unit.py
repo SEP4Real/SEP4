@@ -1,5 +1,5 @@
 """
-Unit tests for ml_pipeline/model.py.
+Unit tests for ml_pipeline/model.py and ml_pipeline/instant_model.py.
 
 Tests follow the AAA pattern:
   Arrange - set up inputs and dependencies
@@ -24,6 +24,7 @@ from ml_pipeline.model import (
     split_features_target,
     train_model,
 )
+from ml_pipeline.instant_model import load_instant_model, predict_instant
 
 _MOCK_DF = pd.DataFrame(
     {
@@ -120,12 +121,41 @@ def test_load_model_raises_when_file_is_missing(tmp_path):
         model_module.load_model.cache_clear()
 
 
+def test_load_instant_model_raises_when_file_is_missing(tmp_path):
+    import ml_pipeline.instant_model as instant_model_module
+
+    original_path = instant_model_module.INSTANT_MODEL_PATH
+    instant_model_module.INSTANT_MODEL_PATH = tmp_path / "nonexistent_instant.pkl"
+    instant_model_module.load_instant_model.cache_clear()
+    try:
+        with pytest.raises(FileNotFoundError):
+            instant_model_module.load_instant_model()
+    finally:
+        instant_model_module.INSTANT_MODEL_PATH = original_path
+        instant_model_module.load_instant_model.cache_clear()
+
+
 def test_predict_with_valid_input_returns_integer_in_rating_range():
     # Arrange - the committed rf_model.pkl is loaded automatically
     load_model.cache_clear()
     # Act
     result = predict(22.0, 25.0, 20.0, 22.5)
     # Assert
+    assert isinstance(result, int)
+    assert 1 <= result <= 5
+
+
+def test_predict_instant_returns_integer_in_rating_range():
+    load_instant_model.cache_clear()
+
+    result = predict_instant(
+        humidity=40.0,
+        light=300.0,
+        temperature=22.0,
+        noise=29.0,
+        co2=600.0,
+    )
+
     assert isinstance(result, int)
     assert 1 <= result <= 5
 

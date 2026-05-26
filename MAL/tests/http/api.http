@@ -52,3 +52,16 @@ Accept: application/json
   "co2Level": 10000,
   "lightLevel": 100000
 }
+
+###
+POST {{base}}/instant-predict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "temperature": 12,
+  "humidity": 12,
+  "co2Level": 12,
+  "lightLevel": 12,
+  "noise": 29
+}
