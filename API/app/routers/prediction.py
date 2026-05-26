@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from psycopg import AsyncConnection
 
 from app.database import get_db
@@ -144,19 +144,25 @@ def _linearize_session(
 
 
 @router.post("", response_model=DataPointResponse, status_code=201)
-async def predict_study_quality(db: AsyncConnection = Depends(get_db)):
-
+async def predict_study_quality(
+    session_id: int = Query(..., alias="sessionId", ge=1),
+    db: AsyncConnection = Depends(get_db),
+):
     has_noise = await _data_has_noise_column(db)
-    session_id = await _get_current_session_id(db)
     rows = await _get_session_rows(db, session_id, has_noise)
     payload = _linearize_session(rows, has_noise)
 
-    required = ["currentTemperature", "maxTemp", "minTemp", "meanTemp"]
+    required = [
+        "currentTemperature", "maxTemp", "minTemp", "meanTemp",
+        "currentHumidity", "maxHumidity", "minHumidity", "meanHumidity",
+        "currentCO2", "maxCO2", "minCO2", "meanCO2",
+        "currentLight", "maxLight", "minLight", "meanLight"
+    ]
     missing = [name for name in required if payload.get(name) is None]
     if missing:
         raise HTTPException(
             status_code=422,
-            detail=f"Missing required temperature data: {', '.join(missing)}",
+            detail=f"Missing required sensor data: {', '.join(missing)}",
         )
 
     mal_base = os.getenv("MAL_API_HOST_PORT")

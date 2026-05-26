@@ -28,6 +28,26 @@ _VALID_PAYLOAD = {
     "maxTemp": 25.0,
     "minTemp": 20.0,
     "meanTemp": 22.5,
+    "currentHumidity": 50.0,
+    "maxHumidity": 55.0,
+    "minHumidity": 45.0,
+    "meanHumidity": 50.0,
+    "currentCO2": 850.0,
+    "maxCO2": 900.0,
+    "minCO2": 800.0,
+    "meanCO2": 850.0,
+    "currentLight": 320.0,
+    "maxLight": 350.0,
+    "minLight": 300.0,
+    "meanLight": 320.0,
+}
+
+_INSTANT_PAYLOAD = {
+    "temperature": 22.0,
+    "humidity": 45.0,
+    "co2Level": 650.0,
+    "lightLevel": 300.0,
+    "noise": 29.0,
 }
 
 
@@ -41,13 +61,13 @@ def test_root_endpoint_with_get_returns_hello_world(client):
 
 
 def test_model_info_endpoint_returns_200_with_classifier_name(client):
-    # Arrange - rf_model.pkl is committed to the repo and available
+    # Arrange - nn_model.pkl is committed to the repo and available
     # Act
     response = client.get("/model-info")
     # Assert
     assert response.status_code == 200
     body = response.json()
-    assert body["model"] == "RandomForestClassifier"
+    assert body["model"] == "MLPClassifier"
     assert "features" in body
 
 
@@ -119,7 +139,7 @@ def test_predict_with_current_outside_window_returns_422(client):
 
 def test_predict_accepts_negative_temperatures(client):
     # Arrange
-    payload = {
+    payload = _VALID_PAYLOAD | {
         "currentTemperature": -2.0,
         "maxTemp": 1.0,
         "minTemp": -5.0,
@@ -130,6 +150,23 @@ def test_predict_accepts_negative_temperatures(client):
     # Assert
     assert response.status_code == 200
     assert 1 <= response.json()["rating"] <= 5
+
+
+def test_instant_predict_with_valid_payload_returns_rating_in_range(client):
+    response = client.post("/instant-predict", json=_INSTANT_PAYLOAD)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body["rating"], int)
+    assert 1 <= body["rating"] <= 5
+
+
+def test_instant_predict_with_missing_field_returns_422(client):
+    payload = {k: v for k, v in _INSTANT_PAYLOAD.items() if k != "temperature"}
+
+    response = client.post("/instant-predict", json=payload)
+
+    assert response.status_code == 422
 
 
 # ---------------------------------------------------------------------------

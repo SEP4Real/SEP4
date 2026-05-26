@@ -68,7 +68,7 @@ paragraph that lets a reader decide whether to read further.]
 
 [TODO: each team check and adjust sentences about their parts of the system so its 100% correct]
 
-StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning model [TODO: update after making the final model] - a Random Forest classifier trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
+StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning models - Random Forest Classifier and Neural Network trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
 
 # 1. Introduction
 
@@ -190,7 +190,7 @@ Reference the domain model diagram:]
 [Walk through the most important entities and associations.
 Justify the key modelling decisions.]
 
-The domain model captures the core concepts of the StudyHelper system and the relationships between them. The central entity is the **StudyEnvironment**, which represents the physical room or space being monitored. A StudyEnvironment has measurable attributes - temperature, humidity, CO₂ level, light level, and noise level [TODO: remove noise level or not depending on the choice] - as well as derived attributes: a current suitability level and a predicted suitability level .
+The domain model captures the core concepts of the StudyHelper system and the relationships between them. The central entity is the **StudyEnvironment**, which represents the physical room or space being monitored. A StudyEnvironment has measurable attributes - temperature, humidity, CO₂ level, light level, and noise level - as well as derived attributes: a current suitability level and a predicted suitability level .
 
 Two actors interact with the StudyEnvironment: the **Student**, who monitors conditions to decide whether to begin or continue a study session, and the **Teacher**, who assesses whether conditions are suitable for teaching. Both actors share a common monitoring relationship with the StudyEnvironment; however, only the Student can submit a session rating, which feeds back into the ML training pipeline.
 
@@ -311,7 +311,7 @@ Data flows through the system as follows: the IoT device pushes a sensor payload
 
 The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted PaaS running on a public VPS. Coolify provides container lifecycle management and a built-in reverse proxy (Caddy/Traefik) that terminates TLS and routes public traffic to the frontend and Core API services. Internal traffic between services stays on the Docker network.
 
-**Containerisation:** All runtime services are defined in `docker-compose.yml` and run as Docker containers: `postgres`, `api`, `mal-api`, and `frontend`. The `api` service is built from `API/Dockerfile` (Python 3.12) and serves the Core API with Uvicorn on port 8080. The `mal-api` service is built from `MAL/Dockerfile` and serves the ML inference API on port 8000, including the committed Random Forest[TODO: update after final model] model artifact (`models/rf_model.pkl`). The `frontend` service is built from `Frontend/Dockerfile`, compiles the Vite/React application, and serves static assets with Nginx on port 80. The `postgres` container uses the official `postgres:16-alpine` image with a named volume (`postgres_data`) for persistence.
+**Containerisation:** All runtime services are defined in `docker-compose.yml` and run as Docker containers: `postgres`, `api`, `mal-api`, and `frontend`. The `api` service is built from `API/Dockerfile` (Python 3.12) and serves the Core API with Uvicorn on port 8080. The `mal-api` service is built from `MAL/Dockerfile` and serves the ML inference API on port 8000, including the committed models artifacts. The `frontend` service is built from `Frontend/Dockerfile`, compiles the Vite/React application, and serves static assets with Nginx on port 80. The `postgres` container uses the official `postgres:16-alpine` image with a named volume (`postgres_data`) for persistence.
 
 **Database:** A single PostgreSQL 16 instance is the shared persistence layer. The schema is initialized via `initdb/01_schema.sql` mounted as an entrypoint init script. The Core API owns write access for devices, sessions, and sensor data, while the MAL API reads data for export and model support.
 
@@ -393,24 +393,23 @@ The IoT design therefore combines sensors, user input, local status feedback, an
   <img src="image/iot-design/iot-hardware-block-diagram.svg" alt="IoT Hardware Block Diagram" width="50%">
 </p>
 
-
 *Figure 3.x: Hardware block diagram of the IoT device.*
 
 The hardware architecture is centred around an ATmega2560-based microcontroller board. The ATmega2560 was chosen because it provides sufficient GPIO pins, ADC channels, timers, and UART interfaces for a multi-sensor embedded prototype, while remaining compatible with the Arduino and PlatformIO development environment used in the project.
 
 The device uses the following main hardware components:
 
-| Component | Interface | Purpose |
-| :--- | :--- | :--- |
-| ATmega2560 microcontroller | GPIO, ADC, UART, timers | Main controller for sensors, buttons, display, buzzer, and communication |
-| DHT11 temperature and humidity sensor | Single-wire digital GPIO | Measures air temperature and relative humidity |
-| MH-Z19B CO2 sensor | UART3 at 9600 baud | Measures CO2 concentration in ppm |
-| KY-018 light sensor | ADC channel PK7 | Measures ambient light level |
-| Wi-Fi module | UART / AT commands | Provides TCP/IP communication with the backend API |
-| Button 1 | GPIO input with pull-up | Starts and stops a study session |
-| Button 2 | GPIO input with pull-up | Triggers an instant measurement mode |
-| Four-digit display | Shift-register style GPIO output, refreshed by timer interrupt | Shows local device state |
-| Buzzer | GPIO output | Alerts the user when predicted study quality is poor |
+| Component                             | Interface                                                      | Purpose                                                                  |
+| :------------------------------------ | :------------------------------------------------------------- | :----------------------------------------------------------------------- |
+| ATmega2560 microcontroller            | GPIO, ADC, UART, timers                                        | Main controller for sensors, buttons, display, buzzer, and communication |
+| DHT11 temperature and humidity sensor | Single-wire digital GPIO                                       | Measures air temperature and relative humidity                           |
+| MH-Z19B CO2 sensor                    | UART3 at 9600 baud                                             | Measures CO2 concentration in ppm                                        |
+| KY-018 light sensor                   | ADC channel PK7                                                | Measures ambient light level                                             |
+| Wi-Fi module                          | UART / AT commands                                             | Provides TCP/IP communication with the backend API                       |
+| Button 1                              | GPIO input with pull-up                                        | Starts and stops a study session                                         |
+| Button 2                              | GPIO input with pull-up                                        | Triggers an instant measurement mode                                     |
+| Four-digit display                    | Shift-register style GPIO output, refreshed by timer interrupt | Shows local device state                                                 |
+| Buzzer                                | GPIO output                                                    | Alerts the user when predicted study quality is poor                     |
 
 The selected sensors match the environmental factors used by the StudyHelper system. The DHT11 provides temperature and humidity, the MH-Z19B provides CO2 concentration, and the KY-018 light sensor provides a simple analogue measure of room brightness. The light driver inverts the raw ADC value so that higher values represent brighter conditions, making the reading easier to interpret in the rest of the system.
 
@@ -426,42 +425,40 @@ Sound measurement was considered during the project, but it is not part of the f
   <img src="image/iot-design/iot-firmware-module-diagram.svg" alt="IoT Firmware Module Diagram" width="80%">
 </p>
 
-
 *Figure 3.x: Firmware module structure for the IoT component.*
 
 The embedded software is implemented in C for the ATmega2560 and follows a modular architecture. The `main.c` file coordinates the application flow, while individual modules handle backend communication, HTTP request construction, display status patterns, sensors, buttons, timers, and local alerts.
 
 The most important firmware modules are:
 
-| Module | Responsibility |
-| :--- | :--- |
-| `main.c` | Coordinates boot, Wi-Fi setup, button handling, timers, session state, and sensor reading |
+| Module                              | Responsibility                                                                                                                                                          |
+| :---------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main.c`                          | Coordinates boot, Wi-Fi setup, button handling, timers, session state, and sensor reading                                                                               |
 | `server_api.c` / `server_api.h` | Implements backend-specific actions such as device registration, session creation, keepalive pulses, data upload, instant prediction requests, and local alert handling |
-| `wifi_http.c` / `wifi_http.h` | Resolves the backend host, creates TCP connections, builds HTTP requests, transmits payloads, and reads responses |
-| `dht11.c` | Reads temperature and humidity from the DHT11 sensor |
-| `co2.c` | Handles UART communication and checksum validation for the CO2 sensor |
-| `light.c` | Wraps ADC access for the light sensor |
-| `button.c` | Reads physical button states with pull-up inputs |
-| `timer.c` | Provides software timers used for periodic session actions |
-| `display_status.c` | Maps firmware states to four-digit display patterns |
-| `buzzer.c` | Produces local audio alerts |
+| `wifi_http.c` / `wifi_http.h`   | Resolves the backend host, creates TCP connections, builds HTTP requests, transmits payloads, and reads responses                                                       |
+| `dht11.c`                         | Reads temperature and humidity from the DHT11 sensor                                                                                                                    |
+| `co2.c`                           | Handles UART communication and checksum validation for the CO2 sensor                                                                                                   |
+| `light.c`                         | Wraps ADC access for the light sensor                                                                                                                                   |
+| `button.c`                        | Reads physical button states with pull-up inputs                                                                                                                        |
+| `timer.c`                         | Provides software timers used for periodic session actions                                                                                                              |
+| `display_status.c`                | Maps firmware states to four-digit display patterns                                                                                                                     |
+| `buzzer.c`                        | Produces local audio alerts                                                                                                                                             |
 
 The firmware uses a cooperative superloop design. After startup, the program continuously checks button states and timer flags. Time-critical and periodic behaviour is represented by flags such as `pulse_due` and `data_due`, which are set by timer callbacks and then handled in the main loop. This keeps the main control flow explicit and avoids introducing a full real-time operating system, which would be unnecessary for the scope of the device.
 
 Three software timers define the main runtime schedule:
 
-| Timer | Interval | Purpose |
-| :--- | :--- | :--- |
-| Pulse timer | 5 seconds | Sends a keepalive pulse while a session is active |
-| Data timer | 30 seconds | Sends environmental measurements while a session is active |
-| Button cooldown timer | 10 seconds | Prevents accidental repeated start/stop actions |
+| Timer                 | Interval   | Purpose                                                    |
+| :-------------------- | :--------- | :--------------------------------------------------------- |
+| Pulse timer           | 5 seconds  | Sends a keepalive pulse while a session is active          |
+| Data timer            | 30 seconds | Sends environmental measurements while a session is active |
+| Button cooldown timer | 10 seconds | Prevents accidental repeated start/stop actions            |
 
 The device communicates with the backend using HTTP over TCP through the Wi-Fi module. HTTP was chosen because the rest of the StudyHelper system exposes REST-style endpoints and JSON payloads. This keeps the interface between the IoT firmware and backend simple, transparent, and easy to test. Each request opens a TCP connection, sends an HTTP request, waits for a response for up to three seconds, and then closes the connection.
 
 <p align="center">
   <img src="image/iot-design/iot-session-flow-diagram.svg" alt="IoT Session Flow Diagram" width="30%">
 </p>
-
 
 *Figure 3.x: Session flow between the user, IoT device, and backend API.*
 
@@ -474,7 +471,6 @@ The firmware stores request and response data in statically allocated buffers. T
 If the backend reports that a session is no longer alive, the firmware clears the local session ID and attempts to start a new session. If a sensor data response contains a study quality rating of `1`, the buzzer is activated to warn the user that the current conditions are poor. This creates a local feedback loop where the IoT device does not only collect data, but also reacts to the study suitability prediction returned by the system.
 
 The firmware also includes an instant measurement mode controlled by Button 2. This mode allows the device to take a one-time measurement and request a prediction without entering the normal periodic session loop. It was designed as a quick check of the current environment and reuses the same sensor-reading and backend-communication modules as the session workflow.
-
 
 ## 3.3 Machine Learning — Data Exploration
 
@@ -573,7 +569,7 @@ The firmware uses a layered driver structure: each peripheral is encapsulated be
 
 Four sensors and three actuator-class peripherals are integrated. The **DHT11** temperature and humidity sensor exposes a blocking call `dht11_get()` that returns four values — humidity integer and decimal parts, temperature integer and decimal parts — along with a status code, so the application can skip transmission on a failed read. The **MH-Z19B** CO₂ sensor communicates over UART and is driven by two separate calls: `co2_request_measurement()` triggers a new reading, and `co2_read_ppm()` retrieves the latest verified value once available. Because the sensor needs time to respond between request and reply, the two calls are scheduled on alternating data cycles in the main loop - if a fresh reading is not yet available, the last cached value is reused so the transmission cadence is never blocked by sensor latency. The **KY-018** light sensor is read via `light_measure_raw()`, which returns a 10-bit value already scaled so that low means dark and high means bright. Moreover, no further calibration is applied in firmware, since interpretation is left to the server.
 
-The remaining peripherals are simpler. **Two pushbuttons** are polled via `button_get()` on every iteration of the main loop and debounced via a 50 ms re-read pattern rather than dedicated interrupts. A **four-digit 7-segment display** is driven by the low-level `display_setValues()` and `display_setDecimals()` functions; on top of these, the `display_status` module — written as part of this project — exposes four named patterns (`boot`, `idle`, `session`, `instant`) so the application does not have to know about individual digit codes. A **buzzer** is exposed as a single `buzzer_beep()` call producing a short tone; longer alerts are produced by repeating the call, used to signal unfavourable study conditions returned by the server or ML service. Finally, a **software-timer abstraction** in `timer.h` provides callback-based timers, allowing the application to register callbacks for pulse, data, and button-cooldown events without managing hardware timers directly.
+The remaining peripherals are simpler. **Two pushbuttons** are polled via `button_get()` on every iteration of the main loop and debounced via a 50 ms re-read pattern rather than dedicated interrupts. A **four-digit 7-segment display** is driven by the low-level `display_setValues()` and `display_setDecimals()` functions; on top of these, the `display_status` module — written as part of this project — exposes four named patterns (`boot`, `idle`, `session`, `instant`) so the application does not have to know about individual digit codes. A **buzzer** is exposed as a single `buzzer_beep()` call producing a short tone; longer alerts are produced by repeating the call, used to signal unfavourable study conditions — the buzzer sounds when the server returns a `study_quality` value below 4. Finally, a **software-timer abstraction** in `timer.h` provides callback-based timers, allowing the application to register callbacks for pulse, data, and button-cooldown events without managing hardware timers directly.
 
 The CO₂ scheduling pattern in the main loop illustrates how the application accommodates sensor-side latency without blocking. On every data cycle, the most recent reading is consumed (if one has become available), the cached value is updated, and a new measurement is immediately requested for the next cycle:
 
@@ -603,10 +599,10 @@ snprintf(req, sizeof(req),
          method, endpoint, SERVER_HOST, SERVER_PORT,
          (uint16_t)strlen(body), body);
 ```
+
 Failures are handled defensively at every step. A failed TCP connect or transmit closes the connection, waits 500 ms with watchdog resets, and returns the error to the caller. After a successful send, the loop busy-waits up to 3 000 ms for the server's response — again with watchdog resets — and proceeds even if no response arrives, so the device never deadlocks on a silent server. All buffers are statically allocated; nothing on the network path uses the heap.
 
-At the protocol layer, `server_api.c` implements three workflows: one-time device registration (`POST /device`), session lifecycle (`POST /session`, `PATCH /session/{id}/pulse`), and data reporting (`POST /data`, `POST /predict`). Session start is wrapped in a retry loop of up to five attempts with a 2-second back-off and if the server cannot be reached or its response cannot be parsed within that budget, the watchdog is deliberately enabled with a short timeout to force a clean reboot. This recovery pattern — retry, then reboot — was chosen because a partially-initialised device with no session ID has no meaningful path forward. Pulse responses are also inspected: if the server replies with `"alive":false`, the device assumes the session was lost and transparently restarts it without user intervention.
-
+At the protocol layer, `server_api.c` implements three workflows: one-time device registration (`POST /device`), session lifecycle (`POST /session`, `PATCH /session/{id}/pulse`), and data reporting (`POST /data`, `POST /instant-measurement`). Session start is wrapped in a retry loop of up to five attempts with a 2-second back-off and if the server cannot be reached or its response cannot be parsed within that budget, the watchdog is deliberately enabled with a short timeout to force a clean reboot. This recovery pattern — retry, then reboot — was chosen because a partially-initialised device with no session ID has no meaningful path forward. Pulse responses are also inspected: if the server replies with `"alive":false`, the device assumes the session was lost and transparently restarts it without user intervention.
 
 ### 3.5.3 Main Application Logic
 
@@ -743,20 +739,127 @@ export async function ensureDeviceExists(deviceId) {
 ```
 This function is used when a user connects a device from the profile page. First, the frontend checks if the device already exists in the backend. If it exists, the device can be connected. If the backend returns that the device was not found, the frontend tries to register it. Other backend errors are not hidden, because they may mean the API is unavailable or the request failed for another reason.
 
-### 3.7.1.3 Calendar
+#### Calendar
 
-### 3.7.1.4 Theme and Language Support
+*Authors: [Marta Zrno]*
 
+The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
+
+![alt text](image/fe-implementation/image-9.png)
+Figure x: FullCalendar in CalendarPage.jsx
+
+The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
+
+![alt text](image/fe-implementation/image-10.png)
+Figure x: useEffect in CalendarPage.jsx
+
+Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
+
+![alt text](image/fe-implementation/image-11.png) 
+Figure x: handleSelect() in CalendarPage.jsx
+
+If the user decides to edit, the handleEventClick() function loads event data into the form.
+
+![alt text](image/fe-implementation/image-12.png) 
+Figure x: handleEventClick() in CalendarPage.jsx
+
+CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
+
+![alt text](image/fe-implementation/image-13.png)
+Figure x: createCalendarEvent() in CalendarService.js
+
+Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
+
+![alt text](image/fe-implementation/image-14.png)
+Figure x: credentials check in CalendarService.js requests
+
+REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
+
+![alt text](image/fe-implementation/image-15.png)
+Figure x: GET endpoint in calendar.py
+
+![alt text](image/fe-implementation/image-16.png)
+Figure x: request model in calendar.py
 
 ### 3.7.2 API Integration
 
-[How does the frontend communicate with the backend? Describe error handling, loading states, polling vs websocket decisions, and how ML predictions are retrieved and displayed.]
+*Authors: [Marta Zrno]*
+
+[How does the frontend communicate with the backend?
+Describe error handling, loading states, polling vs websocket decisions,
+and how ML predictions are retrieved and displayed.]
+
+The frontend communicates with backend services through REST API requests, which are implemented with Fetch API. Fetch API is a provider of a JS interface used for making HTTP requests. Polling-based communication was selected because the IoT device transmits sensor values at fixed time intervals, which makes two-way communication unnecessary.
+
+In order to separate API communication from frontend components and pages, a new layer was created for authentication, calendar and profile management, and other system features. This resulted in the code being reusable, modular and easily maintainable.
+
+Fetch API performs the requests to the backend and is used to load the data in the webpages. Data is exchanged using JSON format, since it is human-readable and is supported by various environments.
+
+For local and deployed environment, an API configuration was created:
+
+![alt text](image/fe-implementation/image.png)
+Figure x: apiConfig.js
+
+To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
+
+![alt text](image/fe-implementation/image-1.png)
+Figure x: getDashboardData in DashboardService.js
+
+Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
+
+![alt text](image/fe-implementation/image-2.png)
+Figure x: login() in AuthService.js
+
+These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
+
+![alt text](image/fe-implementation/image-3.png)
+Figure x: handleSubmit() in LoginPage.jsx
+
+In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
+
+![alt text](image/fe-implementation/image-4.png)
+Figure x: LoadingSpinner() in LoadinSpinner.jsx
+ 
+![alt text](image/fe-implementation/image-5.png)
+Figure x: EmptyState() in EmptyState.jsx
+
+MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
+
+![alt text](image/fe-implementation/image-6.png)
+Figure x: getPrediction() in malService.js
+
+Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
+
+![alt text](image/fe-implementation/image-7.png)
+![alt text](image/fe-implementation/image-8.png)
+Figure x: visualization of prediction
 
 ### 3.7.3 Hosting and Deployment
 
 <!-- Required: must be hosted and accessible online. -->
 
 [Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
+
+
+
+The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers. It is build using Vite- a fast frontend building tool which optimizes React's code.
+
+The Docker build process was divided into 3 stages to separate the build from the runtime environment. In the first stage, Node.js Alpine container installed all dependencies and the product was generated using "npm run build" command. In the second stage, the generated files were copied into an Nginx container.
+
+![alt text](image/fe-implementation/image-17.png)
+Figure x: Dockerfile
+
+In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured.
+
+![alt text](image/fe-implementation/image-18.png)
+Figure x:  .env
+
+Deployment was automated through GitHub Actions workflows. When new changes were pushed to the main branch, the frontend container image is automatically rebuilt and the new frontend is deployed through Coolify.
+
+![alt text](image/fe-implementation/image-19.png)
+Figure x: deployment workflow
+
+The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
 
 
 ## 3.8 IoT CI/CD
@@ -822,7 +925,7 @@ Overall, the pipeline added clear value to the development workflow by catching 
 
 ## 3.9 Machine Learning — Models
 
-*Authors: [Name, Name]*
+*Authors: [Piotr Junosz, Name]*
 
 In our project, we developed two distinct kinds of models to tackle different aspects of the Study Suitability problem:
 
@@ -831,7 +934,7 @@ In our project, we developed two distinct kinds of models to tackle different as
 
 ### 3.9.1 Model Selection
 
-For the instant measurement predictions, we evaluated both regression and classification approaches since `comfortValue` is an ordinal rating (1 to 5). The models evaluated include:
+1. For the instant measurement predictions, we evaluated both regression and classification approaches since `comfortValue` is an ordinal rating (1 to 5). The models evaluated include:
 
 - **Linear Regression (LR):** Used as a baseline regressor to establish whether linear relationships exist between sensors and comfort.
 - **Random Forest Regressor (RFR):** Chosen for its ability to capture complex, non-linear interactions between environmental variables without requiring extensive feature scaling.
@@ -889,31 +992,50 @@ The models were evaluated strictly on the holdout test set to determine how well
 | Multi-Layer Perceptron       | Classifier | Accuracy    | 46.1%         |
 | Two-Stage Pipeline           | Hybrid     | MAE / Acc   | 0.667 / 48.5% |
 
-#### Confusion Matrices
+**Linear Regression**
+![LR Error Plot](../../Documentation/Design/ML/cm_LR_updated.png)
 
-Below are the visualised confusion matrices (or equivalent error distribution plots) for the evaluated models to further illustrate their predictive performance and typical failure modes (e.g., predicting the majority class or failing to distinguish adjacent classes).
+In the basic linear regression model the predicted values were all around the most common value (3) which suggested that the problem might need more complex model than linear.
+
+**Random Forest Regressor**
+![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_updated.png)
+
+Random forest regressor did a little better - it preserved more variance and the predicted values where compressed in the middle most common value but not as much as in the linear regression, due to its ensemble nature and ability to model non-linear boundaries. However, it still could not effectively address the lack of precision in the labels - the same environmental conditions often resulted in different reported comfort levels.
 
 **Random Forest Classifier**
-![RFC Confusion Matrix](../../Documentation/Design/ML/cm_RFC_1.png)
+![RFC Best Model: CV vs Test](../../Documentation/Design/ML/cm_RFC_best.png)
+![RFC Overfit: Train vs Test](../../Documentation/Design/ML/cm_RFC_overfit.png)
+
+First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. Of course the goal was to achieve this beautiful diagonal line on the test confusion matrix but unfortunatelly this was not possible, because then the model started to overfit a lot on the training set which can be seen on the oferfiting model confusion matrix above.
 
 **Gradient Boosting Classifier**
-![GBC Confusion Matrix](../../Documentation/Design/ML/cm_GBC_3.png)
+![GBC Best Model: CV vs Test](../../Documentation/Design/ML/cm_GBC_best.png)
+![GBC Overfit: Train vs Test](../../Documentation/Design/ML/cm_GBC_overfit.png)
+
+The Gradient Boosting Classifier performed slightly better than the Random Forest, reaching 40.7% accuracy. By focusing on the errors of previous iterations, it managed to sharpen the decision boundaries between the middle classes, though the extreme values (1 and 5) remained difficult to predict due to their rarity in the dataset.
 
 **Multi-Layer Perceptron**
-![MLP Confusion Matrix](../../Documentation/Design/ML/cm_MLP_3.png)
+![MLP Best Model: CV vs Test](../../Documentation/Design/ML/cm_MLP_best.png)
+![MLP Overfit: Train vs Test](../../Documentation/Design/ML/cm_MLP_overfit.png)
+
+The Multi-Layer Perceptron was our best standalone classifier at 46.1%. The neural network's ability to create complex internal representations allowed it to find patterns that the tree-based models missed. However, as seen in the overfitting plots, it was very prone to memorizing the training data, requiring heavy regularization to stay useful on the test set.
 
 **Two-Stage Pipeline**
-![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_pipeline_1.png)
+![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_best.png)
 
-#### Critical Evaluation: The "Subjectivity Paradox"
+The goal of this 2 stage pipeline was to use "perception" values already existing in original data that was found together with the comfort raiting. The idea was to see if this way models can predict more accurately - it turned out that not really. It lead again to overfitting on the train set and squizzing most of predictions around the mode of targets both for regressor and classifier.
+
+#### Final Evaluation
 
 As clearly visible in the confusion matrices, the instant measurement models struggled to capture a robust predictive signal. The models typically exhibited two failure modes: they either heavily overfitted to the training data, or they collapsed into predicting the majority class.
 
-Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding the feasibility of the feature. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding whether the feature could actually be built with data that was found and agreed between teems plan. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
 
 A universal instant-comfort model cannot exist. To solve this, future iterations of the system must rely on personalized, user-specific profiling or hardcoded rules per user rather than attempting to map objective sensor data to a generalized subjective comfort scale.
 
-### 3.9.4 Result ExportThe best performing models were serialized into `.pkl` files (Pickle format). This allows the backend API to dynamically load the model into memory and instantly run predictions when receiving new raw sensor arrays from the physical IoT devices.
+### 3.9.4 Result export
+
+The best performing models were serialized into `.pkl` files as artifacts. To ensure accurate predictions, the input data must be scaled using the same parameters as the training set. Therefore, the scalers are saved as artifacts alongside the models. This allows the deployed API to build the model and expose the prediction endpoints for receiving new raw sensor arrays from the physical IoT devices.
 
 ## 3.10 Frontend CI/CD
 
@@ -1053,6 +1175,7 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
+<<<<<<< HEAD
 | Objective                                                                                  | Status     | Evidence                                                                                                                                                                                                     |
 | :----------------------------------------------------------------------------------------- | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IoT** — measure and transmit sensor readings every ≤60 seconds                   | ✔ Met     | Device reads temperature, humidity, CO₂, and light level and transmits structured JSON payloads every 30 seconds via HTTP                                                                                   |
@@ -1067,6 +1190,16 @@ partially met, or not met, and support the assessment with evidence.]
 | [Objective 1] | ✔ Met / ⟳ Partial / ✗ Not | [Test results / screenshot] |
 
 ### [TODO: Idk if we actually need to include screenshots/test results as evidence but it doesn't seam fisible]
+=======
+| Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                                                    |
+| :----------------------------------------------------------------------------------- | :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                                                   |
+| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03[TODO: uncomment section when ready]; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period                                                                          |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy-todo-update-after-the-py-cov) `/predict` endpoint verified     |
+| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05 [TODO: The referenced section is still not complete] |
+| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort                                                                         |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#23-system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml` [TODO: the referenced 3.1.3 section is still not done, 2.3 needs to be uncommented]                            |
+>>>>>>> origin/dev
 
 ## 4.3 IoT Performance
 
@@ -1076,8 +1209,9 @@ All buffers are statically allocated at compile time, avoiding heap fragmentatio
 
 ## 4.4 ML Performance
 
-[Summarise the final model performance in context. Are predictions accurate enough
-to be useful for the application? How does the model compare to a naive baseline?]
+Our instant ML models ended up being very not precise. If one of the models managed to achieve accuracy around 50% it was highly overfitting and if we wanted to prevent it than accuracy was dropping down to around 37%. But most importantly that percentage did not mean that the models are correctly learning and accurately predicting on the level of 37% - it was just because the results were often squizzed into same most common class in the dataset. Basically, it was found that environmental sensor values and human subjective raiting of the room are not enough data to use as features to make usable models. It was lacking for example a feature that would suggest what type of person is assesing the raiting, because right now two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+
+All in all compared to a naive baseline, the team built something that actually learns, even if the subjective nature of comfort makes it impossible to get a perfect score.
 
 ## 4.5 Frontend Quality
 
@@ -1097,6 +1231,7 @@ What are the system's remaining weaknesses? What assumptions constrain the findi
 What would need to change for this to be a production-grade system?
 Address limitations per component where the issues differ significantly.]
 
+<<<<<<< HEAD
 From a frontend perspective, the final application supports the main user workflows: login and registration, dashboard monitoring, profile management, device connection, calendar planning, and session rating. The dashboard can show live sensor values, historical readings, recommendations, and the predicted study suitability value returned from the backend. The Start Session flow was also improved so the frontend does not create the real IoT session itself, but checks whether the connected device has an active backend session before unlocking the live dashboard view.
 
 There are still limitations in the frontend implementation. The dashboard depends on the backend and IoT device having an active session. If no active session exists, the frontend can show a clear message, but it cannot start real measurement by itself. This is correct for the system design, but it also means the full dashboard flow can only be tested properly when the IoT/backend session flow is running.
@@ -1108,6 +1243,12 @@ Another limitation is that the frontend has to handle missing or incomplete data
 The session rating flow works as a frontend workflow, but it depends on a valid backend session ID. The popup requires the user to choose a rating before submitting, and the rating is sent with the device and session identifiers. More end-to-end testing would be needed to fully verify the complete flow from IoT session creation to frontend rating submission and database storage.
 
 The frontend also includes automated tests for several important flows, such as login, dashboard states, active session handling, stop-session rating popup, profile device connection, language switching, theme switching, and session rating submission. A limitation is that these are still mostly component and flow-level tests. More end-to-end tests against the full deployed system would give stronger confidence that the frontend, backend, database, and IoT session flow work together correctly.
+=======
+**MAL Evaluation**
+The biggest hurdle we faced in the ML part was what we call the "Subjectivity Paradox" already explained in paragraphs above. Because our training data came from different sources and different people, the model often got confused when two identical sensor readings had two different comfort ratings attached to them. This essentially caps the maximum possible accuracy for any generalized model.
+
+Also, another thing is that our team did not get enough data from our sensors and real people raitings so the team relied on datasets found on the internet such as the KETI and HomeCoach which means that the models were not trained on "our" sensor data. While we attempted to unify the data using MICE imputation and clustering, it remained difficult to account for the 'data drift' that occurs when integrating external, pre-existing datasets with measurements captured directly from our own IoT devices. If we were to take this to a production level, we would need firstly to gather more data than just environemntal sensors data and also make the system learn the specific preferences of the user sitting in front of it, rather than trying to guess based on a general average. Without this personalization, the suitability rating remains a helpful hint rather than a definitive truth.
+>>>>>>> origin/dev
 
 # 5. Conclusions
 
