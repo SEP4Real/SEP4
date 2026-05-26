@@ -42,10 +42,9 @@ Provide a factual, chronological overview of the project from kick-off to submis
 grounded in concrete sources (logbook entries, meeting minutes, sprint retrospectives).
 Highlight major milestones and any significant pivots in direction.]
 
-We chose the project StudyHelper probably because of the relevance of the topic in all our lives. The idea of a device that can help navigate in choosing the best environment for studying was at the intersection of our interests and feasibility within the project scope. 
+We chose the project StudyHelper probably because of the relevance of the topic in all our lives. The idea of a device that can help navigate in choosing the best environment for studying was at the intersection of our interests and feasibility within the project scope.
 
 The initial phase of the project involved heavy brainstorming sessions and discussions. The main point of these debates was refining our problem statement to ensure it would be meaningful to solve with a solution that would be technically relevant for all sub-teams in a way that satisfies the overall expectations of the project.
-
 
 # 2. Group Work
 
@@ -210,14 +209,6 @@ Were there tools you wished you had used, or tools you regret choosing?]
 
 # 5. Personal Reflections
 
-<!-- INDIVIDUAL section — each group member writes their own subsection.
-     Focus on YOUR OWN contribution, learning, and growth.
-     Key requirements:
-       - Refer to valid and reliable sources to support your reflections
-       - "Reflect forward": define concrete future actions
-       - Address: What did I learn? How did I learn it? What will I do differently?
-     This section demonstrates your ability to identify and organise your own learning. -
-
 
 ## Piotr Junosz
 
@@ -228,6 +219,17 @@ The first significant change I noticed was how the motivation was working. It is
 Another correlated phenomenon that occured is called diffusion of responsibility where a person is less likely to take responsibility for an action when others are present (Darley & Latane, 1968). This has grown even more because the group had 11 people and it is easier to "hide" in this group than group consisting of 4-5 people. The larger a group becomes, the less individual work each member will take. This combined with problem of motivation made me realised few times that I have to work more as individual in order our project to succeed but then I understood that alone I cannot finish it fully which made me loose motivation and not enjoy the process of work on this project.
 
 Having experienced those problems, I think what makes a big difference between a real job team and what i call "company simulation" of our big group is the role of a manager or a leader. Even though we were using Scrum roles such as Product owner and Scrum master, we were missing someone whos only responsibility would be focusing on connecting subteams work and generally leading the whole project process. I believe this could be a solution to at least the problem with motivation.
+
+<!-- INDIVIDUAL section — each group member writes their own subsection.
+     Focus on YOUR OWN contribution, learning, and growth.
+     Key requirements:
+       - Refer to valid and reliable sources to support your reflections
+       - "Reflect forward": define concrete future actions
+       - Address: What did I learn? How did I learn it? What will I do differently?
+     This section demonstrates your ability to identify and organise your own learning. -
+
+
+
 
 ## 5.1 [Your Name]
 
