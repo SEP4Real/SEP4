@@ -21,7 +21,7 @@ class InstantMeasurementRequest(BaseModel):
 
 
 class InstantMeasurementResponse(BaseModel):
-    rating: int = Field(ge=1, le=5)
+    study_quality: int = Field(ge=1, le=5)
 
 
 def decide_stay_or_leave(measurement: InstantMeasurementRequest) -> Literal["stay", "leave"]:
@@ -69,7 +69,7 @@ async def build_instant_measurement_response(
     measurement: InstantMeasurementRequest,
 ) -> InstantMeasurementResponse:
     rating = await _fetch_instant_rating(measurement)
-    return InstantMeasurementResponse(rating=rating)
+    return InstantMeasurementResponse(study_quality=rating)
 
 
 @router.post("", response_model=InstantMeasurementResponse, status_code=201)
