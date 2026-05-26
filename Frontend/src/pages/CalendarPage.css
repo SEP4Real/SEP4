@@ -318,6 +318,13 @@ body.dark-theme .delete-button {
 }
 
 /* responsive */
+@media (max-width: 1200px) {
+  .calendar-container {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
 @media (max-width: 768px) {
   .calendar-container {
     padding: 90px 10px 20px;
@@ -353,5 +360,32 @@ body.dark-theme .delete-button {
   .popup-buttons button {
     padding: 8px 12px;
     font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .calendar-container {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .calendar-container .fc {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .calendar-container .fc-toolbar-title {
+    font-size: 1.15rem;
+  }
+
+  .popup {
+    width: calc(100% - 24px);
+    left: 12px !important;
+    top: 16% !important;
+  }
+
+  .popup-buttons {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

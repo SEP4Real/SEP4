@@ -221,11 +221,8 @@ useEffect(() => {
   const latestMetrics = normalizeDashboardRecord(latestData);
 
   const filteredHistory = useMemo(() => {
-    if (!filterDate) {
-      return dashboardData;
-    }
-
-    return dashboardData.filter((item) => {
+    const visibleHistory = filterDate
+      ? dashboardData.filter((item) => {
       const { sentAt } = normalizeDashboardRecord(item);
 
       if (!sentAt) {
@@ -233,6 +230,14 @@ useEffect(() => {
       }
 
       return new Date(sentAt).toISOString().slice(0, 10) === filterDate;
+    })
+      : dashboardData;
+
+    return [...visibleHistory].sort((a, b) => {
+      const firstDate = normalizeDashboardRecord(a).sentAt;
+      const secondDate = normalizeDashboardRecord(b).sentAt;
+
+      return new Date(secondDate) - new Date(firstDate);
     });
   }, [dashboardData, filterDate]);
 
@@ -267,6 +272,14 @@ useEffect(() => {
           title={t.noDeviceTitle}
           message={t.noDeviceMessage}
         />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="dashboard">
+        <LoadingSpinner text="Loading environment data..." />
       </div>
     );
   }

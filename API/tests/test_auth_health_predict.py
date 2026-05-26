@@ -1,5 +1,6 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from tests.conftest import make_cursor, make_db
+from datetime import datetime, timezone
 
 from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -165,18 +166,53 @@ def test_db_health_unreachable(client, app):
 
 # PREDICTION
 
-PREDICT_PAYLOAD = {
-    "sessionId": 1,
-    "temperature": 21.5,
-    "humidity": 45.0,
-    "co2Level": 800.0,
-    "lightLevel": 300.0,
+NOW = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+SESSION_ROW = {
+    "id": 1,
+    "device_id": "dev-001",
+    "started_at": NOW,
+    "is_ended": False,
+    "last_pulse_at": NOW,
+    "study_quality": None,
 }
+
+DATA_ROWS = [
+    {
+        "temperature": 21.5,
+        "humidity": 45.0,
+        "co2_level": 800.0,
+        "light_level": 300.0,
+        "sent_at": NOW,
+    },
+    {
+        "temperature": 22.0,
+        "humidity": 46.0,
+        "co2_level": 820.0,
+        "light_level": 310.0,
+        "sent_at": NOW,
+    },
+]
+
+def _mock_httpx(rating=3):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json = MagicMock(return_value={"rating": rating})
+    mock_client = AsyncMock()
+    mock_client.post = AsyncMock(return_value=mock_response)
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    return mock_client
 
 
 def test_predict_returns_study_quality(client, app):
-    _override(app, make_db(make_cursor()))
-    r = client.post("/predict", json=PREDICT_PAYLOAD)
+    cur = make_cursor(rows=DATA_ROWS)
+    cur.fetchone = AsyncMock(side_effect=[{"exists": False}, SESSION_ROW])
+    _override(app, make_db(cur))
+
+    with patch("app.routers.prediction.httpx.AsyncClient", return_value=_mock_httpx(3)):
+        r = client.post("/predict")
+
     assert r.status_code == 201
     body = r.json()
     assert "study_quality" in body

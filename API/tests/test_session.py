@@ -10,7 +10,6 @@ SESSION_ROW = {
     "started_at": NOW,
     "is_ended": False,
     "last_pulse_at": NOW,
-    "study_quality": None,
 }
 
 
@@ -49,6 +48,34 @@ def test_get_sessions_by_device_empty(client, app):
     r = client.get("/session/device/unknown")
     assert r.status_code == 200
     assert r.json() == []
+
+
+# GET /session/current
+
+def test_get_current_session_success(client, app):
+    _override(app, make_db(make_cursor(one=SESSION_ROW)))
+    r = client.get("/session/current?deviceId=dev-001")
+    assert r.status_code == 200
+    assert r.json()["id"] == 1
+
+
+def test_get_current_session_without_device_id(client, app):
+    _override(app, make_db(make_cursor(one=SESSION_ROW)))
+    r = client.get("/session/current")
+    assert r.status_code == 200
+    assert r.json()["id"] == 1
+
+
+def test_get_current_session_empty_device_id(client, app):
+    _override(app, make_db(make_cursor()))
+    r = client.get("/session/current?deviceId=   ")
+    assert r.status_code == 400
+
+
+def test_get_current_session_not_found(client, app):
+    _override(app, make_db(make_cursor(one=None)))
+    r = client.get("/session/current?deviceId=dev-001")
+    assert r.status_code == 404
 
 
 # GET /session/{id}
@@ -118,19 +145,19 @@ def test_pulse_not_found(client, app):
 # PATCH /session/{id}
 
 def test_update_session_success(client, app):
-    updated = {**SESSION_ROW, "study_quality": 4}
+    updated = {**SESSION_ROW, "is_ended": True}
     cur = make_cursor()
     cur.fetchone = AsyncMock(side_effect=[SESSION_ROW, updated])
     _override(app, make_db(cur))
-    r = client.patch("/session/1", json={"studyQuality": 4})
+    r = client.patch("/session/1", json={"isEnded": True})
     assert r.status_code == 200
-    assert r.json()["studyQuality"] == 4
+    assert r.json()["isEnded"] == True
 
 
 def test_update_session_not_found(client, app):
     cur = make_cursor(one=None)
     _override(app, make_db(cur))
-    r = client.patch("/session/999", json={"studyQuality": 3})
+    r = client.patch("/session/999", json={"isEnded": True})
     assert r.status_code == 404
 
 

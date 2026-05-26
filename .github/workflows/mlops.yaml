@@ -6,7 +6,7 @@ on:
     paths:
       - '.github/workflows/mlops.yaml'
       - 'MAL/**'
-      - 'focus_dataset.csv'
+      - 'linearized_session_windows.csv'
       - 'ratings.csv'
       - 'environment_history.csv'
   pull_request:
@@ -14,7 +14,7 @@ on:
     paths:
       - '.github/workflows/mlops.yaml'
       - 'MAL/**'
-      - 'focus_dataset.csv'
+      - 'linearized_session_windows.csv'
       - 'ratings.csv'
       - 'environment_history.csv'
 
@@ -60,6 +60,21 @@ jobs:
           echo "::error::MAL/models/rf_model.pkl is missing. Train locally with 'python scripts/train_model.py' from MAL/ and commit the artifact."
           exit 1
         }
+
+    - name: Run unit tests with coverage
+      working-directory: MAL
+      run: |
+        python -m pytest tests/test_model_unit.py tests/test_main_endpoints.py -v \
+          --cov=ml_pipeline \
+          --cov=backend \
+          --cov-report=term-missing \
+          --cov-report=html
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: mal-coverage-report
+        path: MAL/htmlcov/
 
     - name: Start MAL service
       run: |

@@ -12,6 +12,8 @@ CSS := $(ABS_TEMPLATE_DIR)academic.css
 BIB := $(ABS_TEMPLATE_DIR)bibliography.bib
 TEMPLATE := $(ABS_TEMPLATE_DIR)template.html
 
+CHARCOUNT := $(shell python3 $(ABS_TEMPLATE_DIR)calculate_char_count.py "$(ABS_SRC)")
+
 # Output is in the same directory as the source file
 OUT := $(basename $(ABS_SRC))
 
@@ -30,6 +32,8 @@ all: html
 html: $(ABS_SRC) $(CSS) $(TEMPLATE)
 	pandoc "$(ABS_SRC)" \
 		--template="$(TEMPLATE)" \
+		--resource-path=".:$(dir $(ABS_SRC)):$(ABS_TEMPLATE_DIR)" \
+		-M charcount="$(CHARCOUNT)" \
 		--toc \
 		--toc-depth=3 \
 		--standalone \

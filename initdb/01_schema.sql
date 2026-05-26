@@ -8,7 +8,6 @@ CREATE TABLE sessions (
     started_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     is_ended BOOLEAN NOT NULL DEFAULT FALSE,
     last_pulse_at TIMESTAMPTZ,
-    study_quality INT CHECK (study_quality BETWEEN 1 AND 5),
     CONSTRAINT fk_sessions_device FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE RESTRICT
 );
 

@@ -12,52 +12,46 @@ FAKE_VALUE_FUNC(WIFI_ERROR_MESSAGE_t, http_patch, const char *, const char *, ch
 
 FAKE_VOID_FUNC(buzzer_beep);
 
-// Captured argument buffers
 static char captured_body[256];
 static char captured_endpoint[64];
 static char captured_patch_endpoint[64];
 
-// Inject response
 static const char *inject_post_response = NULL;
 static const char *inject_patch_response = NULL;
 
-// Custom fakes
-static WIFI_ERROR_MESSAGE_t capture_and_inject_post(const char *endpoint,
-                                                    const char *body,
-                                                    char *rx_buf,
-                                                    uint16_t rx_buf_size)
+static WIFI_ERROR_MESSAGE_t capture_and_inject_post(const char *endpoint, const char *body, char *rx_buf, uint16_t rx_buf_size)
 {
     strncpy(captured_endpoint, endpoint, sizeof(captured_endpoint) - 1);
     strncpy(captured_body, body, sizeof(captured_body) - 1);
-    if (inject_post_response && rx_buf)
+    if (inject_post_response && rx_buf){
         strncpy(rx_buf, inject_post_response, rx_buf_size - 1);
+    }
     return WIFI_OK;
 }
 
-static WIFI_ERROR_MESSAGE_t capture_and_inject_patch(const char *endpoint,
-                                                     const char *body,
-                                                     char *rx_buf,
-                                                     uint16_t rx_buf_size)
+static WIFI_ERROR_MESSAGE_t capture_and_inject_patch(const char *endpoint, const char *body, char *rx_buf, uint16_t rx_buf_size)
 {
     (void)body;
     strncpy(captured_patch_endpoint, endpoint, sizeof(captured_patch_endpoint) - 1);
-    if (inject_patch_response && rx_buf)
+    if (inject_patch_response && rx_buf){
         strncpy(rx_buf, inject_patch_response, rx_buf_size - 1);
+    }
     return WIFI_OK;
 }
 
 static int retry_call_count = 0;
 
-static WIFI_ERROR_MESSAGE_t retry_fake(const char *ep, const char *body,
-                                       char *rx_buf, uint16_t rx_buf_size)
+static WIFI_ERROR_MESSAGE_t retry_fake(const char *ep, const char *body, char *rx_buf, uint16_t rx_buf_size)
 {
     (void)ep;
     (void)body;
     retry_call_count++;
-    if (retry_call_count == 1)
+    if (retry_call_count == 1){
         strncpy(rx_buf, "{\"error\":\"bad\"}", rx_buf_size - 1);
-    else
+    }
+    else{
         strncpy(rx_buf, "{\"id\":7}", rx_buf_size - 1);
+    }
     return WIFI_OK;
 }
 
@@ -70,6 +64,7 @@ void setUp(void)
     FFF_RESET_HISTORY();
     inject_patch_response = NULL;
     inject_post_response = NULL;
+    retry_call_count = 0;
     memset(captured_body, 0, sizeof(captured_body));
     memset(captured_endpoint, 0, sizeof(captured_endpoint));
     memset(captured_patch_endpoint, 0, sizeof(captured_patch_endpoint));
@@ -92,8 +87,6 @@ static void start_session_with_id(int id)
     memset(captured_patch_endpoint, 0, sizeof(captured_patch_endpoint));
     inject_post_response = NULL;
 }
-
-// server_register_device
 
 void test_register_calls_http_post_once(void)
 {
@@ -122,8 +115,6 @@ void test_register_body_contains_id_field(void)
     server_register_device();
     TEST_ASSERT_NOT_NULL(strstr(captured_body, "id"));
 }
-
-// server_start_session
 
 void test_start_session_posts_to_session_endpoint(void)
 {
@@ -165,13 +156,10 @@ void test_start_session_parses_session_id(void)
 
 void test_start_session_retries_on_parse_fail(void)
 {
-    retry_call_count = 0;
     http_post_fake.custom_fake = retry_fake;
     server_start_session();
     TEST_ASSERT_EQUAL(2, http_post_fake.call_count);
 }
-
-// server_send_pulse
 
 void test_send_pulse_is_noop_without_session(void)
 {
@@ -221,16 +209,10 @@ void test_send_pulse_restarts_session_when_alive_false(void)
     inject_post_response = "{\"id\":10}";
     http_post_fake.custom_fake = capture_and_inject_post;
 
-    printf("patch calls: %d\n", http_patch_fake.call_count);
-    printf("patch endpoint: %s\n", captured_patch_endpoint);
-    printf("post calls: %d\n", http_post_fake.call_count);
-
     server_send_pulse();
 
     TEST_ASSERT_EQUAL(1, http_post_fake.call_count);
 }
-
-// server_send_data
 
 void test_send_data_is_noop_without_session(void)
 {
@@ -346,6 +328,64 @@ void test_normal_study_conditions_dont_sound_buzzer(void)
     TEST_ASSERT_EQUAL(0, buzzer_beep_fake.call_count);
 }
 
+
+void test_onetime_posts_to_predict_endpoint(void)
+{
+    http_post_fake.custom_fake = capture_and_inject_post;
+    server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
+    TEST_ASSERT_EQUAL_STRING("/predict", captured_endpoint);
+}
+
+void test_onetime_works_without_active_session(void)
+{
+    http_post_fake.custom_fake = capture_and_inject_post;
+    server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
+    TEST_ASSERT_EQUAL(1, http_post_fake.call_count);
+}
+
+void test_onetime_body_contains_all_fields(void)
+{
+    http_post_fake.custom_fake = capture_and_inject_post;
+    server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "temperature"));
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "humidity"));
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "lightLevel"));
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "co2Level"));
+}
+
+void test_onetime_body_contains_sensor_values(void)
+{
+    http_post_fake.custom_fake = capture_and_inject_post;
+    server_send_onetime_measurement(22, 5, 60, 3, 856, 1200);
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "856"));
+    TEST_ASSERT_NOT_NULL(strstr(captured_body, "1200"));
+}
+
+void test_onetime_quality_1_triggers_long_beep(void)
+{
+    http_post_fake.custom_fake = capture_and_inject_post;
+    inject_post_response = "{\"study_quality\": 1}";
+    server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
+    // Source code beeps 120 times when quality == 1
+    TEST_ASSERT_EQUAL(120, buzzer_beep_fake.call_count);
+}
+
+void test_onetime_quality_good_triggers_short_beep(void)
+{
+    http_post_fake.custom_fake = capture_and_inject_post;
+    inject_post_response = "{\"study_quality\": 2}";
+    server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
+    TEST_ASSERT_EQUAL(40, buzzer_beep_fake.call_count);
+}
+
+void test_onetime_no_quality_field_no_beep(void)
+{
+    http_post_fake.custom_fake = capture_and_inject_post;
+    inject_post_response = "{\"something_else\": 1}";
+    server_send_onetime_measurement(22, 5, 60, 0, 856, 1200);
+    TEST_ASSERT_EQUAL(0, buzzer_beep_fake.call_count);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -382,6 +422,14 @@ int main(void)
     RUN_TEST(test_send_data_body_contains_co2_value);
     RUN_TEST(test_bad_study_conditions_sound_buzzer);
     RUN_TEST(test_normal_study_conditions_dont_sound_buzzer);
+
+    RUN_TEST(test_onetime_posts_to_predict_endpoint);
+    RUN_TEST(test_onetime_works_without_active_session);
+    RUN_TEST(test_onetime_body_contains_all_fields);
+    RUN_TEST(test_onetime_body_contains_sensor_values);
+    RUN_TEST(test_onetime_quality_1_triggers_long_beep);
+    RUN_TEST(test_onetime_quality_good_triggers_short_beep);
+    RUN_TEST(test_onetime_no_quality_field_no_beep);
 
     return UNITY_END();
 }

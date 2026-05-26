@@ -1,7 +1,22 @@
 ---
-title: "Process Report – [Your Project Title]"
-date: "[Month] [Day], [Year]"
-author: "SEP4 Group 3"
+itle: "Process Report – StudyHelper"
+date: "May 25, 2026"
+author:
+- Alexandru Savin(354790)
+- Cristina Aurelia Matei (354776)
+- Damian Michal Choina (354789)
+- Eduard Fekete (355323)
+- Jakub Maciej Baczek (354814)
+- Karina Rubahova (354565)
+- Mara-Ioana Statie (354536)
+- Marta Zrno (355351)
+- Piotr Junosz (355502)
+- Tymoteusz Krzysztof Zydkiewicz (355413)
+supervisor:
+- Erland Ketil Larsen
+- Joseph Chukwudi Okika
+- Kasper Knop Rasmussen
+- Markéta Tranberg
 course: "SEP4"
 semester: "4th Semester"
 institution: "VIA University College"
@@ -23,12 +38,13 @@ institution: "VIA University College"
      Give a factual overview of the project timeline and progress.
      Base this on actual data: logbook entries, meeting minutes, sprint records. -->
 
-[Briefly describe the project and its context. Explain what motivated your group to
-choose this particular problem domain. Why did it interest you technically or practically?
-
 Provide a factual, chronological overview of the project from kick-off to submission,
 grounded in concrete sources (logbook entries, meeting minutes, sprint retrospectives).
 Highlight major milestones and any significant pivots in direction.]
+
+We chose the project StudyHelper probably because of the relevance of the topic in all our lives. The idea of a device that can help navigate in choosing the best environment for studying was at the intersection of our interests and feasibility within the project scope.
+
+The initial phase of the project involved heavy brainstorming sessions and discussions. The main point of these debates was refining our problem statement to ensure it would be meaningful to solve with a solution that would be technically relevant for all sub-teams in a way that satisfies the overall expectations of the project.
 
 # 2. Group Work
 
@@ -193,13 +209,27 @@ Were there tools you wished you had used, or tools you regret choosing?]
 
 # 5. Personal Reflections
 
+
+## Piotr Junosz
+
+Fourth semester work was so far the most challanging in terms of communication, expectations, performing and coordination within the big 11 people group. It was my first time trying to develop a solid project in such a big team consisting of 3 subteams, trying to make sense out of the important assigment.
+
+The first significant change I noticed was how the motivation was working. It is well described by Victor Vroom's book "Work and motivation" where he says that effort is tied up to expectations (Vroom, 1964). So if you believe your hard work will result in a finished project, you are highly motivated, but if you look around and see that other people are not working, your expectation of success drops, and your motivation completely collapses. This was seen during this semester project period and led to periods of members not motivating themself as much as in previous semesters. Personally, this made the process of developing the system a lot less exciting.
+
+Another correlated phenomenon that occured is called diffusion of responsibility where a person is less likely to take responsibility for an action when others are present (Darley & Latane, 1968). This has grown even more because the group had 11 people and it is easier to "hide" in this group than group consisting of 4-5 people. The larger a group becomes, the less individual work each member will take. This combined with problem of motivation made me realised few times that I have to work more as individual in order our project to succeed but then I understood that alone I cannot finish it fully which made me loose motivation and not enjoy the process of work on this project.
+
+Having experienced those problems, I think what makes a big difference between a real job team and what i call "company simulation" of our big group is the role of a manager or a leader. Even though we were using Scrum roles such as Product owner and Scrum master, we were missing someone whos only responsibility would be focusing on connecting subteams work and generally leading the whole project process. I believe this could be a solution to at least the problem with motivation.
+
 <!-- INDIVIDUAL section — each group member writes their own subsection.
      Focus on YOUR OWN contribution, learning, and growth.
      Key requirements:
        - Refer to valid and reliable sources to support your reflections
        - "Reflect forward": define concrete future actions
        - Address: What did I learn? How did I learn it? What will I do differently?
-     This section demonstrates your ability to identify and organise your own learning. -->
+     This section demonstrates your ability to identify and organise your own learning. -
+
+
+
 
 ## 5.1 [Your Name]
 
@@ -291,6 +321,10 @@ project. These should be grounded in your actual experience — not generic advi
      APA examples:
      Author, A. A. (Year). Title of work. Publisher.
      Author, A. A. (Year). Article title. Journal, volume(issue), pages. https://doi.org/... -->
+
+- Vroom, V. H. (1964).  *Work and motivation* .
+- Darley, J. M., & Latane, B. (1968). Bystander intervention in emergencies: Diffusion of responsibility.  *Journal of Personality and Social Psychology* ,  *8* (4, Pt.1), 377–383. **https://doi.org/10.1037/h0025589**
+- 
 
 ::: {#refs}
 :::

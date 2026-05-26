@@ -19,6 +19,10 @@ test:
 	./test_server_api
 	rm -f test_server_api
 
+	$(CC) $(CFLAGS) src/display_status.c test/unity/unity.c test/display_status_test.c -o test_display_status
+	./test_display_status
+	rm -f test_display_status
+
 coverage:
 	$(CC) $(CFLAGS) --coverage src/wifi_http.c test/unity/unity.c test/wifi_http_tests.c -o test_wifi_http
 	./test_wifi_http
@@ -27,6 +31,10 @@ coverage:
 	$(CC) $(CFLAGS) --coverage src/server_api.c test/unity/unity.c test/server_api_tests.c -o test_server_api
 	./test_server_api
 	rm -f test_server_api
+
+	$(CC) $(CFLAGS) --coverage src/display_status.c test/unity/unity.c test/display_status_test.c -o test_display_status
+	./test_display_status
+	rm -f test_display_status
 
 	lcov --capture --directory . --output-file coverage.info \
 	     --ignore-errors mismatch,unused
@@ -37,5 +45,5 @@ coverage:
 	rm -f *.gcda *.gcno
 
 clean:
-	rm -f test_wifi_http test_server_api *.gcda *.gcno coverage.info
+	rm -f test_wifi_http test_server_api test_display_status *.gcda *.gcno coverage.info
 	rm -rf coverage-html

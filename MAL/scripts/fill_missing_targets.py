@@ -1,611 +1,391 @@
 from __future__ import annotations
 
+import argparse
+from pathlib import Path
+import shutil
+import pandas as pd
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-from sklearn.experimental import enable_iterative_imputer
-from sklearn.impute import IterativeImputer
-from sklearn.ensemble import ExtraTreesRegressor
-
-import argparse
-from dataclasses import dataclass
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-
-try:
-    from MAL.notebooks.archive.scripts_related_archive.build_unified_environment_dataset import (
-        DEFAULT_OUTPUT_PATH as DEFAULT_UNIFIED_DATASET_PATH,
-        DEFAULT_REPORT_PATH as DEFAULT_UNIFIED_REPORT_PATH,
-        build_unified_dataset,
-    )
-except ImportError:
-    from MAL.notebooks.archive.scripts_related_archive.build_unified_environment_dataset import (
-        DEFAULT_OUTPUT_PATH as DEFAULT_UNIFIED_DATASET_PATH,
-        DEFAULT_REPORT_PATH as DEFAULT_UNIFIED_REPORT_PATH,
-        build_unified_dataset,
-    )
+from sklearn.decomposition import PCA
 
 
 MAL_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = MAL_DIR / "data"
 
-DEFAULT_OUTPUT_PATH = DATA_DIR / "processed" / "unified_environment_focus_dataset_filled.csv"
-DEFAULT_STUDENT_TARGET_OUTPUT_PATH = (
-    DATA_DIR / "processed" / "unified_environment_student_target_filled.csv"
-)
-DEFAULT_RESPONDENT_TARGET_OUTPUT_PATH = (
-    DATA_DIR / "processed" / "unified_environment_respondent_focus_score_filled.csv"
-)
-DEFAULT_STUDENT_TRAINING_PATH = DATA_DIR / "raw" / "DATA_2" / "agile_teaching_dataset.csv"
-DEFAULT_ROOM_MEASUREMENTS_PATH = DATA_DIR / "raw" / "DATA_8" / "smart-campus-comfort-data" / "1_room_measurements.csv"
-DEFAULT_COMFORT_PERCEPTION_PATH = DATA_DIR / "raw" / "DATA_8" / "smart-campus-comfort-data" / "4_comfort_perception.csv"
-DEFAULT_RESPONDENT_TRAINING_OUTPUT_PATH = (
-    DATA_DIR / "processed" / "respondent_comfort_training_dataset.csv"
-)
-DEFAULT_FEATURE_COLUMNS = ["humidity", "light", "temperature", "noise", "co2"]
-DEFAULT_STUDENT_FEATURE_COLUMNS = ["humidity", "light", "temperature", "noise"]
-DEFAULT_RESPONDENT_FEATURE_COLUMNS = ["humidity", "temperature", "noise", "co2"]
-DEFAULT_TARGET_COLUMN = "focus_score"
-DEFAULT_STUDENT_TARGET_COLUMN = "target"
-DEFAULT_RESPONDENT_TARGET_COLUMN = "focus_score"
-DEFAULT_STUDENT_GROUP_COLUMN = "student_id"
-DEFAULT_RESPONDENT_GROUP_COLUMN = "respondent_id"
-GROUP_COLUMN_CANDIDATES = ["student_id", "location_id", "id"]
+DEFAULT_INPUT_PATH = DATA_DIR / "processed" / "linearized_sessions_with_missing_targets.csv"
+DEFAULT_OUTPUT_PATH = DATA_DIR / "processed" / "linearized_session_windows.csv"
+ARTIFACTS_DIR = Path("/home/edf/.gemini/antigravity/brain/2dbb4bdf-b3af-4b99-b041-3ade9608a4a5")
+
 RANDOM_STATE = 42
-
-STUDENT_TRAINING_COLUMN_RENAMES = {
-    "ambient_light": "light",
-    "ambient_noise": "noise",
-}
-
-RESPONDENT_TRAINING_COLUMN_RENAMES = {
-    "respondentId": "respondent_id",
-    "comfortValue": "focus_score",
-    "CO2": "co2",
-}
+DEFAULT_N_CLUSTERS = 5
 
 
-@dataclass(frozen=True)
-class StudentModel:
-    student_id: str
-    model: Pipeline
-    rows: int
-    classes: tuple[int, ...]
-
-
-def build_classifier(random_state: int) -> Pipeline:
-    return Pipeline(
-        steps=[
-            ("imputer", SimpleImputer(strategy="median", keep_empty_features=True)),
-            (
-                "model",
-                RandomForestClassifier(
-                    n_estimators=200,
-                    min_samples_leaf=2,
-                    class_weight="balanced",
-                    random_state=random_state,
-                    n_jobs=-1,
-                ),
-            ),
-        ]
-    )
-
-
-def choose_group_column(df: pd.DataFrame, requested_column: str | None) -> str:
-    if requested_column:
-        if requested_column not in df.columns:
-            raise ValueError(f"Group column '{requested_column}' does not exist in the dataset.")
-        return requested_column
-
-    for column in GROUP_COLUMN_CANDIDATES:
-        if column in df.columns:
-            return column
-
-    raise ValueError(
-        "Could not find a student/group column. Expected one of: "
-        + ", ".join(GROUP_COLUMN_CANDIDATES)
-    )
-
-
-def validate_columns(df: pd.DataFrame, feature_columns: list[str], target_column: str) -> None:
-    missing = [column for column in [*feature_columns, target_column] if column not in df.columns]
-    if missing:
-        raise ValueError(f"Dataset is missing required columns: {', '.join(missing)}")
-
-
-def normalise_target(values: pd.Series) -> pd.Series:
-    target = pd.to_numeric(values, errors="coerce")
-    target = target.where(target.between(1, 5))
-    return target.round().astype("Int64")
-
-
-def normalise_class_target(values: pd.Series, allowed_classes: set[int] | None = None) -> pd.Series:
-    target = pd.to_numeric(values, errors="coerce").round().astype("Int64")
-    if allowed_classes is not None:
-        target = target.where(target.isin(allowed_classes))
-    return target
-
-# # New 
-# class SmartForest(ExtraTreesRegressor):
-#     def predict(self, X, return_std=False):
-#         if not return_std:
-#             return super().predict(X)
-
-#         all_preds = np.stack([tree.predict(X) for tree in self.estimators_])
-#         return np.mean(all_preds, axis=0), np.std(all_preds, axis=0)
-
-# # Helper classes to fill in the missing noise and light
-# def fill_missing_light_and_noise(df: pd.DataFrame) -> pd.DataFrame:
-#     filled_df = df.copy()
-
-#     # Same as in the notebook: these are used as clustering anchors,
-#     # so rows missing one of them are removed first.
-#     filled_df = filled_df.dropna(subset=["co2", "temperature", "humidity"]).copy()
-
-#     anchors = ["temperature", "humidity", "co2"]
-#     scaled_data = StandardScaler().fit_transform(filled_df[anchors])
-
-#     model_kmeans = KMeans(n_clusters=4, random_state=42)
-#     filled_df["room_type"] = model_kmeans.fit_predict(scaled_data)
-
-#     impute_cols = ["co2", "noise", "temperature", "light", "humidity"]
-#     imputed_chunks = []
-
-#     for room_id in sorted(filled_df["room_type"].unique()):
-#         chunk = filled_df[filled_df["room_type"] == room_id].copy()
-#         original_backup = chunk.copy()
-
-#         mice = IterativeImputer(
-#             estimator=SmartForest(
-#                 n_estimators=20,
-#                 max_depth=15,
-#                 min_samples_leaf=5,
-#                 random_state=42,
-#             ),
-#             sample_posterior=True,
-#             n_nearest_features=5,
-#             random_state=42,
-#         )
-
-#         active_cols = [col for col in impute_cols if chunk[col].notna().any()]
-
-#         imputed_values = mice.fit_transform(chunk[active_cols])
-#         temp_df = pd.DataFrame(imputed_values, columns=active_cols, index=chunk.index)
-
-#         if "light" in temp_df.columns:
-#             temp_df["light"] = temp_df["light"].clip(lower=0)
-
-#         if "noise" in temp_df.columns:
-#             temp_df["noise"] = temp_df["noise"].clip(lower=0)
-
-#         # Keep the original real values for the anchor columns.
-#         for col in ["temperature", "humidity", "co2"]:
-#             if col in temp_df.columns:
-#                 temp_df[col] = original_backup[col].values
-
-#         # Put back all non-imputed columns.
-#         for col in chunk.columns:
-#             if col not in temp_df.columns:
-#                 temp_df[col] = original_backup[col].values
-
-#         imputed_chunks.append(temp_df)
-
-#     result_df = pd.concat(imputed_chunks).sort_index()
-
-#     # Same fallback as the notebook for clusters where a sensor was 100% missing.
-#     result_df["light"] = result_df["light"].fillna(filled_df["light"].median())
-#     result_df["noise"] = result_df["noise"].fillna(filled_df["noise"].median())
-
-#     result_df = result_df.drop(columns="room_type")
-#     return result_df[df.columns]
-
-def train_student_models(
-    labeled_df: pd.DataFrame,
-    feature_columns: list[str],
-    target_column: str,
-    group_column: str,
-    random_state: int,
-) -> list[StudentModel]:
-    models: list[StudentModel] = []
-
-    for index, (student_id, student_df) in enumerate(labeled_df.groupby(group_column, dropna=False)):
-        y = normalise_target(student_df[target_column]).dropna()
-        if y.empty:
-            continue
-
-        x = student_df.loc[y.index, feature_columns]
-        model = build_classifier(random_state + index)
-        model.fit(x, y.astype(int))
-        models.append(
-            StudentModel(
-                student_id=str(student_id),
-                model=model,
-                rows=len(x),
-                classes=tuple(int(value) for value in sorted(y.unique())),
-            )
-        )
-
-    if not models:
-        raise RuntimeError("No per-student models could be trained from the labeled rows.")
-
-    return models
-
-
-def train_class_models_by_student(
-    training_df: pd.DataFrame,
-    feature_columns: list[str],
-    target_column: str,
-    group_column: str,
-    random_state: int,
-    allowed_classes: set[int] | None = None,
-) -> list[StudentModel]:
-    validate_columns(training_df, feature_columns, target_column)
-    if group_column not in training_df.columns:
-        raise ValueError(f"Student/group column '{group_column}' does not exist in training data.")
-
-    models: list[StudentModel] = []
-    for index, (student_id, student_df) in enumerate(training_df.groupby(group_column, dropna=False)):
-        y = normalise_class_target(student_df[target_column], allowed_classes=allowed_classes).dropna()
-        if y.empty:
-            continue
-
-        x = student_df.loc[y.index, feature_columns]
-        model = build_classifier(random_state + index)
-        model.fit(x, y.astype(int))
-        models.append(
-            StudentModel(
-                student_id=str(student_id),
-                model=model,
-                rows=len(x),
-                classes=tuple(int(value) for value in sorted(y.unique())),
-            )
-        )
-
-    if not models:
-        raise RuntimeError("No per-student models could be trained from the training rows.")
-
-    return models
-
-
-def fill_missing_targets(
+def generate_visualizations(
     df: pd.DataFrame,
-    feature_columns: list[str] | None = None,
-    target_column: str = DEFAULT_TARGET_COLUMN,
-    group_column: str | None = None,
-    random_state: int = RANDOM_STATE,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    feature_columns = feature_columns or DEFAULT_FEATURE_COLUMNS
-    validate_columns(df, feature_columns, target_column)
-    group_column = choose_group_column(df, group_column)
+    x_scaled: np.ndarray,
+    cluster_labels: np.ndarray,
+    n_clusters: int,
+    output_dir: Path,
+) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 1. Rating Distribution Plot (Bar chart)
+    plt.figure(figsize=(8, 5))
+    rating_counts = df["rating"].value_counts(dropna=False).sort_index()
+    
+    # Convert index to string for plotting to handle NaN nicely
+    x_labels = [str(x) if pd.notna(x) else "NaN (Unfilled)" for x in rating_counts.index]
+    
+    plt.bar(x_labels, rating_counts.values, color="skyblue", edgecolor="black")
+    plt.xlabel("Rating Value")
+    plt.ylabel("Session/Segment Count")
+    plt.title("Distribution of Segment Ratings (Final Filled Dataset)")
+    for i, v in enumerate(rating_counts.values):
+        plt.text(i, v + (max(rating_counts.values) * 0.01), str(v), ha='center', va='bottom', fontweight='bold')
+    
+    rating_plot_path = output_dir / "rating_distribution.png"
+    plt.tight_layout()
+    plt.savefig(rating_plot_path, dpi=150)
+    plt.close()
+    print(f"Saved rating distribution plot to: {rating_plot_path}")
 
+    # 2. PCA Clusters Plot (2D Projection)
+    pca = PCA(n_components=2, random_state=RANDOM_STATE)
+    x_pca = pca.fit_transform(x_scaled)
+    
+    # Compute cluster centroids in 2D space
+    centroids_pca = []
+    for c in range(n_clusters):
+        cluster_points = x_pca[cluster_labels == c]
+        if len(cluster_points) > 0:
+            centroids_pca.append(cluster_points.mean(axis=0))
+        else:
+            centroids_pca.append([0.0, 0.0])
+    centroids_pca = np.array(centroids_pca)
+
+    plt.figure(figsize=(10, 8))
+    
+    # Use discrete colormap setup to fix ticks and colors
+    cmap = plt.colormaps.get_cmap("tab10")
+    # Wrap colormap with discrete bounds to center colors on integers
+    import matplotlib.colors as mcolors
+    bounds = np.arange(n_clusters + 1) - 0.5
+    norm = mcolors.BoundaryNorm(bounds, n_clusters)
+    
+    scatter = plt.scatter(
+        x_pca[:, 0],
+        x_pca[:, 1],
+        c=cluster_labels,
+        cmap=cmap,
+        norm=norm,
+        alpha=0.6,
+        edgecolors="none",
+        s=15,
+    )
+    
+    # Plot centroids
+    plt.scatter(
+        centroids_pca[:, 0],
+        centroids_pca[:, 1],
+        c="red",
+        marker="X",
+        s=200,
+        label="Centroids",
+        edgecolors="black",
+    )
+    
+    plt.xlabel(f"PCA Component 1 ({pca.explained_variance_ratio_[0]*100:.1f}% var)")
+    plt.ylabel(f"PCA Component 2 ({pca.explained_variance_ratio_[1]*100:.1f}% var)")
+    plt.title("2D PCA Projection of Segment Clusters")
+    
+    # Configure discrete ticks on colorbar
+    cb = plt.colorbar(scatter, label="Cluster Label")
+    cb.set_ticks(np.arange(n_clusters))
+    cb.set_ticklabels([f"Cluster {i}" for i in range(n_clusters)])
+    
+    plt.legend()
+    plt.grid(True, linestyle="--", alpha=0.5)
+    
+    pca_plot_path = output_dir / "pca_clusters.png"
+    plt.tight_layout()
+    plt.savefig(pca_plot_path, dpi=150)
+    plt.close()
+    print(f"Saved PCA clusters plot to: {pca_plot_path}")
+
+    # Copy plots to the brain artifacts directory for visual display
+    if ARTIFACTS_DIR.exists():
+        try:
+            shutil.copy(rating_plot_path, ARTIFACTS_DIR / "rating_distribution.png")
+            shutil.copy(pca_plot_path, ARTIFACTS_DIR / "pca_clusters.png")
+            print(f"Successfully copied plots to brain artifacts directory: {ARTIFACTS_DIR}")
+        except Exception as e:
+            print(f"Note: Could not copy plots to brain artifacts directory: {e}")
+
+
+def fill_missing_targets_via_clustering(
+    df: pd.DataFrame,
+    n_clusters: int = DEFAULT_N_CLUSTERS,
+    random_state: int = RANDOM_STATE,
+    strategy: str = "mean",
+    enable_overrides: bool = True,
+) -> tuple[pd.DataFrame, dict[str, any]]:
     filled_df = df.copy()
-    filled_df[target_column] = normalise_target(filled_df[target_column])
+    
+    # 1. Identify feature columns for clustering
+    clustering_features = []
+    for col in filled_df.columns:
+        if col in ["duration_minutes", "n_readings"] or any(
+            col.endswith(f"_{suffix}")
+            for suffix in ["mean", "min", "max", "std", "latest", "count", "range"]
+        ):
+            clustering_features.append(col)
 
-    labeled_mask = filled_df[target_column].notna()
-    missing_mask = filled_df[target_column].isna()
-    if not labeled_mask.any():
-        raise RuntimeError(f"No labeled rows found in '{target_column}'.")
+    print(f"Features used for clustering ({len(clustering_features)}): {', '.join(clustering_features)}")
 
-    student_models = train_student_models(
-        filled_df.loc[labeled_mask],
-        feature_columns,
-        target_column,
-        group_column,
-        random_state,
-    )
+    # 2. Impute missing feature values
+    imputer = SimpleImputer(strategy="median")
+    x_imputed = imputer.fit_transform(filled_df[clustering_features])
 
-    model_summary = pd.DataFrame(
-        {
-            "student_id": model.student_id,
-            "training_rows": model.rows,
-            "classes": ",".join(map(str, model.classes)),
-        }
-        for model in student_models
-    )
+    # 3. Scale features
+    scaler = StandardScaler()
+    x_scaled = scaler.fit_transform(x_imputed)
 
-    if missing_mask.any():
-        rng = np.random.default_rng(random_state)
-        missing_indexes = filled_df.index[missing_mask].to_numpy()
-        chosen_model_indexes = rng.integers(0, len(student_models), size=len(missing_indexes))
+    # Setup random state for sampling
+    rng = np.random.default_rng(random_state)
 
-        for model_index in np.unique(chosen_model_indexes):
-            row_indexes = missing_indexes[chosen_model_indexes == model_index]
-            model = student_models[int(model_index)].model
-            predictions = model.predict(filled_df.loc[row_indexes, feature_columns])
-            filled_df.loc[row_indexes, target_column] = predictions.astype(int)
+    cluster_reports = {}
+    unfillable_clusters = []
 
-    filled_df[target_column] = filled_df[target_column].astype(int)
-    return filled_df, model_summary
+    if strategy in ["mean", "sample"]:
+        # 4. Cluster using KMeans
+        kmeans = KMeans(n_clusters=n_clusters, random_state=random_state, n_init=10)
+        filled_df["cluster"] = kmeans.fit_predict(x_scaled)
 
+        for cluster_id in range(n_clusters):
+            cluster_mask = filled_df["cluster"] == cluster_id
+            cluster_df = filled_df[cluster_mask]
+            
+            labeled_subset = cluster_df.dropna(subset=["focus_score"])
+            n_total = len(cluster_df)
+            n_labeled = len(labeled_subset)
+            n_missing = n_total - n_labeled
 
-def standardise_student_training_data(training_df: pd.DataFrame) -> pd.DataFrame:
-    return training_df.rename(columns=STUDENT_TRAINING_COLUMN_RENAMES).copy()
+            if n_labeled > 0:
+                if strategy == "mean":
+                    fill_value = int(round(labeled_subset["focus_score"].mean()))
+                    filled_df.loc[cluster_mask & filled_df["focus_score"].isna(), "focus_score"] = fill_value
+                    fill_desc = f"{fill_value} (mean)"
+                else:
+                    # 'sample' strategy
+                    counts = labeled_subset["focus_score"].value_counts(normalize=True)
+                    possible_values = counts.index.values
+                    probs = counts.values
+                    
+                    missing_mask = cluster_mask & filled_df["focus_score"].isna()
+                    n_to_fill = missing_mask.sum()
+                    if n_to_fill > 0:
+                        sampled_values = rng.choice(possible_values, size=n_to_fill, p=probs)
+                        filled_df.loc[missing_mask, "focus_score"] = sampled_values
+                    fill_desc = f"Sampled from {dict(zip(possible_values, np.round(probs, 2)))}"
+                
+                cluster_reports[f"Cluster {cluster_id}"] = {
+                    "total_sessions": n_total,
+                    "labeled_sessions": n_labeled,
+                    "missing_sessions": n_missing,
+                    "mean_target": float(labeled_subset["focus_score"].mean()),
+                    "fill_value_assigned": fill_desc,
+                    "status": "Filled"
+                }
+            else:
+                unfillable_clusters.append(cluster_id)
+                cluster_reports[f"Cluster {cluster_id}"] = {
+                    "total_sessions": n_total,
+                    "labeled_sessions": 0,
+                    "missing_sessions": n_missing,
+                    "mean_target": None,
+                    "fill_value_assigned": None,
+                    "status": "Unfillable (Lack of Data)"
+                }
 
+    elif strategy == "hierarchical":
+        # Strategy B: Iterative / Hierarchical propagation
+        k_sequence = [50, 20, 10, n_clusters]
+        
+        filled_df["temp_focus_score"] = filled_df["focus_score"]
+        
+        for step_idx, K in enumerate(k_sequence):
+            kmeans = KMeans(n_clusters=K, random_state=random_state, n_init=10)
+            step_clusters = kmeans.fit_predict(x_scaled)
+            
+            filled_count_this_step = 0
+            
+            for cid in range(K):
+                cluster_mask = step_clusters == cid
+                cluster_df = filled_df[cluster_mask]
+                
+                labeled_subset = cluster_df.dropna(subset=["temp_focus_score"])
+                n_total = len(cluster_df)
+                n_labeled = len(labeled_subset)
+                n_missing = (cluster_df["temp_focus_score"].isna()).sum()
+                
+                if n_labeled > 0 and n_missing > 0:
+                    counts = labeled_subset["temp_focus_score"].value_counts(normalize=True)
+                    possible_values = counts.index.values
+                    probs = counts.values
+                    
+                    missing_mask = cluster_mask & filled_df["temp_focus_score"].isna()
+                    sampled_values = rng.choice(possible_values, size=n_missing, p=probs)
+                    filled_df.loc[missing_mask, "temp_focus_score"] = sampled_values
+                    filled_count_this_step += n_missing
+                    
+            print(f"Hierarchical step {step_idx+1} (K={K}): Filled {filled_count_this_step} missing targets.")
+            
+            if filled_df["temp_focus_score"].notna().all():
+                print("All targets successfully filled.")
+                break
+                
+        filled_df["focus_score"] = filled_df["temp_focus_score"]
+        filled_df.drop(columns=["temp_focus_score"], inplace=True)
+        
+        final_kmeans = KMeans(n_clusters=n_clusters, random_state=random_state, n_init=10)
+        filled_df["cluster"] = final_kmeans.fit_predict(x_scaled)
+        
+        for cluster_id in range(n_clusters):
+            cluster_mask = filled_df["cluster"] == cluster_id
+            cluster_df = filled_df[cluster_mask]
+            
+            original_labeled = df[cluster_mask].dropna(subset=["focus_score"])
+            n_total = len(cluster_df)
+            n_labeled = len(original_labeled)
+            n_missing = n_total - n_labeled
+            
+            filled_subset = filled_df[cluster_mask]
+            still_missing = filled_subset["focus_score"].isna().sum()
+            
+            if still_missing < n_missing:
+                status = "Filled"
+                filled_vals = filled_subset.loc[df[cluster_mask]["focus_score"].isna(), "focus_score"].value_counts()
+                fill_desc = f"Filled {n_missing - still_missing} via hierarchy: {filled_vals.to_dict()}"
+            else:
+                status = "Unfillable (Lack of Data)"
+                fill_desc = None
+                unfillable_clusters.append(cluster_id)
+                
+            cluster_reports[f"Cluster {cluster_id}"] = {
+                "total_sessions": n_total,
+                "labeled_sessions": n_labeled,
+                "missing_sessions": n_missing,
+                "mean_target": float(original_labeled["focus_score"].mean()) if n_labeled > 0 else None,
+                "fill_value_assigned": fill_desc,
+                "status": status
+            }
 
-def model_summary_frame(student_models: list[StudentModel]) -> pd.DataFrame:
-    return pd.DataFrame(
-        {
-            "student_id": model.student_id,
-            "training_rows": model.rows,
-            "classes": ",".join(map(str, model.classes)),
-        }
-        for model in student_models
-    )
-
-
-def fill_targets_from_student_preferences(
-    conditions_df: pd.DataFrame,
-    student_training_df: pd.DataFrame,
-    feature_columns: list[str] | None = None,
-    target_column: str = DEFAULT_STUDENT_TARGET_COLUMN,
-    group_column: str = DEFAULT_STUDENT_GROUP_COLUMN,
-    random_state: int = RANDOM_STATE,
-    allowed_classes: set[int] | None = None,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    feature_columns = feature_columns or DEFAULT_STUDENT_FEATURE_COLUMNS
-    missing_condition_features = [
-        column for column in feature_columns if column not in conditions_df.columns
-    ]
-    if missing_condition_features:
-        raise ValueError(
-            "Conditions dataset is missing required feature columns: "
-            + ", ".join(missing_condition_features)
+    # 5.5 Apply post-propagation rule-based overrides for bad comfort conditions
+    if enable_overrides:
+        print("\nApplying post-propagation rule-based overrides for poor environmental conditions...")
+        
+        # Rule 1: Very Poor conditions (Rating = 1.0)
+        rule_1 = (
+            (filled_df["temperature_mean"] >= 29.0) |
+            (filled_df["co2_mean"] >= 2000.0) |
+            (filled_df["noise_mean"] >= 65.0)
         )
+        
+        # Rule 2: Poor conditions (Rating = 2.0)
+        rule_2 = (
+            ((filled_df["temperature_mean"] >= 27.5) & (filled_df["temperature_mean"] < 29.0)) |
+            ((filled_df["co2_mean"] >= 1300.0) & (filled_df["co2_mean"] < 2000.0)) |
+            ((filled_df["noise_mean"] >= 60.0) & (filled_df["noise_mean"] < 65.0))
+        )
+        
+        # Only override ratings of rows that were originally unlabeled
+        original_unlabeled_mask = df["focus_score"].isna()
+        
+        # Apply rule_2 first, then rule_1 to make sure rule_1 takes precedence
+        filled_df.loc[original_unlabeled_mask & rule_2, "focus_score"] = 2.0
+        filled_df.loc[original_unlabeled_mask & rule_1, "focus_score"] = 1.0
+        
+        n_rule_1 = (original_unlabeled_mask & rule_1).sum()
+        n_rule_2 = (original_unlabeled_mask & rule_2).sum()
+        print(f"  Overrode {n_rule_1} unlabeled segments to 1.0 due to severe discomfort conditions.")
+        print(f"  Overrode {n_rule_2} unlabeled segments to 2.0 due to moderate discomfort conditions.")
 
-    training_df = standardise_student_training_data(student_training_df)
-    student_models = train_class_models_by_student(
-        training_df,
-        feature_columns=feature_columns,
-        target_column=target_column,
-        group_column=group_column,
-        random_state=random_state,
-        allowed_classes=allowed_classes,
-    )
-
-    filled_df = conditions_df.copy()
-    if target_column not in filled_df.columns:
-        filled_df[target_column] = pd.NA
+    if unfillable_clusters:
+        print(f"\n[WARNING] Could not fill targets for clusters: {unfillable_clusters} due to lack of labeled data!")
     else:
-        filled_df[target_column] = normalise_class_target(
-            filled_df[target_column],
-            allowed_classes=allowed_classes,
-        )
+        print("\n[SUCCESS] All clusters successfully filled with targets.")
 
-    missing_mask = filled_df[target_column].isna()
-    if missing_mask.any():
-        rng = np.random.default_rng(random_state)
-        missing_indexes = filled_df.index[missing_mask].to_numpy()
-        chosen_model_indexes = rng.integers(0, len(student_models), size=len(missing_indexes))
+    # 6. Map columns for model compatibility:
+    filled_df["currentTemperature"] = filled_df["temperature_latest"]
+    filled_df["maxTemp"] = filled_df["temperature_max"]
+    filled_df["minTemp"] = filled_df["temperature_min"]
+    filled_df["meanTemp"] = filled_df["temperature_mean"]
+    filled_df["rating"] = filled_df["focus_score"]
 
-        for model_index in np.unique(chosen_model_indexes):
-            row_indexes = missing_indexes[chosen_model_indexes == model_index]
-            model = student_models[int(model_index)].model
-            predictions = model.predict(filled_df.loc[row_indexes, feature_columns])
-            filled_df.loc[row_indexes, target_column] = predictions.astype(int)
-
-    filled_df[target_column] = filled_df[target_column].astype(int)
-    return filled_df, model_summary_frame(student_models)
-
-
-def build_respondent_comfort_training_data(
-    measurements_df: pd.DataFrame,
-    comfort_df: pd.DataFrame,
-    match_tolerance: pd.Timedelta = pd.Timedelta("5min"),
-) -> pd.DataFrame:
-    measurements = measurements_df.copy()
-    comfort = comfort_df.copy()
-
-    measurements["timestamp"] = pd.to_datetime(measurements["timestamp"], utc=True)
-    comfort["timestamp"] = pd.to_datetime(comfort["timestamp"], utc=True)
-    comfort = comfort.rename(columns=RESPONDENT_TRAINING_COLUMN_RENAMES)
-    measurements = measurements.rename(columns=RESPONDENT_TRAINING_COLUMN_RENAMES)
-
-    merged_parts: list[pd.DataFrame] = []
-    for room_name, comfort_room_df in comfort.groupby("room", sort=True):
-        measurement_room_df = measurements[measurements["room"] == room_name].sort_values(
-            "timestamp"
-        )
-        if measurement_room_df.empty:
-            continue
-
-        merged_room_df = pd.merge_asof(
-            comfort_room_df.sort_values("timestamp"),
-            measurement_room_df,
-            on="timestamp",
-            by="room",
-            direction="nearest",
-            tolerance=match_tolerance,
-        )
-        merged_parts.append(merged_room_df)
-
-    if not merged_parts:
-        raise RuntimeError("No respondent comfort rows could be matched to room measurements.")
-
-    training_df = pd.concat(merged_parts, ignore_index=True)
-    training_df = training_df.rename(columns=RESPONDENT_TRAINING_COLUMN_RENAMES)
-    training_df = training_df[
-        [
-            "timestamp",
-            "respondent_id",
-            "room",
-            "temperature",
-            "humidity",
-            "noise",
-            "co2",
-            "focus_score",
-        ]
-    ]
-    return training_df.dropna(
-        subset=["respondent_id", "temperature", "humidity", "noise", "co2", "focus_score"]
-    ).reset_index(drop=True)
-
-
-def fill_focus_scores_from_respondent_preferences(
-    conditions_df: pd.DataFrame,
-    respondent_training_df: pd.DataFrame,
-    feature_columns: list[str] | None = None,
-    random_state: int = RANDOM_STATE,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    training_df = respondent_training_df.rename(columns=RESPONDENT_TRAINING_COLUMN_RENAMES)
-    return fill_targets_from_student_preferences(
-        conditions_df,
-        training_df,
-        feature_columns=feature_columns or DEFAULT_RESPONDENT_FEATURE_COLUMNS,
-        target_column=DEFAULT_RESPONDENT_TARGET_COLUMN,
-        group_column=DEFAULT_RESPONDENT_GROUP_COLUMN,
-        random_state=random_state,
-        allowed_classes={1, 2, 3, 4, 5},
+    # 7. Generate visualizations
+    notebook_dir = MAL_DIR / "notebooks" / "data_related"
+    generate_visualizations(
+        df=filled_df,
+        x_scaled=x_scaled,
+        cluster_labels=filled_df["cluster"].values,
+        n_clusters=n_clusters,
+        output_dir=notebook_dir,
     )
+
+    return filled_df, {
+        "cluster_reports": cluster_reports,
+        "unfillable_clusters": unfillable_clusters
+    }
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Fill missing target labels by training one model per student/location on labeled rows "
-            "and randomly selecting among those models for unlabeled rows."
-        )
+        description="Fill missing session targets using KMeans-based label propagation."
     )
-    parser.add_argument(
-        "--input",
-        type=Path,
-        default=DEFAULT_UNIFIED_DATASET_PATH,
-        help=f"Input CSV. Defaults to {DEFAULT_UNIFIED_DATASET_PATH}",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=DEFAULT_OUTPUT_PATH,
-        help=f"Filled CSV path. Defaults to {DEFAULT_OUTPUT_PATH}",
-    )
-    parser.add_argument(
-        "--target-column",
-        default=DEFAULT_TARGET_COLUMN,
-        help=f"Target column to fill. Defaults to {DEFAULT_TARGET_COLUMN}",
-    )
-    parser.add_argument(
-        "--group-column",
-        default=None,
-        help="Student/group column. Defaults to student_id, then location_id, then id.",
-    )
-    parser.add_argument(
-        "--feature-columns",
-        nargs="+",
-        default=DEFAULT_FEATURE_COLUMNS,
-        help="Numeric feature columns used by each per-student model.",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=RANDOM_STATE,
-        help=f"Random seed for model selection. Defaults to {RANDOM_STATE}",
-    )
-    parser.add_argument(
-        "--build-input",
-        action="store_true",
-        help="Build the unified dataset first using scripts/build_unified_environment_dataset.py.",
-    )
-    parser.add_argument(
-        "--student-training-input",
-        type=Path,
-        default=None,
-        help=(
-            "Optional student preference training CSV. When set, train one model per student "
-            "from this file and fill the input dataset's target column from those models."
-        ),
-    )
-    parser.add_argument(
-        "--student-mode",
-        action="store_true",
-        help=(
-            "Use data/raw/agile_teaching_dataset.csv to train per-student target models and "
-            "write target predictions to the unified environmental dataset."
-        ),
-    )
-    parser.add_argument(
-        "--respondent-comfort-mode",
-        action="store_true",
-        help=(
-            "Use respondentId + comfortValue from data/raw/4_comfort_perception.csv joined "
-            "to room measurements to train per-respondent 1-5 focus_score models."
-        ),
-    )
+    parser.add_argument("--input", type=Path, default=DEFAULT_INPUT_PATH)
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_PATH)
+    parser.add_argument("--clusters", type=int, default=DEFAULT_N_CLUSTERS)
+    parser.add_argument("--seed", type=int, default=RANDOM_STATE)
+    parser.add_argument("--strategy", type=str, default="mean", choices=["mean", "sample", "hierarchical"])
+    parser.add_argument("--disable-overrides", action="store_true", help="Disable post-propagation rule-based overrides for bad conditions.")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-
-    if args.build_input or not args.input.exists():
-        build_unified_dataset(
-            output_path=args.input,
-            report_path=DEFAULT_UNIFIED_REPORT_PATH,
-            allow_missing=False,
-        )
-
+    print(f"Reading linearized sessions from: {args.input}")
     df = pd.read_csv(args.input, low_memory=False)
-    # df = fill_missing_light_and_noise(df) new
 
-    if args.respondent_comfort_mode:
-        measurements_df = pd.read_csv(DEFAULT_ROOM_MEASUREMENTS_PATH, low_memory=False)
-        comfort_df = pd.read_csv(DEFAULT_COMFORT_PERCEPTION_PATH, low_memory=False)
-        respondent_training_df = build_respondent_comfort_training_data(
-            measurements_df,
-            comfort_df,
-        )
-        DEFAULT_RESPONDENT_TRAINING_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        respondent_training_df.to_csv(DEFAULT_RESPONDENT_TRAINING_OUTPUT_PATH, index=False)
-        if args.output == DEFAULT_OUTPUT_PATH:
-            args.output = DEFAULT_RESPONDENT_TARGET_OUTPUT_PATH
-        if args.target_column == DEFAULT_TARGET_COLUMN:
-            args.target_column = DEFAULT_RESPONDENT_TARGET_COLUMN
-        if args.feature_columns == DEFAULT_FEATURE_COLUMNS:
-            args.feature_columns = DEFAULT_RESPONDENT_FEATURE_COLUMNS
-        filled_df, model_summary = fill_focus_scores_from_respondent_preferences(
-            df,
-            respondent_training_df,
-            feature_columns=args.feature_columns,
-            random_state=args.seed,
-        )
-    elif args.student_mode or args.student_training_input:
-        training_path = args.student_training_input or DEFAULT_STUDENT_TRAINING_PATH
-        training_df = pd.read_csv(training_path, low_memory=False)
-        if args.output == DEFAULT_OUTPUT_PATH:
-            args.output = DEFAULT_STUDENT_TARGET_OUTPUT_PATH
-        if args.target_column == DEFAULT_TARGET_COLUMN:
-            args.target_column = DEFAULT_STUDENT_TARGET_COLUMN
-        if args.feature_columns == DEFAULT_FEATURE_COLUMNS:
-            args.feature_columns = DEFAULT_STUDENT_FEATURE_COLUMNS
-        filled_df, model_summary = fill_targets_from_student_preferences(
-            df,
-            training_df,
-            feature_columns=args.feature_columns,
-            target_column=args.target_column,
-            group_column=args.group_column or DEFAULT_STUDENT_GROUP_COLUMN,
-            random_state=args.seed,
-            allowed_classes={0, 1},
-        )
-    else:
-        filled_df, model_summary = fill_missing_targets(
-            df,
-            feature_columns=args.feature_columns,
-            target_column=args.target_column,
-            group_column=args.group_column,
-            random_state=args.seed,
-        )
+    filled_df, info = fill_missing_targets_via_clustering(
+        df,
+        n_clusters=args.clusters,
+        random_state=args.seed,
+        strategy=args.strategy,
+        enable_overrides=not args.disable_overrides,
+    )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     filled_df.to_csv(args.output, index=False)
+    print(f"\nSaved final holy grail dataset to: {args.output}")
 
-    missing_after = int(filled_df[args.target_column].isna().sum())
-    print(f"Saved filled dataset to: {args.output}")
-    print(f"Rows: {len(filled_df):,}")
-    print(f"Rows with missing {args.target_column}: {missing_after:,}")
-    print(f"Per-student models trained: {len(model_summary):,}")
-    print(model_summary.to_string(index=False))
+    # Print cluster report
+    print("\nCluster Aggregation Report:")
+    for cluster_name, report in info["cluster_reports"].items():
+        print(f"\n{cluster_name}:")
+        print(f"  Total Sessions:     {report['total_sessions']}")
+        print(f"  Labeled Sessions:   {report['labeled_sessions']}")
+        print(f"  Missing Sessions:   {report['missing_sessions']}")
+        if report['status'] == "Filled":
+            if report['mean_target'] is not None:
+                print(f"  Mean Target Val:    {report['mean_target']:.2f}")
+            print(f"  Assigned Target:    {report['fill_value_assigned']}")
+        else:
+            print("  Status:             UNFILLABLE (No labeled sessions in this cluster)")
 
 
 if __name__ == "__main__":

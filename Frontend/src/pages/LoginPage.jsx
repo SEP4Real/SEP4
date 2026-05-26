@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { login } from "../services/AuthService";
 import "./LoginPage.css";
 import { useLanguage } from "../context/LanguageContext";
@@ -11,6 +12,7 @@ export default function LoginPage() {
   });
 
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -50,7 +52,7 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="login-auth-content">
         <h1>{t.hi}</h1>
         <h2>{t.login}</h2>
 
@@ -67,12 +69,22 @@ export default function LoginPage() {
 
           <label>
            {t.password}:
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-            />
+            <div className="auth-password-wrapper">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? t.hidePassword : t.showPassword}
+              >
+                {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+              </button>
+            </div>
           </label>
 
           {error && <p className="login-error">{error}</p>}
@@ -81,7 +93,7 @@ export default function LoginPage() {
         </form>
 
         <p className="auth-link">
-           {t.dontHaveAccount}<Link to="/register">{t.register}</Link>
+           {t.dontHaveAccount} <Link to="/register">{t.register}</Link>
         </p>
       </div>
     </div>

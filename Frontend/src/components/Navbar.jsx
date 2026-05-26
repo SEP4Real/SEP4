@@ -19,7 +19,6 @@ const Navbar = () => {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    setUser(localStorage.getItem("user"));
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
@@ -83,13 +82,13 @@ const Navbar = () => {
             {location.pathname === "/register" ? (
               <li>
                 <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                  Login
+                  {t.login}
                 </Link>
               </li>
             ) : (
               <li>
                 <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                  Register
+                  {t.register}
                 </Link>
               </li>
             )}

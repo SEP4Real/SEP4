@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from psycopg import AsyncConnection
 
 from app.database import get_db
@@ -30,6 +30,44 @@ async def get_by_device(id: str, db: AsyncConnection = Depends(get_db)):
         await cur.execute("SELECT * FROM sessions WHERE device_id = %s", (id,))
         rows = await cur.fetchall()
     return [Session.from_row(r) for r in rows]
+
+
+@router.get("/current", response_model=Session)
+async def get_current_session(
+    device_id: str | None = Query(default=None, alias="deviceId"),
+    db: AsyncConnection = Depends(get_db),
+):
+    key = None
+    if device_id is not None:
+        key = device_id.strip()
+        if not key:
+            raise HTTPException(status_code=400, detail="deviceId is required")
+
+    async with db.cursor() as cur:
+        conditions = ["is_ended = FALSE"]
+        params: list[object] = []
+        if key is not None:
+            conditions.append("device_id = %s")
+            params.append(key)
+
+        where_clause = " AND ".join(conditions)
+
+        await cur.execute(
+            f"""
+            SELECT *
+            FROM sessions
+            WHERE {where_clause}
+            ORDER BY last_pulse_at DESC NULLS LAST, started_at DESC
+            LIMIT 1
+            """,
+            params,
+        )
+        row = await cur.fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="No active session found")
+
+    return Session.from_row(row)
 
 
 @router.get("/{id}", response_model=Session)
