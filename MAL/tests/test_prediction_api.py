@@ -25,6 +25,14 @@ VALID_PAYLOAD = {
     "meanTemp": 22,
 }
 
+INSTANT_VALID_PAYLOAD = {
+    "temperature": 22,
+    "humidity": 45,
+    "co2Level": 650,
+    "lightLevel": 300,
+    "noise": 29,
+}
+
 
 @pytest.fixture(scope="module")
 def client():
@@ -102,5 +110,23 @@ def test_predict_rejects_current_outside_window(client):
     payload = VALID_PAYLOAD | {"currentTemperature": 25}
 
     response = client.post("/predict", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_instant_predict_returns_valid_rating(client):
+    response = client.post("/instant-predict", json=INSTANT_VALID_PAYLOAD)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body.get("rating"), int)
+    assert 1 <= body["rating"] <= 5
+
+
+def test_instant_predict_rejects_missing_field(client):
+    payload = INSTANT_VALID_PAYLOAD.copy()
+    payload.pop("humidity")
+
+    response = client.post("/instant-predict", json=payload)
 
     assert response.status_code == 422

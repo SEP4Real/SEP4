@@ -318,7 +318,7 @@ void test_bad_study_conditions_sound_buzzer(void)
 {
     start_session_with_id(3);
     http_post_fake.custom_fake = capture_and_inject_post;
-    inject_post_response = "{\"rating\": 1}";
+    inject_post_response = "{\"study_quality\": 1}";
     server_send_data(22, 5, 60, 3, 856, 1200);
     TEST_ASSERT_NOT_EQUAL(0, buzzer_beep_fake.call_count);
 }

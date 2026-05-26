@@ -30,6 +30,14 @@ _VALID_PAYLOAD = {
     "meanTemp": 22.5,
 }
 
+_INSTANT_PAYLOAD = {
+    "temperature": 22.0,
+    "humidity": 45.0,
+    "co2Level": 650.0,
+    "lightLevel": 300.0,
+    "noise": 29.0,
+}
+
 
 def test_root_endpoint_with_get_returns_hello_world(client):
     # Arrange - client fixture provides the in-process test client
@@ -130,6 +138,23 @@ def test_predict_accepts_negative_temperatures(client):
     # Assert
     assert response.status_code == 200
     assert 1 <= response.json()["rating"] <= 5
+
+
+def test_instant_predict_with_valid_payload_returns_rating_in_range(client):
+    response = client.post("/instant-predict", json=_INSTANT_PAYLOAD)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body["rating"], int)
+    assert 1 <= body["rating"] <= 5
+
+
+def test_instant_predict_with_missing_field_returns_422(client):
+    payload = {k: v for k, v in _INSTANT_PAYLOAD.items() if k != "temperature"}
+
+    response = client.post("/instant-predict", json=payload)
+
+    assert response.status_code == 422
 
 
 # ---------------------------------------------------------------------------

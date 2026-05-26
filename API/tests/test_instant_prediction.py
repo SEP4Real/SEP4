@@ -71,7 +71,7 @@ def test_instant_measurement_returns_stay_for_good_conditions(client, monkeypatc
     response = client.post("/instant-measurement", json=GOOD_PAYLOAD)
 
     assert response.status_code == 201
-    assert response.json() == {"rating": 4}
+    assert response.json() == {"study_quality": 4}
 
 
 def test_instant_measurement_returns_leave_for_bad_conditions(client, monkeypatch):
@@ -79,7 +79,7 @@ def test_instant_measurement_returns_leave_for_bad_conditions(client, monkeypatc
     response = client.post("/instant-measurement", json=BAD_PAYLOAD)
 
     assert response.status_code == 201
-    assert response.json() == {"rating": 1}
+    assert response.json() == {"study_quality": 1}
 
 
 def test_latest_instant_measurement_reads_database_snapshot(client, app, monkeypatch):
@@ -89,7 +89,7 @@ def test_latest_instant_measurement_reads_database_snapshot(client, app, monkeyp
     response = client.get("/instant-measurement/latest")
 
     assert response.status_code == 200
-    assert response.json() == {"rating": 4}
+    assert response.json() == {"study_quality": 4}
 
 
 def test_latest_instant_measurement_can_filter_by_session(client, app, monkeypatch):
@@ -99,7 +99,7 @@ def test_latest_instant_measurement_can_filter_by_session(client, app, monkeypat
     response = client.get("/instant-measurement/latest?sessionId=1")
 
     assert response.status_code == 200
-    assert response.json() == {"rating": 1}
+    assert response.json() == {"study_quality": 1}
 
 
 def test_latest_instant_measurement_returns_404_without_sensor_data(client, app):
