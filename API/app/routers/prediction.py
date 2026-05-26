@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from psycopg import AsyncConnection
 
 from app.database import get_db
-from app.models import DataCreate, DataPointResponse
+from app.models import DataPointResponse
 
 import httpx
 import os
@@ -144,8 +144,7 @@ def _linearize_session(
 
 
 @router.post("", response_model=DataPointResponse, status_code=201)
-async def predict_study_quality(body: DataCreate, db: AsyncConnection = Depends(get_db)):
-    _ = body
+async def predict_study_quality(db: AsyncConnection = Depends(get_db)):
 
     has_noise = await _data_has_noise_column(db)
     session_id = await _get_current_session_id(db)
