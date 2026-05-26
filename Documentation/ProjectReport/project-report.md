@@ -382,24 +382,23 @@ The IoT design therefore combines sensors, user input, local status feedback, an
   <img src="image/iot-design/iot-hardware-block-diagram.svg" alt="IoT Hardware Block Diagram" width="50%">
 </p>
 
-
 *Figure 3.x: Hardware block diagram of the IoT device.*
 
 The hardware architecture is centred around an ATmega2560-based microcontroller board. The ATmega2560 was chosen because it provides sufficient GPIO pins, ADC channels, timers, and UART interfaces for a multi-sensor embedded prototype, while remaining compatible with the Arduino and PlatformIO development environment used in the project.
 
 The device uses the following main hardware components:
 
-| Component | Interface | Purpose |
-| :--- | :--- | :--- |
-| ATmega2560 microcontroller | GPIO, ADC, UART, timers | Main controller for sensors, buttons, display, buzzer, and communication |
-| DHT11 temperature and humidity sensor | Single-wire digital GPIO | Measures air temperature and relative humidity |
-| MH-Z19B CO2 sensor | UART3 at 9600 baud | Measures CO2 concentration in ppm |
-| KY-018 light sensor | ADC channel PK7 | Measures ambient light level |
-| Wi-Fi module | UART / AT commands | Provides TCP/IP communication with the backend API |
-| Button 1 | GPIO input with pull-up | Starts and stops a study session |
-| Button 2 | GPIO input with pull-up | Triggers an instant measurement mode |
-| Four-digit display | Shift-register style GPIO output, refreshed by timer interrupt | Shows local device state |
-| Buzzer | GPIO output | Alerts the user when predicted study quality is poor |
+| Component                             | Interface                                                      | Purpose                                                                  |
+| :------------------------------------ | :------------------------------------------------------------- | :----------------------------------------------------------------------- |
+| ATmega2560 microcontroller            | GPIO, ADC, UART, timers                                        | Main controller for sensors, buttons, display, buzzer, and communication |
+| DHT11 temperature and humidity sensor | Single-wire digital GPIO                                       | Measures air temperature and relative humidity                           |
+| MH-Z19B CO2 sensor                    | UART3 at 9600 baud                                             | Measures CO2 concentration in ppm                                        |
+| KY-018 light sensor                   | ADC channel PK7                                                | Measures ambient light level                                             |
+| Wi-Fi module                          | UART / AT commands                                             | Provides TCP/IP communication with the backend API                       |
+| Button 1                              | GPIO input with pull-up                                        | Starts and stops a study session                                         |
+| Button 2                              | GPIO input with pull-up                                        | Triggers an instant measurement mode                                     |
+| Four-digit display                    | Shift-register style GPIO output, refreshed by timer interrupt | Shows local device state                                                 |
+| Buzzer                                | GPIO output                                                    | Alerts the user when predicted study quality is poor                     |
 
 The selected sensors match the environmental factors used by the StudyHelper system. The DHT11 provides temperature and humidity, the MH-Z19B provides CO2 concentration, and the KY-018 light sensor provides a simple analogue measure of room brightness. The light driver inverts the raw ADC value so that higher values represent brighter conditions, making the reading easier to interpret in the rest of the system.
 
@@ -415,42 +414,40 @@ Sound measurement was considered during the project, but it is not part of the f
   <img src="image/iot-design/iot-firmware-module-diagram.svg" alt="IoT Firmware Module Diagram" width="80%">
 </p>
 
-
 *Figure 3.x: Firmware module structure for the IoT component.*
 
 The embedded software is implemented in C for the ATmega2560 and follows a modular architecture. The `main.c` file coordinates the application flow, while individual modules handle backend communication, HTTP request construction, display status patterns, sensors, buttons, timers, and local alerts.
 
 The most important firmware modules are:
 
-| Module | Responsibility |
-| :--- | :--- |
-| `main.c` | Coordinates boot, Wi-Fi setup, button handling, timers, session state, and sensor reading |
+| Module                              | Responsibility                                                                                                                                                          |
+| :---------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main.c`                          | Coordinates boot, Wi-Fi setup, button handling, timers, session state, and sensor reading                                                                               |
 | `server_api.c` / `server_api.h` | Implements backend-specific actions such as device registration, session creation, keepalive pulses, data upload, instant prediction requests, and local alert handling |
-| `wifi_http.c` / `wifi_http.h` | Resolves the backend host, creates TCP connections, builds HTTP requests, transmits payloads, and reads responses |
-| `dht11.c` | Reads temperature and humidity from the DHT11 sensor |
-| `co2.c` | Handles UART communication and checksum validation for the CO2 sensor |
-| `light.c` | Wraps ADC access for the light sensor |
-| `button.c` | Reads physical button states with pull-up inputs |
-| `timer.c` | Provides software timers used for periodic session actions |
-| `display_status.c` | Maps firmware states to four-digit display patterns |
-| `buzzer.c` | Produces local audio alerts |
+| `wifi_http.c` / `wifi_http.h`   | Resolves the backend host, creates TCP connections, builds HTTP requests, transmits payloads, and reads responses                                                       |
+| `dht11.c`                         | Reads temperature and humidity from the DHT11 sensor                                                                                                                    |
+| `co2.c`                           | Handles UART communication and checksum validation for the CO2 sensor                                                                                                   |
+| `light.c`                         | Wraps ADC access for the light sensor                                                                                                                                   |
+| `button.c`                        | Reads physical button states with pull-up inputs                                                                                                                        |
+| `timer.c`                         | Provides software timers used for periodic session actions                                                                                                              |
+| `display_status.c`                | Maps firmware states to four-digit display patterns                                                                                                                     |
+| `buzzer.c`                        | Produces local audio alerts                                                                                                                                             |
 
 The firmware uses a cooperative superloop design. After startup, the program continuously checks button states and timer flags. Time-critical and periodic behaviour is represented by flags such as `pulse_due` and `data_due`, which are set by timer callbacks and then handled in the main loop. This keeps the main control flow explicit and avoids introducing a full real-time operating system, which would be unnecessary for the scope of the device.
 
 Three software timers define the main runtime schedule:
 
-| Timer | Interval | Purpose |
-| :--- | :--- | :--- |
-| Pulse timer | 5 seconds | Sends a keepalive pulse while a session is active |
-| Data timer | 30 seconds | Sends environmental measurements while a session is active |
-| Button cooldown timer | 10 seconds | Prevents accidental repeated start/stop actions |
+| Timer                 | Interval   | Purpose                                                    |
+| :-------------------- | :--------- | :--------------------------------------------------------- |
+| Pulse timer           | 5 seconds  | Sends a keepalive pulse while a session is active          |
+| Data timer            | 30 seconds | Sends environmental measurements while a session is active |
+| Button cooldown timer | 10 seconds | Prevents accidental repeated start/stop actions            |
 
 The device communicates with the backend using HTTP over TCP through the Wi-Fi module. HTTP was chosen because the rest of the StudyHelper system exposes REST-style endpoints and JSON payloads. This keeps the interface between the IoT firmware and backend simple, transparent, and easy to test. Each request opens a TCP connection, sends an HTTP request, waits for a response for up to three seconds, and then closes the connection.
 
 <p align="center">
   <img src="image/iot-design/iot-session-flow-diagram.svg" alt="IoT Session Flow Diagram" width="30%">
 </p>
-
 
 *Figure 3.x: Session flow between the user, IoT device, and backend API.*
 
@@ -463,7 +460,6 @@ The firmware stores request and response data in statically allocated buffers. T
 If the backend reports that a session is no longer alive, the firmware clears the local session ID and attempts to start a new session. If a sensor data response contains a study quality rating of `1`, the buzzer is activated to warn the user that the current conditions are poor. This creates a local feedback loop where the IoT device does not only collect data, but also reacts to the study suitability prediction returned by the system.
 
 The firmware also includes an instant measurement mode controlled by Button 2. This mode allows the device to take a one-time measurement and request a prediction without entering the normal periodic session loop. It was designed as a quick check of the current environment and reuses the same sensor-reading and backend-communication modules as the session workflow.
-
 
 ## 3.3 Machine Learning — Data Exploration
 
@@ -572,10 +568,10 @@ snprintf(req, sizeof(req),
          method, endpoint, SERVER_HOST, SERVER_PORT,
          (uint16_t)strlen(body), body);
 ```
+
 Failures are handled defensively at every step. A failed TCP connect or transmit closes the connection, waits 500 ms with watchdog resets, and returns the error to the caller. After a successful send, the loop busy-waits up to 3 000 ms for the server's response — again with watchdog resets — and proceeds even if no response arrives, so the device never deadlocks on a silent server. All buffers are statically allocated; nothing on the network path uses the heap.
 
 At the protocol layer, `server_api.c` implements three workflows: one-time device registration (`POST /device`), session lifecycle (`POST /session`, `PATCH /session/{id}/pulse`), and data reporting (`POST /data`, `POST /instant-measurement`). Session start is wrapped in a retry loop of up to five attempts with a 2-second back-off and if the server cannot be reached or its response cannot be parsed within that budget, the watchdog is deliberately enabled with a short timeout to force a clean reboot. This recovery pattern — retry, then reboot — was chosen because a partially-initialised device with no session ID has no meaningful path forward. Pulse responses are also inspected: if the server replies with `"alive":false`, the device assumes the session was lost and transparently restarts it without user intervention.
-
 
 ### 3.5.3 Main Application Logic
 
@@ -729,7 +725,7 @@ Overall, the pipeline added clear value to the development workflow by catching 
 
 ## 3.9 Machine Learning — Models
 
-*Authors: [Name, Name]*
+*Authors: [Piotr Junosz, Name]*
 
 In our project, we developed two distinct kinds of models to tackle different aspects of the Study Suitability problem:
 
@@ -738,14 +734,14 @@ In our project, we developed two distinct kinds of models to tackle different as
 
 ### 3.9.1 Model Selection
 
-For the instant measurement predictions, we evaluated both regression and classification approaches since `comfortValue` is an ordinal rating (1 to 5). The models evaluated include:
+1. For the instant measurement predictions, we evaluated both regression and classification approaches since `comfortValue` is an ordinal rating (1 to 5). The models evaluated include:
 
 - **Linear Regression (LR):** Used as a baseline regressor to establish whether linear relationships exist between sensors and comfort.
 - **Random Forest Regressor (RFR):** Chosen for its ability to capture complex, non-linear interactions between environmental variables without requiring extensive feature scaling.
 - **Random Forest Classifier (RFC):** Treats the 1-5 comfort ratings as distinct classes, aiming to accurately predict the exact category.
 - **Gradient Boosting Classifier (GBC):** An advanced ensemble technique evaluated for its ability to sequentially correct prediction errors, offering potentially higher accuracy for the subjective ratings.
 - **Multi-Layer Perceptron (MLP):** A feedforward artificial neural network evaluated to see if deep, non-linear pattern recognition could better map raw sensors to human comfort.
-- **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating.
+- **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating. Those "perception" values already existed in original data that was found together with the comfort raiting, so this experiment was supposed to see if this way models can predict more accurately - it turned out that not really.
 
 ### 3.9.2 Training and Hyperparameter Tuning
 
@@ -796,18 +792,30 @@ The models were evaluated strictly on the holdout test set to determine how well
 | Multi-Layer Perceptron       | Classifier | Accuracy    | 46.1%         |
 | Two-Stage Pipeline           | Hybrid     | MAE / Acc   | 0.667 / 48.5% |
 
-#### Confusion Matrices
+**Linear Regression**
+![LR Error Plot](../../Documentation/Design/ML/cm_experiements_LR_1.png)
 
-Below are the visualised confusion matrices (or equivalent error distribution plots) for the evaluated models to further illustrate their predictive performance and typical failure modes (e.g., predicting the majority class or failing to distinguish adjacent classes).
+In the basic linear regression model the predicted values were all around the most common value (3) which suggested that the problem might need more complex model than linear. 
+
+**Random Forest Regressor**
+![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_1.png)
+
+Random forest regressor did a little better - it preserved more variance and the predicted values where compressed in the middle most common value but not as much as in the linear regression, due to [continue].
 
 **Random Forest Classifier**
 ![RFC Confusion Matrix](../../Documentation/Design/ML/cm_RFC_1.png)
 
+First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. 
+
 **Gradient Boosting Classifier**
-![GBC Confusion Matrix](../../Documentation/Design/ML/cm_GBC_3.png)
+![GBC Confusion Matrix 1](../../Documentation/Design/ML/cm_GBC_1.png)
+![GBC Confusion Matrix 2](../../Documentation/Design/ML/cm_GBC_2.png)
+![GBC Confusion Matrix 3](../../Documentation/Design/ML/cm_GBC_3.png)
 
 **Multi-Layer Perceptron**
-![MLP Confusion Matrix](../../Documentation/Design/ML/cm_MLP_3.png)
+![MLP Confusion Matrix 1](../../Documentation/Design/ML/cm_MLP_1.png)
+![MLP Confusion Matrix 2](../../Documentation/Design/ML/cm_MLP_2.png)
+![MLP Confusion Matrix 3](../../Documentation/Design/ML/cm_MLP_3.png)
 
 **Two-Stage Pipeline**
 ![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_pipeline_1.png)
@@ -960,14 +968,14 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
-| Objective | Status | Evidence |
-| :--- | :--- | :--- |
-| **IoT** — measure and transmit sensor readings every ≤60 s | ✔ Met | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission |
-| **Cloud Backend** — persist sensor data and expose a RESTful API | ✔ Met | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03[TODO: uncomment section when ready]; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy-todo-update-after-the-py-cov) `/predict` endpoint verified |
-| **Frontend** — display live readings and ML rating responsively | ✔ Met | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05 [TODO: The referenced section is still not complete]|
-| **DevOps** — containerise all components and enforce CI/CD pipelines | ✔ Met | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort |
-| **Security** — encrypt IoT-to-backend; protect frontend API endpoints | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#23-system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml` [TODO: the referenced 3.1.3 section is still not done, 2.3 needs to be uncommented]|
+| Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                                                    |
+| :----------------------------------------------------------------------------------- | :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                                                   |
+| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03[TODO: uncomment section when ready]; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period                                                                          |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy-todo-update-after-the-py-cov) `/predict` endpoint verified     |
+| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05 [TODO: The referenced section is still not complete] |
+| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort                                                                         |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#23-system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml` [TODO: the referenced 3.1.3 section is still not done, 2.3 needs to be uncommented]                            |
 
 ## 4.3 IoT Performance
 
