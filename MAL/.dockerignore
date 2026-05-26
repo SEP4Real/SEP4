@@ -8,7 +8,7 @@ tests/
 data/mock/
 data/raw/*
 data/interim/*
-models/*
 !models/.gitkeep
 !models/rf_model.pkl
+!models/instantrfcmodel.pkl
 

@@ -23,9 +23,9 @@ build/
 /environment_history.csv
 
 # Generated ML artifacts
-/MAL/models/*.pkl
-/MAL/models/*.h5
-/MAL/models/*.joblib
+# /MAL/models/*.pkl
+# /MAL/models/*.h5
+# /MAL/models/*.joblib
 
 # Combined Data_6 csv dataset / run /Mal/scripts/combine_keti_data.py if needed
 /MAL/data/interim/combined_keti_sensor_data.csv

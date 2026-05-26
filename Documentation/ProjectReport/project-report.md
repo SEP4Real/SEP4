@@ -731,33 +731,96 @@ Overall, the pipeline added clear value to the development workflow by catching 
 
 *Authors: [Name, Name]*
 
+In our project, we developed two distinct kinds of models to tackle different aspects of the Study Suitability problem:
+
+1. **Session-based Models:** These models rely on chronological session data where linearization is in place. They account for the aspect of environment changes over time.
+2. **Instant Measurement Models:** These models rely solely on point-in-time environmental sensor data (temperature, humidity, noise, co2, light) to predict the user's study suitability. We rigorously evaluated multiple approaches for this instant measurement prediction pipeline.
+
 ### 3.9.1 Model Selection
 
-[Which ML model(s) were evaluated? Justify the choice for your task type
-(classification / regression / clustering). What alternatives were considered?]
+For the instant measurement predictions, we evaluated both regression and classification approaches since `comfortValue` is an ordinal rating (1 to 5). The models evaluated include:
+
+- **Linear Regression (LR):** Used as a baseline regressor to establish whether linear relationships exist between sensors and comfort.
+- **Random Forest Regressor (RFR):** Chosen for its ability to capture complex, non-linear interactions between environmental variables without requiring extensive feature scaling.
+- **Random Forest Classifier (RFC):** Treats the 1-5 comfort ratings as distinct classes, aiming to accurately predict the exact category.
+- **Gradient Boosting Classifier (GBC):** An advanced ensemble technique evaluated for its ability to sequentially correct prediction errors, offering potentially higher accuracy for the subjective ratings.
+- **Multi-Layer Perceptron (MLP):** A feedforward artificial neural network evaluated to see if deep, non-linear pattern recognition could better map raw sensors to human comfort.
+- **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating.
 
 ### 3.9.2 Training and Hyperparameter Tuning
 
-[Describe the training procedure. How were hyperparameters tuned
-(grid search, random search, manual)? What evaluation metric was optimised?]
+To guarantee rigorous Data Science methodology, all instant models were trained using a strict **80% Training / 20% Test** split. We eliminated redundant validation splits to maximize training data utility.
+
+Instead of manual tuning, we leveraged `GridSearchCV` with 5-fold cross-validation exclusively on the 80% training set to find optimal hyperparameters. To prevent data leakage, the 20% test set was locked away during the Grid Search and only evaluated once at the very end of the experiment.
+
+The complete parameter grids searched during the tuning phase for each model were:
+
+- **Linear Regression:**
+  - `fit_intercept`: [True, False]
+- **Random Forest Regressor:**
+  - `n_estimators`: [100, 300]
+  - `max_depth`: [None, 10, 20]
+  - `min_samples_split`: [2, 5]
+  - `min_samples_leaf`: [1, 3]
+- **Random Forest Classifier:**
+  - `n_estimators`: [100, 300]
+  - `max_depth`: [None, 10, 20]
+  - `min_samples_split`: [2, 5]
+  - `min_samples_leaf`: [1, 3]
+- **Gradient Boosting Classifier:**
+  - `n_estimators`: [50, 100, 200]
+  - `learning_rate`: [0.05, 0.1]
+  - `max_depth`: [3, 5]
+- **Multi-Layer Perceptron:**
+  - `hidden_layer_sizes`: [(8,), (16,)]
+  - `alpha`: [0.0001, 0.01]
+  - `learning_rate_init`: [0.001, 0.005]
+- **Two-Stage Pipeline (Stage 2 Regressor):**
+  - `n_estimators`: [100, 200]
+  - `max_depth`: [None, 10, 20]
+- **Two-Stage Pipeline (Stage 2 Classifier):**
+  - `n_estimators`: [100, 200]
+  - `max_depth`: [None, 10, 20]
+  - `class_weight`: ['balanced', None]
 
 ### 3.9.3 Model Evaluation
 
-[Present performance results on the held-out test set.
-Use tables and visualisations (confusion matrix, learning curves, residual plots):]
+The models were evaluated strictly on the holdout test set to determine how well point-in-time sensor data correlates to a user's comfort. Regressors were evaluated using Mean Absolute Error (MAE), while classifiers were evaluated on Accuracy.
 
-<!-- ![Confusion Matrix](../../Documentation/Design/ML/confusion_matrix.png) -->
+| Model                        | Type       | Test Metric | Result        |
+| :--------------------------- | :--------- | :---------- | :------------ |
+| Linear Regression            | Regressor  | MAE         | 0.749         |
+| Random Forest Regressor      | Regressor  | MAE         | 0.737         |
+| Random Forest Classifier     | Classifier | Accuracy    | 37.2%         |
+| Gradient Boosting Classifier | Classifier | Accuracy    | 40.7%         |
+| Multi-Layer Perceptron       | Classifier | Accuracy    | 46.1%         |
+| Two-Stage Pipeline           | Hybrid     | MAE / Acc   | 0.667 / 48.5% |
 
-| Model          | Metric 1 | Metric 2 | Metric 3 |
-| :------------- | :------- | :------- | :------- |
-| Baseline       |          |          |          |
-| [Chosen model] |          |          |          |
+#### Confusion Matrices
 
-### 3.9.4 Result Export
+Below are the visualised confusion matrices (or equivalent error distribution plots) for the evaluated models to further illustrate their predictive performance and typical failure modes (e.g., predicting the majority class or failing to distinguish adjacent classes).
 
-[How are model predictions or insights exported for the rest of the system?
-What format, API endpoint, or file output does the ML component produce?
-How does the frontend consume this output?]
+**Random Forest Classifier**
+![RFC Confusion Matrix](../../Documentation/Design/ML/cm_RFC_1.png)
+
+**Gradient Boosting Classifier**
+![GBC Confusion Matrix](../../Documentation/Design/ML/cm_GBC_3.png)
+
+**Multi-Layer Perceptron**
+![MLP Confusion Matrix](../../Documentation/Design/ML/cm_MLP_3.png)
+
+**Two-Stage Pipeline**
+![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_pipeline_1.png)
+
+#### Critical Evaluation: The "Subjectivity Paradox"
+
+As clearly visible in the confusion matrices, the instant measurement models struggled to capture a robust predictive signal. The models typically exhibited two failure modes: they either heavily overfitted to the training data, or they collapsed into predicting the majority class.
+
+Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding the feasibility of the feature. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+
+A universal instant-comfort model cannot exist. To solve this, future iterations of the system must rely on personalized, user-specific profiling or hardcoded rules per user rather than attempting to map objective sensor data to a generalized subjective comfort scale.
+
+### 3.9.4 Result ExportThe best performing models were serialized into `.pkl` files (Pickle format). This allows the backend API to dynamically load the model into memory and instantly run predictions when receiving new raw sensor arrays from the physical IoT devices.
 
 ## 3.10 Frontend CI/CD
 
@@ -897,20 +960,14 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
-| Objective                                                                                  | Status     | Evidence                                                                                                                                                                                            |
-| :----------------------------------------------------------------------------------------- | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IoT** — measure and transmit sensor readings every ≤60 seconds                   | ✔ Met     | Device reads temperature, humidity, CO₂, and light level and transmits structured JSON payloads every 30 seconds via HTTP                                                                          |
-| **Cloud Backend** — persist sensor data and expose a RESTful API                    | ✔ Met     | FastAPI backend persists readings and session metadata to PostgreSQL and serves both the frontend and ML service                                                                                    |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API       | ✔ Met     | Random forest classifier predicts study suitability on a 1–5 scale; predictions are exposed through a FastAPI endpoint and displayed on the frontend                                               |
-| **Frontend** — display live readings and ML rating responsively            | ✔ Met     | React application displays live sensor data, historical sensor readings, and the current suitability rating, with responsive layouts verified at 576px, 768px, and 1200px [TODO: check if they are actually] |
-| **DevOps** — containerise all components and enforce CI/CD pipelines                | ✔ Met     | All services run as Docker containers deployed to Coolify; GitHub Actions pipelines enforce passing tests and a successful build before merging to main                                             |
-| **Security** — encrypt IoT-to-backend communication; protect frontend API endpoints | ⟳ Partial | JWT authentication and bcrypt password hashing were implemented for frontend-facing endpoints; IoT-to-backend communication was left as plain HTTP                                                  |
-
-| Objective     | Status                       | Evidence                    |
-| :------------ | :--------------------------- | :-------------------------- |
-| [Objective 1] | ✔ Met / ⟳ Partial / ✗ Not | [Test results / screenshot] |
-
-### [TODO: Idk if we actually need to include screenshots/test results as evidence but it doesn't seam fisible]
+| Objective | Status | Evidence |
+| :--- | :--- | :--- |
+| **IoT** — measure and transmit sensor readings every ≤60 s | ✔ Met | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission |
+| **Cloud Backend** — persist sensor data and expose a RESTful API | ✔ Met | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03[TODO: uncomment section when ready]; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy-todo-update-after-the-py-cov) `/predict` endpoint verified |
+| **Frontend** — display live readings and ML rating responsively | ✔ Met | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05 [TODO: The referenced section is still not complete]|
+| **DevOps** — containerise all components and enforce CI/CD pipelines | ✔ Met | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#23-system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml` [TODO: the referenced 3.1.3 section is still not done, 2.3 needs to be uncommented]|
 
 ## 4.3 IoT Performance
 

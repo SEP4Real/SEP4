@@ -9,6 +9,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, model_validator
 
+from ml_pipeline.instant_model import predict_instant
 from ml_pipeline.model import FEATURE_COLUMNS, MODEL_PATH, REAL_SENSOR_HISTORY_PATH, predict
 from ml_pipeline.transform_real_data import transform_real_data
 
@@ -75,6 +76,20 @@ class PredictionRequest(BaseModel):
 
 
 class PredictionResponse(BaseModel):
+    rating: int = Field(ge=1, le=5)
+
+
+class InstantPredictionRequest(BaseModel):
+    temperature: float = Field(allow_inf_nan=False)
+    humidity: float = Field(allow_inf_nan=False)
+    co2_level: float = Field(alias="co2Level", allow_inf_nan=False)
+    light_level: float = Field(alias="lightLevel", allow_inf_nan=False)
+    noise: float = Field(default=29.0, allow_inf_nan=False)
+
+    model_config = {"populate_by_name": True}
+
+
+class InstantPredictionResponse(BaseModel):
     rating: int = Field(ge=1, le=5)
 
 
@@ -249,3 +264,15 @@ async def get_prediction(data: PredictionRequest) -> PredictionResponse:
         data.meanLight,
     )
     return PredictionResponse(rating=rating)
+
+
+@app.post("/instant-predict", response_model=InstantPredictionResponse)
+async def get_instant_prediction(data: InstantPredictionRequest) -> InstantPredictionResponse:
+    rating = predict_instant(
+        humidity=data.humidity,
+        light=data.light_level,
+        temperature=data.temperature,
+        noise=data.noise,
+        co2=data.co2_level,
+    )
+    return InstantPredictionResponse(rating=rating)
