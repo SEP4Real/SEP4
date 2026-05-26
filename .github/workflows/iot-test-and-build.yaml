@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - dev
+  push:
+    branches:
+      - dev
+      - 'fix/**'
+  workflow_dispatch:
 
 jobs:
   detect-changes:
@@ -16,30 +21,46 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for IoT changes
-        uses: dorny/paths-filter@v3
+      - name: Determine diff range
         id: filter
-        with:
-          token: ''
-          base: ${{ github.base_ref }}
-          filters: |
-            iot:
-              - 'IOT/**'
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin "${{ github.base_ref }}"
+            diff_range="origin/${{ github.base_ref }}...HEAD"
+          elif [[ -n "${{ github.event.before }}" && "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
+            diff_range="${{ github.event.before }}...${{ github.sha }}"
+          else
+            git fetch origin main
+            diff_range="origin/main...HEAD"
+          fi
+
+          if git diff --name-only "$diff_range" | grep -q '^IOT/'; then
+            echo "iot=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "iot=false" >> "$GITHUB_OUTPUT"
+          fi
 
   iot-test:
     needs: detect-changes
-    if: needs.detect-changes.outputs.iot == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: IOT
     steps:
+      - name: Skip when IoT is unchanged
+        if: needs.detect-changes.outputs.iot != 'true'
+        run: echo "No IoT changes detected. Marking iot-test as passed."
+
       - uses: actions/checkout@v4
+        if: needs.detect-changes.outputs.iot == 'true'
 
       - name: Install lcov
+        if: needs.detect-changes.outputs.iot == 'true'
         run: sudo apt-get install -y lcov
 
       - name: Create secrets.ini
+        if: needs.detect-changes.outputs.iot == 'true'
         run: |
           cat > secrets.ini << EOF
           [secrets]
@@ -51,9 +72,11 @@ jobs:
           EOF
 
       - name: Run tests with coverage
+        if: needs.detect-changes.outputs.iot == 'true'
         run: make coverage
 
       - name: Upload HTML report as artifact
+        if: needs.detect-changes.outputs.iot == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
@@ -61,24 +84,31 @@ jobs:
 
   iot-build:
     needs: [detect-changes, iot-test]
-    if: needs.detect-changes.outputs.iot == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: IOT
     steps:
+      - name: Skip when IoT is unchanged
+        if: needs.detect-changes.outputs.iot != 'true'
+        run: echo "No IoT changes detected. Marking iot-build as passed."
+
       - uses: actions/checkout@v4
+        if: needs.detect-changes.outputs.iot == 'true'
 
       - name: Cache PlatformIO
+        if: needs.detect-changes.outputs.iot == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-pio-${{ hashFiles('IOT/platformio.ini') }}
 
       - name: Install PlatformIO
+        if: needs.detect-changes.outputs.iot == 'true'
         run: pip install platformio
 
       - name: Create secrets.ini
+        if: needs.detect-changes.outputs.iot == 'true'
         run: |
           cat > secrets.ini << EOF
           [secrets]
@@ -90,9 +120,11 @@ jobs:
           EOF
 
       - name: Build
+        if: needs.detect-changes.outputs.iot == 'true'
         run: pio run -e megaatmega2560
 
       - name: Upload .hex artifact
+        if: needs.detect-changes.outputs.iot == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: firmware
