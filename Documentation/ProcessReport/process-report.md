@@ -124,7 +124,7 @@ The shift from measuring focus to measuring suitability was the single most impo
 
 ## 3.3 Time Planning and Scheduling
 
-**Initial Planning and Tooling**
+**Initial Planning**
 We based our project timeline on Agile Scrum. Before writing any code, we used Figma to map out our structure visually, which helped us turn abstract requirements into actual technical tasks. We started out with standard two-week sprints, planning to switch to one-week sprints later on.
 
 **Cross-Team Alignment in a Large Group**
