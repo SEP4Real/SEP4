@@ -69,8 +69,10 @@ and reflect on how it influenced the collaboration.]
 ## 2.2 Roles and Contributions
 
 The distribution of responsibilities was primarily based on technology areas: frontend, backend, MAL, and IoT. While initial plans for the distribution of responsibilities were developed early in the sprint planning process, the actual distribution gradually evolved throughout the semester as the project took shape.
+
 Frontend-related tasks included dashboard development, localization, theming, profile features, responsiveness, calendar support, testing, and deployment preparation. Backend tasks focused on developing the authentication system, API endpoints, JWTs, and database interactions. MAL tasks included model-based predictions, dataset generation, and fitness prediction experiments. Tasks performed by the IoT team focused on sensor integration and connectivity.
-All tasks were managed using Jira and GitHub. Jira was responsible for tracking sprint-related issues and their progress, while GitHub branches and pull requests were used for implementation-related work.
+
+Tasks were managed using tools chosen by each subteam. Some subteams used Jira to track sprint-related issues and their progress, while others used their own preferred tools for task management. GitHub branches and pull requests were used across all subteams for implementation-related work.
 
 ## 2.3 Team Dynamics and Collaboration
 
