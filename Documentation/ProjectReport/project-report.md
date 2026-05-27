@@ -1331,7 +1331,7 @@ The coverage report gave a clearer view of test quality than pass/fail results a
      Objective tone only. No personal opinions — those go in the Process Report.
      Cover: full-system integration, objectives met, critical evaluation, limitations. -->
 
-*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek*
 
 ## 4.1 Integrated System Results
 
