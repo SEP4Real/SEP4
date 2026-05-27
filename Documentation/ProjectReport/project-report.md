@@ -698,16 +698,46 @@ Rather than using simple means or linear regression, we adopted a cluster-based 
 
 If a cluster suffered from extreme sparsity (e.g., completely missing a feature like noise), a global median was used as a fallback to prevent model bias.
 
-### 3.6.2 Feature Selection TODO: instant and session based
+### 3.6.2 Feature Selection: Session and Instant Pipelines
 
-Our feature extraction pipeline aggregates ("linearize") time-series sensor data into session-level metrics that are calculated dynamically for the active session. This generates a comprehensive 16-feature vector encompassing current (last non-null), maximum, minimum, and mean values for all four sensor types evaluated over the entire active session up to the prediction request:
+The MAL codebase implements two prediction pipelines. The following describes the exact inputs, datasets, saved artifacts.
 
-- **Temperature**: `currentTemperature`, `maxTemp`, `minTemp`, `meanTemp`
-- **Humidity**: `currentHumidity`, `maxHumidity`, `minHumidity`, `meanHumidity`
-- **CO2**: `currentCO2`, `maxCO2`, `minCO2`, `meanCO2`
-- **Light**: `currentLight`, `maxLight`, `minLight`, `meanLight`
+#### Session-Based Prediction
 
-This complete set of linearized features is passed to the `/predict` API endpoint to evaluate the user's current focus `rating`, providing the ML service with the full spectrum of environmental data.
+The session pipeline accumulates temporally contiguous device readings into a session window and computes summary statistics per each sensor. Input features (16 total) are current/mean/min/max statistics used by the session model:
+
+- `currentTemperature`, `meanTemp`, `minTemp`, `maxTemp`
+- `currentHumidity`, `humidity_mean`, `humidity_min`, `humidity_max`
+- `currentCO2`, `co2_mean`, `co2_min`, `co2_max`
+- `currentLight`, `light_mean`, `light_min`, `light_max`
+
+These features are produced from the processed dataset `MAL/data/processed/linearized_session_windows.csv`. The session model is trained in `MAL/scripts/train_model.py`. The final session-level artifact deployed by the service is `MAL/models/nn_model.pkl` (with its associated scaler/transform saved alongside the artifact).
+
+TO DO (what about noise?)
+
+#### Instant Prediction
+
+The instant pipeline makes point-in-time predictions from a compact set of immediate sensor readings. The input features are:
+- `temperature`, `humidity`, `co2`, `light`, `noise`
+
+Training data for the instant model is `MAL/data/processed/instant_mock_clean.csv`. The pipeline relies entirely on this fixed five-feature set. The `GridSearchCV` process in `MAL/ml_pipeline/instant_model.py` is utilized for hyperparameter tuning to configure the best-performing Random Forest model. The chosen production artifacts are `MAL/models/instantrfcmodel.pkl` and `MAL/models/instant_scaler.pkl`.
+
+The instant endpoint enforces the `InstantPredictionRequest` schema; when the client omits `noise` the backend substitutes the conservative default `noise=29.0` to maintain deterministic behaviour and avoid runtime failures.
+
+#### Endpoint and Artifact Mapping
+
+| Endpoint | Model Type | Input Features | Saved Artifact |
+| :------- | :--------- | :------------- | :------------- |
+| `/predict` | Session-level neural network | 16 session-aggregate features (current/mean/min/max for Temperature, Humidity, CO₂, Light) | `MAL/models/nn_model.pkl` (+scaler) |
+| `/instant-predict` | Instant Random Forest | 5 real-time features (temperature, humidity, CO₂, light, noise) | `MAL/models/instantrfcmodel.pkl`, `MAL/models/instant_scaler.pkl` |
+
+#### Data Provenance and Retraining
+
+Export and collection endpoints (`/collect-data`, `/export-data`) run `transform_real_data()` and persist processed CSVs to `MAL/data/processed/` with provenance metadata such as (TO DO). These artifacts are the inputs for offline retraining.
+
+#### Validation & Safety
+
+TO DO
 
 ### 3.6.3 Data Split and Validation Strategy
 
@@ -922,7 +952,7 @@ The frontend application can be accessed at: https://frontend.sep4.eduardfekete.
 
 ## 3.8 IoT CI/CD
 
-*Authors: [Jakub Maciej Baczek, Name]*
+*Authors: Jakub Maciej Baczek*
 
 <!-- DevOps checklist — address all four points:
      1. General DevOps considerations and planning
@@ -1201,7 +1231,7 @@ What automated checks ran on every PR? What gaps remained?]
 
 ## 3.11 IoT Tests
 
-*Authors: [Jakub Maciej Baczek, Name]*
+*Authors: Jakub Baczek*
 
 ### 3.11.1 Testing Strategy for Embedded C
 
@@ -1301,7 +1331,7 @@ The coverage report gave a clearer view of test quality than pass/fail results a
      Objective tone only. No personal opinions — those go in the Process Report.
      Cover: full-system integration, objectives met, critical evaluation, limitations. -->
 
-*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek*
 
 ## 4.1 Integrated System Results
 
@@ -1317,11 +1347,11 @@ partially met, or not met, and support the assessment with evidence.]
 | Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                   |
 | :----------------------------------------------------------------------------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                  |
-| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#system-requirements) FR02–FR03; [§4.6](#cloud-and-devops-evaluation) stack stable throughout project period                                                                                   |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified |
-| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#system-requirements) FR05                        |
-| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#cloud-and-devops-evaluation) zero manual deployment effort                                           |
-| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml`                                                                                  |
+| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period                                                                                   |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector [TODO fill in when section done]; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified |
+| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05                        |
+| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort                                           |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; secret management via environment variables enforced in `docker-compose.yml`                                                                                  |
 
 ## 4.3 IoT Performance
 
