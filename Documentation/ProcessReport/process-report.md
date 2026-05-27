@@ -63,7 +63,7 @@ and reflect on how it influenced the collaboration.]
 | Piotr Junosz                   | MAL / Scrum Master              | Data search, Data imputation with clustering, Instant models                                                 |
 | Jakub Maciej Baczek            | Scrum Master / Devops / Backend | IOT Testing, IOT-facing API with unit tests, CI/CD for API and IOT                                           |
 | Mara-Ioana Statie              |                                 |                                                                                                              |
-| Alexandru Savin                |                                 |                                                                                                              |
+| Alexandru Savin                | MAL                             | Mock data analsis and preprocessing, models training and evaluation, API endpoints                          |
 | Tymoteusz Krzysztof Zydkiewicz |                                 |                                                                                                              |
 
 ## 2.2 Roles and Contributions
