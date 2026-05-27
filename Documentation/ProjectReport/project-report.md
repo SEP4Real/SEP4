@@ -561,6 +561,20 @@ The frontend uses custom CSS with Flexbox and CSS Grid. No large UI framework wa
 
 The layout was made to work at the required widths of 576 px, 768 px, and 1200 px. On smaller screens, the dashboard content stacks vertically so that the user can still read the sensor cards, chart, recommendation, and history. On medium screens, the cards and profile fields can use more columns. On larger screens, the dashboard has more space for the chart and the detailed history list. The goal was to keep the same features available on both phones and laptops, without requiring horizontal scrolling.
 
+### 3.4.4 Localization and Theme System
+
+The frontend application supports both English and Danish languages. Localization was implemented using React Context together with centralized translation objects. Instead of storing hardcoded text directly inside components, the application dynamically changes labels and interface text depending on the selected language.
+
+The selected language is stored in `localStorage`, which allows the application to preserve the user's preferences after refreshing or reopening the application. Localization affects multiple parts of the frontend, including the navigation bar, dashboard, profile page, authentication pages, recommendations, and session-related UI elements.
+
+During development, localization became more complicated than initially expected because many components originally contained static text values. After the localization system was introduced, several components had to be refactored in order to support dynamic translations consistently across the application.
+
+The frontend also implements a dark/light theme system using `ThemeContext`. The selected theme is stored in `localStorage` and applied dynamically throughout the application.
+
+Theme support affects multiple frontend areas, including dashboard cards, navigation, charts, recommendation sections, popups, and general page styling. One challenge during implementation was maintaining visual consistency between components after adding dynamic themes, because colors, backgrounds, borders, and charts needed additional styling adjustments for both modes.
+
+The localization and theme systems became important parts of the frontend architecture because they affected reusable components, state management, rendering logic, and overall user experience across the application.
+
 ## 3.5 IoT Implementation
 
 *Authors: Damian Michal Choina, Jakub Maciej Baczek, Tymoteusz Krzysztof Zydkiewicz*
