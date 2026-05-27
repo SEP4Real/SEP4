@@ -806,40 +806,40 @@ This function is used when a user connects a device from the profile page. First
 
 The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
 
-![alt text](image/fe-implementation/image-9.png)
+![alt text](image/FE/image-9.png)
 Figure x: FullCalendar in CalendarPage.jsx
 
 The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
 
-![alt text](image/fe-implementation/image-10.png)
+![alt text](image/FE/image-10.png)
 Figure x: useEffect in CalendarPage.jsx
 
 Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
 
-![alt text](image/fe-implementation/image-11.png)
+![alt text](image/FE/image-11.png)
 Figure x: handleSelect() in CalendarPage.jsx
 
 If the user decides to edit, the handleEventClick() function loads event data into the form.
 
-![alt text](image/fe-implementation/image-12.png)
+![alt text](image/FE/image-12.png)
 Figure x: handleEventClick() in CalendarPage.jsx
 
 CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
-![alt text](image/fe-implementation/image-13.png)
+![alt text](image/FE/image-13.png)
 Figure x: createCalendarEvent() in CalendarService.js
 
 Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
 
-![alt text](image/fe-implementation/image-14.png)
+![alt text](image/FE/image-14.png)
 Figure x: credentials check in CalendarService.js requests
 
 REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
 
-![alt text](image/fe-implementation/image-15.png)
+![alt text](image/FE/image-15.png)
 Figure x: GET endpoint in calendar.py
 
-![alt text](image/fe-implementation/image-16.png)
+![alt text](image/FE/image-16.png)
 Figure x: request model in calendar.py
 
 ### 3.7.2 API Integration
@@ -856,41 +856,41 @@ Fetch API performs the requests to the backend and is used to load the data in t
 
 For local and deployed environment, an API configuration was created:
 
-![alt text](image/fe-implementation/image.png)
+![alt text](image/FE/image.png)
 Figure x: apiConfig.js
 
 To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
 
-![alt text](image/fe-implementation/image-1.png)
+![alt text](image/FE/image-1.png)
 Figure x: getDashboardData in DashboardService.js
 
 Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
 
-![alt text](image/fe-implementation/image-2.png)
+![alt text](image/FE/image-2.png)
 Figure x: login() in AuthService.js
 
 These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
-![alt text](image/fe-implementation/image-3.png)
+![alt text](image/FE/image-3.png)
 Figure x: handleSubmit() in LoginPage.jsx
 
 In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-![alt text](image/fe-implementation/image-4.png)
+![alt text](image/FE/image-4.png)
 Figure x: LoadingSpinner() in LoadinSpinner.jsx
 
-![alt text](image/fe-implementation/image-5.png)
+![alt text](image/FE/image-5.png)
 Figure x: EmptyState() in EmptyState.jsx
 
 MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
 
-![alt text](image/fe-implementation/image-6.png)
+![alt text](image/FE/image-6.png)
 Figure x: getPrediction() in malService.js
 
 Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
-![alt text](image/fe-implementation/image-7.png)
-![alt text](image/fe-implementation/image-8.png)
+![alt text](image/FE/image-7.png)
+![alt text](image/FE/image-8.png)
 Figure x: visualization of prediction
 
 ### 3.7.3 Hosting and Deployment
@@ -901,21 +901,21 @@ Figure x: visualization of prediction
 
 [Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
 
-The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers. It is build using Vite- a fast frontend building tool which optimizes React's code.
+The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers.
 
 The Docker build process was divided into 3 stages to separate the build from the runtime environment. In the first stage, Node.js Alpine container installed all dependencies and the product was generated using "npm run build" command. In the second stage, the generated files were copied into an Nginx container.
 
-![alt text](image/fe-implementation/image-17.png)
+![alt text](image/FE/image-17.png)
 Figure x: Dockerfile
 
 In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured.
 
-![alt text](image/fe-implementation/image-18.png)
+![alt text](image/FE/image-18.png)
 Figure x:  .env
 
-Deployment was automated through GitHub Actions workflows. When new changes were pushed to the main branch, the frontend container image is automatically rebuilt and the new frontend is deployed through Coolify.
+When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify.
 
-![alt text](image/fe-implementation/image-19.png)
+![alt text](image/FE/image-19.png)
 Figure x: deployment workflow
 
 The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
@@ -1166,6 +1166,8 @@ How were code ownership and review responsibilities organised?]
 
 ### 3.10.2 Tools and Pipeline
 
+*Authors: [Marta Zrno]*
+
 [Describe the CI/CD pipeline for the frontend:
 
 - Linting and formatting (ESLint, Prettier)
@@ -1173,6 +1175,19 @@ How were code ownership and review responsibilities organised?]
 - E2E tests if applicable (Cypress, Playwright)
 - Automated build and deployment to hosting
 - Container usage for frontend (if applicable)]
+
+ESLint was used in the frontend for finding errors, such as variables that were not used, incorrectly used hooks, etc. It provided a way to keep the code clean and consistent, which is crucial when shared between teammates.
+
+![alt text](image/FE/image-20.png)
+Figure x:  scripts config in package.json
+
+Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. 
+
+![alt text](image/FE/image-21.png)
+Figure x: Vitest env config
+
+Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+
 
 ### 3.10.3 Integration into Workflow
 
