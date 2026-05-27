@@ -1149,20 +1149,60 @@ No automated integration testing was implemented, as the hardware constraints di
 
 ### 3.12.1 Testing Strategy {#3132-frontend-testing-strategy}
 
-<!-- [What test types were applied? Unit tests (component rendering), integration tests
-(API mocking), or E2E tests (full browser automation)?] -->
+Frontend testing was added near the end of the final sprint, once the interface structure and backend integration had become stable enough to test reliably. Earlier in the project, frequent changes to authentication, session handling, API responses, and MAL integration made automated UI tests difficult to maintain.
 
-### 3.12.2 Test Results
+The tests used **Vitest** with **React Testing Library**, **jsdom**, and **user-event**. The focus was on component-level and integration-oriented tests rather than full end-to-end browser automation, since backend endpoints and deployment behavior were still changing late in the project.
 
-| Test Suite        | Tests | Passed | Failed | Coverage |
-| :---------------- | :---- | :----- | :----- | :------- |
-| Component tests   |       |        |        |          |
-| Integration tests |       |        |        |          |
+The strategy covered the most important user-facing behavior: component rendering, user interaction, localization, theme switching, localStorage persistence, session rating, authentication-related rendering, and dashboard states. This helped verify both static UI output and dynamic behavior involving React Contexts, asynchronous state changes, and API-dependent transitions.
 
-### 3.12.3 Responsiveness Testing {#3123-responsiveness-testing}
+### 3.12.2 Component Rendering Tests
 
-<!-- [How was responsive behaviour verified at the three required breakpoints
-(576px, 768px, 1200px)? Include screenshots if helpful.] -->
+Component rendering tests verified that important UI elements displayed correctly under expected conditions. This included conditional rendering, text output, updates after state changes, and consistency across themes and languages.
+
+The Dashboard was one of the main testing targets because it combines sensor cards, recommendations, session state, rating UI, graphs, loading states, and history displays. Testing it helped confirm that the central frontend view remained stable when several UI states changed at the same time.
+
+### 3.12.3 Localization Testing
+
+Localization tests verified that the application switched correctly between English and Danish. The tests checked default language rendering, language changes through React Context, and persistence through localStorage.
+
+Profile-related labels such as profile, email, password, and authentication text were also tested because translation changes affected many parts of the interface.
+
+### 3.12.4 Theme Switching Tests
+
+Theme tests verified dark/light mode switching through ThemeContext and localStorage. They checked that user interaction updated the selected theme, that theme-aware components reacted correctly, and that the preference persisted after reloads.
+
+### 3.12.5 Session Rating Tests
+
+Session rating tests covered the rating popup, user interaction with rating controls, submission behavior, and data handling during rating submission. They also checked that stopping a study session triggered the expected rating behavior on the dashboard.
+
+### 3.12.6 Authentication and State Persistence Tests
+
+Authentication and persistence tests checked how protected and public routes rendered for authenticated and unauthenticated users. They also validated localStorage behavior for theme, language, authentication state, connected device data, and session-related state.
+
+### 3.12.7 Integration-Oriented Frontend Testing
+
+Although the frontend tests were not full end-to-end browser tests, several behaved like lightweight integration tests. They validated interactions between context providers, localStorage, user events, state updates, and dashboard/session rendering without requiring a full browser automation setup.
+
+### 3.12.8 Challenges During Frontend Testing
+
+Frontend testing was challenging because backend endpoints, API responses, authentication, and session synchronization changed during integration. Some components also depended on asynchronous rendering, React Context, and API-related state transitions, which required extra handling in tests.
+
+The tests still helped reveal issues that were easy to miss manually, especially around state synchronization, context updates, localStorage, conditional rendering, and theme-related UI differences.
+
+### 3.12.9 Test Results
+
+| Test Suite                         | Tests | Passed | Failed | Coverage |
+| :--------------------------------- | :---- | :----- | :----- | :------- |
+| Dashboard rendering tests          | 2     | 2      | 0      | Partial  |
+| Theme switching tests              | 2     | 2      | 0      | Partial  |
+| Localization tests                 | 2     | 2      | 0      | Partial  |
+| Profile localization tests         | 2     | 2      | 0      | Partial  |
+| Session rating component tests     | 3     | 3      | 0      | Partial  |
+| Authentication flow tests          | 2     | 2      | 0      | Partial  |
+| Device persistence tests           | 1     | 1      | 0      | Partial  |
+
+The frontend tests focused on stabilizing the most important user-facing functionality rather than achieving complete coverage. All implemented test suites passed, giving confidence in the main interaction flows during the final development stage.
+
 
 ## 3.13 Machine Learning Tests and DevOps (MLOps)
 
