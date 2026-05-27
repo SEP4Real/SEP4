@@ -202,7 +202,7 @@ The following user stories were derived from the use cases defined in the projec
 | US11 | As a Student, I want to manage calendar events, so that I can plan study sessions in the same application.                                                                       | Could have  | Frontend                    |
 | US12 | As a User, I want to switch between English and Danish and use dark mode, so that the application is easier to use in different contexts.                                        | Could have  | Frontend                    |
 
-## 2.3 System Requirements
+## 2.3 System Requirements {#23-system-requirements}
 
 The following requirements were derived from the user stories and supplemented by cross-cutting concerns identified during analysis:
 
@@ -228,7 +228,7 @@ The following requirements were derived from the user stories and supplemented b
 
 A comprehensive specification of these non-functional criteria under the FURPS+ quality framework is maintained in the project's [Non-Functional Requirements Document](../NonFunctionalRequirements.md).
 
-## 2.4 System Sequence Diagrams
+## 2.4 System Sequence Diagrams {#24-system-sequence-diagrams}
 
 System Sequence Diagrams (SSDs) establish the boundaries of the StudyHelper system, mapping external actor triggers to synchronous and asynchronous system responses. In our architectural design, these SSDs served as the contract between the embedded firmware (C/C++ on ATmega2560), the cloud backend (FastAPI/PostgreSQL), the machine learning service (MAL), and the client-side user interface (React).
 
@@ -296,7 +296,7 @@ Modeling the parallel execution of these transactions helped the development tea
 
 
 
-### 3.1.1 System Architecture
+### 3.1.1 System Architecture {#311-system-architecture}
 
 [Describe the overall architecture: IoT device → Cloud backend → Frontend,
 with the ML pipeline integrated into or alongside the cloud layer.
@@ -319,7 +319,7 @@ The React frontend is a static single-page application served by Nginx inside a 
 
 Data flows through the system as follows: the IoT device pushes a sensor payload to the Core API during an active session; the Core API persists the reading in PostgreSQL and requests a suitability prediction from the MAL API; the MAL API returns a rating; the Core API stores the rating together with the sensor data and relays the result to the frontend. The frontend polls the Core API for dashboard data and renders the latest readings, chart, and recommendation.
 
-### 3.1.2 Cloud Architecture
+### 3.1.2 Cloud Architecture {#312-cloud-architecture}
 
 <!-- Required by SEP4: must use public cloud hosting, containers, and serverless. -->
 
@@ -335,7 +335,7 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 **Continuous delivery:** On every push to `main`, a GitHub Actions workflow sends a webhook to Coolify, which pulls updated images from GHCR and restarts the affected containers. Pre-built images for `mal-api` and `frontend` are published to GHCR as part of the MLOps and frontend CI/CD pipelines.
 
-### 3.1.3 Security Design
+### 3.1.3 Security Design {#313-security-design}
 
 
 
@@ -397,9 +397,9 @@ The design is based on three central requirements. First, the device must measur
 
 The IoT design therefore combines sensors, user input, local status feedback, and network communication in one embedded prototype. The firmware is divided into small modules with clear responsibilities, so that hardware drivers, backend communication, display status logic, and the main session controller can be developed and tested separately.
 
-### 3.2.1 Hardware Architecture
+### 3.2.1 Hardware Architecture {#321-hardware-architecture}
 
-![Hardware block diagram of the IoT device.](image/iot-design/iot-hardware-block-diagram.svg){width=50%}
+![Hardware block diagram of the IoT device.](image/iot-design/iot-hardware-block-diagram.png){width=50%}
 
 The hardware architecture is centred around an ATmega2560-based microcontroller board. The ATmega2560 was chosen because it provides sufficient GPIO pins, ADC channels, timers, and UART interfaces for a multi-sensor embedded prototype, while remaining compatible with the Arduino and PlatformIO development environment used in the project.
 
@@ -425,9 +425,9 @@ The device also includes local user interaction and feedback. Button 1 controls 
 
 Sound measurement was considered during the project, but it is not part of the final active IoT design because the available sound sensor did not provide reliable enough readings. The final hardware design therefore focuses on temperature, humidity, CO2, and light, which are the sensor values actually transmitted by the firmware.
 
-### 3.2.2 Embedded Software Architecture
+### 3.2.2 Embedded Software Architecture {#322-embedded-software-architecture}
 
-![Firmware module structure for the IoT component.](image/iot-design/iot-firmware-module-diagram.svg){width=80%}
+![Firmware module structure for the IoT component.](image/iot-design/iot-firmware-module-diagram.png){width=80%}
 
 The embedded software is implemented in C for the ATmega2560 and follows a modular architecture. The `main.c` file coordinates the application flow, while individual modules handle backend communication, HTTP request construction, display status patterns, sensors, buttons, timers, and local alerts.
 
@@ -458,7 +458,7 @@ Three software timers define the main runtime schedule:
 
 The device communicates with the backend using HTTP over TCP through the Wi-Fi module. HTTP was chosen because the rest of the StudyHelper system exposes REST-style endpoints and JSON payloads. This keeps the interface between the IoT firmware and backend simple, transparent, and easy to test. Each request opens a TCP connection, sends an HTTP request, waits for a response for up to three seconds, and then closes the connection.
 
-![Session flow between the user, IoT device, and backend API.](image/iot-design/iot-session-flow-diagram.svg){width=30%}
+![Session flow between the user, IoT device, and backend API.](image/iot-design/iot-session-flow-diagram.png){width=30%}
 
 The session flow begins during boot. The firmware initialises the display, UART, sensors, Wi-Fi module, and backend host resolution. It then registers the physical device ID with the backend. After this setup, the device enters idle mode and waits for user input.
 
@@ -490,7 +490,7 @@ Correlation analysis further revealed insights into data quality. Healthy datase
 
 ![Correlation matrices showing healthy physical relationships (left) vs suspicious randomness (right).](../ProcessReport/image/process-report/1778581896856.png)
 
-### 3.3.3 ML Problem Formulation
+### 3.3.3 ML Problem Formulation {#333-ml-problem-formulation}
 
 The ML task is formulated as a supervised learning problem aimed at predicting the Study Suitability Rating. To support both continuous monitoring and on-demand environmental checks, the problem is divided into two distinct modeling paradigms:
 
@@ -522,7 +522,7 @@ The codebase explicitly separates two prediction pipelines rather than treating 
 
 <!-- Design of the React web application. -->
 
-### 3.4.1 UI/UX Design
+### 3.4.1 UI/UX Design {#341-uiux-design}
 
 The frontend was built for students who want to quickly check if their study environment is suitable. The most important actions are logging in, connecting a device, seeing the current sensor values, checking previous measurements, and rating a study session afterwards. Because of this, the dashboard is the main page after login, while the profile and calendar pages are available from the navigation bar.
 
@@ -552,9 +552,9 @@ Routing is handled with `react-router-dom`. The public routes are `/login`, and 
 
 <!-- ![Component Diagram](../../Documentation/Design/Frontend/component_diagram.svg) -->
 
-![Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.](../Design/Frontend/Component_diagram.svg){width=90%}
+![Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.](../Design/Frontend/Component_diagram.png){width=90%}
 
-### 3.4.3 Responsiveness Strategy
+### 3.4.3 Responsiveness Strategy {#343-responsiveness-strategy}
 
 <!-- Required: must adapt well to 576px, 768px, and 1200px screen widths. -->
 
@@ -566,7 +566,7 @@ The layout was made to work at the required widths of 576 px, 768 px, and 1200 p
 
 *Authors: Damian Michal Choina, Jakub Maciej Baczek, Tymoteusz Krzysztof Zydkiewicz*
 
-### 3.5.1 Sensor and Actuator Drivers
+### 3.5.1 Sensor and Actuator Drivers {#351-sensor-and-actuator-drivers}
 
 The firmware uses a layered driver structure: each peripheral is encapsulated behind a small header in `IOT/lib/` that exposes a minimal initialisation function and one or two read or write operations. This separation keeps the application code in `main.c`, `server_api.c`, and `wifi_http.c` free of register-level concerns and makes individual drivers replaceable without touching the application logic.
 
@@ -585,7 +585,7 @@ if (co2_read_ppm(&current_co2) == CO2_OK) {
 co2_request_measurement();           /* request next reading */
 ```
 
-### 3.5.2 Cloud Communication Implementation
+### 3.5.2 Cloud Communication Implementation {#352-cloud-communication-implementation}
 
 Network communication is split into two layers. The lower layer (`wifi_http.c`) is responsible for the HTTP transport — DNS resolution, TCP connection lifecycle, and request formatting. The upper layer (`server_api.c`) is responsible for protocol concerns — endpoint paths, JSON payloads, response parsing, and session state. This separation keeps the HTTP layer reusable and the protocol layer free of low-level transport details.
 
@@ -642,7 +642,7 @@ Rather than using simple means or linear regression, we adopted a cluster-based 
 
 If a cluster suffered from extreme sparsity (e.g., completely missing a feature like noise), a global median was used as a fallback to prevent model bias.
 
-### 3.6.2 Feature Selection: Session and Instant Pipelines
+### 3.6.2 Feature Selection: Session and Instant Pipelines {#362-feature-selection}
 
 The MAL codebase implements two prediction pipelines. The following describes the exact inputs, datasets, saved artifacts.
 
@@ -699,7 +699,7 @@ An ideal final test set would have consisted of real StudyHelper usage data coll
 
 *Authors: Cristina Matei, Karina Rubahova, Marta Zrno*
 
-### 3.7.1 Core Features Implementation
+### 3.7.1 Core Features Implementation {#371-core-features-implementation}
 
 The frontend implements the main user-facing workflows of the system: authentication, dashboard monitoring, session rating, profile management, device connection, calendar planning, theme switching, and language switching. Each workflow is built as a React page or reusable component, while backend communication is kept in service files under `src/services`.
 
@@ -707,7 +707,7 @@ The application uses protected routes to separate public pages from authenticate
 
 The following subsections describe the most important frontend features in more detail.
 
-### 3.7.1.1 Dashboard Implementation
+### 3.7.1.1 Dashboard Implementation {#3711-dashboard-implementation}
 
 
 
@@ -864,7 +864,7 @@ Automatic deployment presents a similar problem. In a conventional software proj
 
 These constraints were acknowledged from the outset, and the CI/CD strategy was designed accordingly. Rather than attempting to run firmware on the target or simulate peripherals fully, the CI side of the pipeline focuses on two concerns: automated unit testing of hardware-independent logic, compiled and run natively on the CI runner using GCC, and a firmware build step using PlatformIO to verify that the codebase compiles correctly for the ATmega2560 target. The CD side is reduced to producing and publishing the `.hex` artifact, deferring the final flashing step to the developer. This separation allowed meaningful automation despite the inherent limitations of embedded CI/CD.
 
-### 3.8.2 Tools and Pipeline
+### 3.8.2 Tools and Pipeline {#382-tools-and-pipeline}
 
 ## CI Pipeline
 
@@ -904,7 +904,7 @@ The most significant limitation of the pipeline is the scope of what could be te
 
 Overall, the pipeline added clear value to the development workflow by catching build and logic errors early, enforcing a baseline standard for all contributions, and producing a deployable firmware artifact on every successful PR. The inability to automate hardware-level testing is an inherent property of the embedded domain rather than a gap in the implementation, and the pipeline was scoped accordingly.
 
-## 3.9 Machine Learning — Models
+## 3.9 Machine Learning — Models {#39-machine-learning-models}
 
 *Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
@@ -913,7 +913,7 @@ In our project, we developed two distinct kinds of models to tackle different as
 1. **Session-based Models:** These models rely on chronological session data where linearization is in place. They account for the aspect of environment changes over time.
 2. **Instant Measurement Models:** These models rely solely on instantaneous environmental sensor data (temperature, humidity, noise, CO2, light) to predict whether current conditions are favorable to initiating a study session. We rigorously evaluated multiple approaches for this instant measurement prediction pipeline.
 
-### 3.9.1 Model Selection
+### 3.9.1 Model Selection {#391-model-selection}
 
 1. For the instant measurement predictions, we evaluated both regression and classification approaches since `comfortValue` is an ordinal rating (1 to 5). The models evaluated include:
 
@@ -999,7 +999,7 @@ The best parameters found during tuning were:
   - `learning_rate`: constant
   - `solver`: adam
 
-### 3.9.3 Model Evaluation
+### 3.9.3 Model Evaluation {#393-model-evaluation}
 
 The instant models were evaluated strictly on the holdout test set to determine how well point-in-time sensor data correlates to a user's comfort. Regressors were evaluated using Mean Absolute Error (MAE), while classifiers were evaluated on Accuracy.
 
@@ -1079,7 +1079,7 @@ For that reason, the final model choice was not based only on maximum test accur
 
 The best performing models were serialized into `.pkl` files as artifacts. To ensure accurate predictions, the input data must be scaled using the same parameters as the training set. Therefore, the scalers are saved as artifacts alongside the models. This allows the deployed API to build the model and expose the prediction endpoints for receiving new raw sensor arrays from the physical IoT devices.
 
-## 3.10 Frontend CI/CD
+## 3.10 Frontend CI/CD {#38-frontend-ci-cd}
 
 *Authors: Cristina Matei, Karina Rubahova, Marta Zrno*
 
@@ -1106,10 +1106,7 @@ Vitest and React Testing Library were used for testing. The configuration of the
   },
 ```
 
-### 3.10.2 Tools and Pipeline
 
-Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
->>>>>>> d6c03cd (screenshot removal)
 
 ### 3.10.3 Integration into Workflow
 
@@ -1149,7 +1146,7 @@ No automated integration testing was implemented, as the hardware constraints di
 
 *Authors: Cristina Matei, Karina Rubahova, Marta Zrno*
 
-### 3.12.1 Testing Strategy
+### 3.12.1 Testing Strategy {#3132-frontend-testing-strategy}
 
 [What test types were applied? Unit tests (component rendering), integration tests
 (API mocking), or E2E tests (full browser automation)?]
@@ -1161,7 +1158,7 @@ No automated integration testing was implemented, as the hardware constraints di
 | Component tests   |       |        |        |          |
 | Integration tests |       |        |        |          |
 
-### 3.12.3 Responsiveness Testing
+### 3.12.3 Responsiveness Testing {#3123-responsiveness-testing}
 
 [How was responsive behaviour verified at the three required breakpoints
 (576px, 768px, 1200px)? Include screenshots if helpful.]
@@ -1170,7 +1167,7 @@ No automated integration testing was implemented, as the hardware constraints di
 
 *Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
-### 3.13.1 Machine Learning Testing Strategy
+### 3.13.1 Machine Learning Testing Strategy {#3131-machine-learning-testing-strategy}
 
 The Machine Learning and API (MAL) component is verified through a multi-layered testing strategy that ensures both the data processing logic and the serving infrastructure are robust.
 
@@ -1197,7 +1194,7 @@ Python test coverage for the MAL component was measured using `pytest-cov`. The 
 
 The MAL component requires a specialized DevOps approach to manage the lifecycle of both code and serialized model weights. The primary challenge is ensuring that changes to the data processing logic in `ml_pipeline/` are always compatible with the model artifact committed in `models/`. Unlike traditional software, the "build" artifact in MLOps includes both the code and the serialized model weights (`rf_model.pkl`).
 
-### 3.13.3 Tools and Pipeline
+### 3.13.3 Tools and Pipeline {#3133-tools-and-pipeline}
 
 The MLOps pipeline is automated via GitHub Actions (`mlops.yaml`) and executes the testing strategy described above on every pull request.
 
@@ -1297,7 +1294,7 @@ The frontend also includes automated tests for several important flows, includin
 
 One frontend limitation is that some flows depend on backend and IoT state. For example, the dashboard can only unlock the live session view when the backend has an active IoT-created session for the connected device. The rating popup also needs a valid device ID and session ID before the rating can be stored correctly. Because of this, the complete session flow needs integration testing with the backend and IoT device, not only isolated frontend testing.
 
-## 4.6 Cloud and DevOps Evaluation
+## 4.6 Cloud and DevOps Evaluation {#46-cloud-and-devops-evaluation}
 
 The system has no serverless workloads; all services run as containers managed by Docker Compose. Under normal use — a single device sending sensor readings every 30 seconds — the stack performed without issues throughout the project period. The PostgreSQL database, main API, ML API, and frontend all started cleanly in the correct order, served requests as intended, and retained data across restarts. The ML API consistently returned study quality predictions, and the frontend remained available throughout testing. The system was also briefly tested with three concurrent devices and performed without issues.
 
