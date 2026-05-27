@@ -1,0 +1,41 @@
+@base = http://localhost:8000
+
+### Hello
+GET {{base}}/
+Accept: application/json
+
+### DB check
+GET {{base}}/db-check
+Accept: application/json
+
+### Collect labeled sensor data
+GET {{base}}/collect-data
+Accept: application/json
+
+### Model info
+GET {{base}}/model-info
+Accept: application/json
+
+### Predict a focus rating from temperature
+POST {{base}}/predict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "currentTemperature": 22,
+  "maxTemp": 24,
+  "minTemp": 20,
+  "meanTemp": 22
+}
+
+### Invalid prediction payload returns 422
+POST {{base}}/predict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "currentTemperature": 22,
+  "maxTemp": 19,
+  "minTemp": 20,
+  "meanTemp": 22
+}

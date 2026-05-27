@@ -50,6 +50,10 @@ _MOCK_DF = pd.DataFrame(
         "light_mean": [290.0, 310.0, 330.0, 350.0, 370.0, 390.0],
         "light_min": [250.0, 270.0, 290.0, 310.0, 330.0, 350.0],
         "light_max": [320.0, 340.0, 360.0, 380.0, 400.0, 420.0],
+        "noise_latest": [5.1, 5.2, 5.3, 5.4, 5.5, 5.6],
+        "noise_mean": [5.0, 5.1, 5.2, 5.3, 5.4, 5.5],
+        "noise_min": [4.8, 4.9, 5.0, 5.1, 5.2, 5.3],
+        "noise_max": [5.3, 5.4, 5.5, 5.6, 5.7, 5.8],
         "rating": [3, 4, 4, 3, 2, 2],
     }
 )
@@ -180,6 +184,7 @@ def test_predict_with_valid_input_returns_integer_in_rating_range():
         50.0, 48.0, 45.0, 52.0,  # hum
         850.0, 840.0, 800.0, 860.0,  # co2
         320.0, 310.0, 270.0, 340.0,  # light
+        5.4, 5.6, 5.1, 5.3,  # noise
     )
     # Assert
     assert isinstance(result, int)
@@ -303,6 +308,10 @@ def test_train_validation_test_split_produces_three_non_overlapping_sets():
             "light_mean": [290.0] * 15,
             "light_min": [250.0] * 15,
             "light_max": [320.0] * 15,
+            "noise_latest": [5.4] * 15,
+            "noise_mean": [5.3] * 15,
+            "noise_min": [5.1] * 15,
+            "noise_max": [5.6] * 15,
             "rating": [2] * 5 + [3] * 5 + [4] * 5,
         }
     )

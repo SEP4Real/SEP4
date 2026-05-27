@@ -1,0 +1,9 @@
+@startuml
+title System Sequence Diagram: RateStudySessionSuitability
+!include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
+actor "Student" as Actor
+participant "system" as System
+
+Actor -> System : submitStudySessionRating(ratingValue)
+System -> Actor : confirmRatingReceipt
+@enduml
