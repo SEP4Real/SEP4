@@ -417,6 +417,12 @@ The firmware was developed in C for the ATmega2560 Arduino setup, using Visual S
 
 For testing, we used Unity with FFF fakes to test firmware logic without always depending on the physical Arduino. Since PlatformIO was not flexible enough for some isolated test builds, Makefile-based GCC compilation was also used. GitHub and GitHub Actions supported version control, pull requests, automatic firmware compilation, and test execution.
 
+### 4.8.2 MAL
+
+The MAL team primarily used Python as the core programming language for both data analysis and backend development. Jupyter Notebooks were extensively used during the experimental phases for data cleaning, MICE imputation, and testing various machine learning algorithms. Libraries such as Pandas and NumPy were essential for data manipulation and clustering, while Scikit-Learn was the primary framework used for training and evaluating both the instant and session-based models (including Random Forest Classifiers and Neural Networks). Matplotlib and Seaborn were utilized to visualize data distributions and generate confusion matrices for evaluating model performance.
+
+For integration and deployment, the team utilized FastAPI to expose the trained models through a robust, asynchronous REST API. The API and data pipeline were containerized using Docker to ensure a consistent environment from development to production. For quality assurance, `pytest` was used to write and execute unit and integration tests covering the machine learning pipeline and API endpoints, which were automatically run through GitHub Actions CI/CD workflows.
+
 # 5. Personal Reflections
 
 ## Piotr Junosz
@@ -476,14 +482,12 @@ Identify 2–3 concrete actions. Reference learning theory or professional frame
 if relevant (e.g. Kolb's learning cycle, growth mindset research).]
 
 -->
+
 ## Alexandru Savin
 
 Data vs. Models, what drives better outcomes? Thoughout the project me, being part of MAL team enjoyed analysing this question and I came out to the conclusion that even a relatively simple model can achieve pretty high accuracy, while a more powerful model cannot compensate from a lack of data.
 
 [WIP]
-
-
-
 
 ## Damian Michal Choina
 
