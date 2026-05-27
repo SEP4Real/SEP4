@@ -50,7 +50,7 @@ Organizationally, the process was managed by following Scrum-like sprints and ut
 ## 2.1 Group Composition and Profiles
 
 
-The group consisted of ten students with different technical strengths, but with a broadly shared regional background. Most members came from Central and Eastern Europe, including Poland, Romania, Moldova, Latvia, Slovakia, and neighbouring cultural contexts. This gave the group a relatively similar communication style and attitude toward practical problem solving, while still leaving enough variation in personality and work habits to make the collaboration interdisciplinary.
+The group consisted of ten students with different technical strengths, but with a broadly shared regional background. Most members came from Central and Eastern Europe, including Poland, Romania, Moldova, Latvia, Croatia, Slovakia, and neighbouring cultural contexts. This gave the group a relatively similar communication style and attitude toward practical problem solving, while still leaving enough variation in personality and work habits to make the collaboration interdisciplinary.
 
 The shared cultural background made some potential collaboration issues easier to manage. Direct feedback was generally accepted well, and the group could discuss technical disagreements without needing a very formal hierarchy. At the same time, the project was large enough that some structure was necessary. Scrum Masters and sub-team leads helped coordinate deadlines and dependencies, but most day-to-day decisions were still made inside the relevant technical subteams. This made the hierarchy manageable rather than restrictive.
 
