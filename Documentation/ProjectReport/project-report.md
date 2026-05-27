@@ -792,84 +792,96 @@ If the user decides to edit, the handleEventClick() function loads event data in
 CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
 ![Service function createCalendarEvent() in CalendarService.js](image/FE/image-13.png){width=60%}
+```c
+//FullCalendar in CalendarPage.jsx
+      <FullCalendar
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
+        selectable={true}
+        select={handleSelect} // create event
+        editable={true} // drag + resize
+        eventDurationEditable={true}
+        events={events}
+        timeZone="local"
+        eventClick={handleEventClick} // edit event
+```
 
-Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
+The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval. Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes. If the user decides to edit, the handleEventClick() function loads event data into the form.
+
+CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
+
+```c
+//createCalendarEvent() in CalendarService.js
+export async function createCalendarEvent(eventData) {
+  const response = await fetch(`${API_URL}/calendar-events`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    body: JSON.stringify(eventData),
+  });
 
 ![API request with credentials option in CalendarService.js](image/FE/image-14.png){width=60%}
+  if (!response.ok) {
+    throw new Error("Failed to create event");
+  }
 
-REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
+  return response.json();
+}
+```
 
 ![Calendar API GET endpoint in calendar.py](image/FE/image-15.png){width=60%}
 
 ![Pydantic request validation model in calendar.py](image/FE/image-16.png){width=60%}
+Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar. REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
 
 ### 3.7.2 API Integration
 
 
 
-[How does the frontend communicate with the backend? Describe error handling, loading states, polling vs websocket decisions, and how ML predictions are retrieved and displayed.]
-
 The frontend communicates with backend services through REST API requests, which are implemented with Fetch API. Fetch API is a provider of a JS interface used for making HTTP requests. Polling-based communication was selected because the IoT device transmits sensor values at fixed time intervals, which makes two-way communication unnecessary.
 
-In order to separate API communication from frontend components and pages, a new layer was created for authentication, calendar and profile management, and other system features. This resulted in the code being reusable, modular and easily maintainable.
+In order to separate API communication from frontend components and pages, a new layer was created for authentication, calendar and profile management, and other system features. This resulted in the code being reusable, modular and easily maintainable. Fetch API performs the requests to the backend and is used to load the data in the webpages. Data is exchanged using JSON format, since it is human-readable and is supported by various environments. For local and deployed environment, an API configuration was created. To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
 
-Fetch API performs the requests to the backend and is used to load the data in the webpages. Data is exchanged using JSON format, since it is human-readable and is supported by various environments.
-
-For local and deployed environment, an API configuration was created:
-
-![API URL configuration in apiConfig.js](image/FE/image.png){width=60%}
-
-To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
-
-![Telemetry retrieval function getDashboardData() in DashboardService.js](image/FE/image-1.png){width=60%}
-
-Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
-
-![User login service function login() in AuthService.js](image/FE/image-2.png){width=60%}
-
-These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
-
-![Login form submission handler handleSubmit() in LoginPage.jsx](image/FE/image-3.png){width=60%}
+Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails. These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
 In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-![LoadingSpinner component implementation in LoadingSpinner.jsx](image/FE/image-4.png){width=60%}
+MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction. Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
-![EmptyState component implementation in EmptyState.jsx](image/FE/image-5.png){width=60%}
+```c
+// apiConfig.js
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 
-MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
+const shouldUseDefaultApiUrl =
+  !configuredApiUrl ||
+  configuredApiUrl === "/" ||
+  configuredApiUrl === "." ||
+  configuredApiUrl === window.location.origin ||
+  configuredApiUrl === `${window.location.origin}/`;
 
-![Machine learning prediction service client getPrediction() in malService.js](image/FE/image-6.png){width=60%}
-
-Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
-
-![Interactive chart showing temperature, humidity, light, CO₂ levels, and study quality prediction line.](image/FE/image-7.png){width=70%}
-
-![Custom chart tooltip showing detailed sensor readings on hover.](image/FE/image-8.png){width=70%}
+export const API_URL = shouldUseDefaultApiUrl
+  ? "/api"
+  : configuredApiUrl.replace(/\/$/, "");
+```
 
 ### 3.7.3 Hosting and Deployment
 
 
 
-<!-- Required: must be hosted and accessible online. -->
-
-[Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
-
 The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers.
 
 The Docker build process was divided into 3 stages to separate the build from the runtime environment. In the first stage, Node.js Alpine container installed all dependencies and the product was generated using "npm run build" command. In the second stage, the generated files were copied into an Nginx container.
 
-![Dockerfile configuration for frontend container.](image/FE/image-17.png){width=60%}
+In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured. When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify. The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
 
-In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured.
-
-![Environment variables configuration (.env).](image/FE/image-18.png){width=60%}
-
-When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify.
-
-![Deployment workflow in Coolify.](image/FE/image-19.png){width=60%}
-
-The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
+```c
+// .env
+VITE_IOT_API_URL=http://localhost/api
+VITE_MAL_API_URL=http://localhost/mal-api
+```
 
 ## 3.8 IoT CI/CD
 
@@ -1119,15 +1131,25 @@ To prevent integration issues, it was important to find a way to keep the code m
 
 One of the most important things when sharing code between teammates, is to ensure code is clean and consistent. This was done by using ESLint. ESLint was used for finding errors, unused variables, etc.
 
-![ESLint scripts configuration in package.json](image/FE/image-20.png){width=60%}
+### 3.10.2 Tools and Pipeline
+
+Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+
+```c
+//scripts configuration in package.json
+"scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+```
 
 ### 3.10.2 Tools and Pipeline
 
-Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js.
-
-![Vitest and jsdom environment configuration.](image/FE/image-21.png){width=60%}
-
-Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+>>>>>>> d6c03cd (screenshot removal)
 
 ### 3.10.3 Integration into Workflow
 
