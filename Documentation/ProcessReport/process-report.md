@@ -274,7 +274,15 @@ One problem discovered during this phase was that UI consistency became harder t
 
 ### 4.4.4 Backend Integration Challenges
 
--------------------------------------------------------------
+Backend integration was one of the most challenging parts of the frontend process. At the beginning, many frontend pages used mock data or temporary localStorage logic, but later these parts had to be replaced with real API communication. This affected login, register, profile, dashboard data, calendar events, device connection, session handling, and rating submission.
+
+One repeated challenge was that frontend work often depended on backend endpoints that were still changing. For example, authentication changed from a simpler token/localStorage approach to cookie-based authentication, which meant that protected frontend requests had to include credentials and the login/logout flow had to be adjusted. Similar changes happened around profile data, calendar data, connected devices, and session IDs.
+
+The dashboard integration was especially difficult because it depended on both backend and IoT behavior. The frontend could not create the real study session itself, because the session lifecycle belonged to the IoT/backend flow. Instead, the frontend had to check whether a connected device already had an active session and then attach the dashboard and rating popup to that session. This required more coordination between frontend, backend, and IoT than originally expected.
+
+Deployment and local testing also created some confusion. The frontend used `/api` routes so it could work behind Nginx and Coolify, but local Docker testing and deployed testing needed different API targets. This led to problems where requests were sometimes sent to the wrong backend or returned HTML instead of JSON. The solution was to make the API proxy configuration environment-based, so local Docker and deployment could use different targets without changing React code.
+
+Overall, backend integration showed that frontend development was not only about building pages. A large part of the work was understanding API contracts, authentication, data ownership, deployment configuration, and how changes in other teams affected the user interface.
 
 ### 4.4.5 Scrum Workflow and Task Distribution
 
@@ -474,6 +482,20 @@ The biggest personal challenge throughout the project was motivation. I did not 
 Communication and shared understanding were also a recurring issue at the full-group level. It often felt like not everyone had a clear picture of how the overall system was supposed to look or function, which led to misalignments that could have been caught earlier with more structured cross-team communication. Looking back, I would put even more emphasis on cross-team coordination from the start, despite there already having been a fair amount of it. Making the system architecture visible and understandable to everyone — not just those who worked closely with it — would have saved time and reduced uncertainty later in the project.
 
 On the technical side, my work covered the CI/CD pipeline for both the IoT firmware and the backend API, the IoT-facing backend endpoints, and the associated test suites. None of this was particularly difficult in isolation, but it required a solid understanding of how all components connected, which I came to appreciate more over time. The most valuable technical outcome for me personally was developing a strong understanding of DevOps and testing practices. I also had no prior experience with FastAPI or Python in a backend context, and getting to work with both gave me a new set of tools I am likely to use again. These are the takeaways I will carry into future projects regardless of how I felt about the project itself.
+
+## Cristina Matei
+
+During this project I worked mostly on the frontend. My main work was on the profile page, dashboard, login/register flow, device connection, session start/stop, rating popup, sensor cards, and responsive design. The profile page was one of the main parts I worked on, because it included user information, password change, profile picture, and connecting a device. I also worked on the dashboard, especially with sensor values, history, session state, and rating after a study session.
+
+At the beginning, I found it difficult to understand how all parts of the system were connected. It was not only a React project, because we also had backend, database, IoT, ML, Docker, and deployment. Many problems that looked like frontend problems were actually caused by API requests, cookies, Docker setup, or missing backend data. This made the project harder, but also more realistic.
+
+One of the biggest learning points for me was authentication. I worked with moving the token from localStorage to cookies, protected requests, logout, rate limiting, and environment variables for secrets. I also learned more about the dashboard session flow, where the real session comes from the IoT device and the frontend only attaches to it.
+
+Working in a large group was also challenging. Sometimes it was difficult to know who changed what, especially when several people worked on the same files. In the frontend team, communication was easier, but we still had Git merge conflicts and changes that affected each other. I learned to check dev more often, look more carefully at changes before merging, and ask earlier when something was unclear.
+
+I also became better at debugging and testing. I used DevTools to check API requests, cookies, local storage, and errors, and I worked with frontend tests for login, dashboard states, active session handling, device connection, and rating submission.
+
+If I worked on a similar project again, I would try to clarify important decisions earlier, especially authentication, device connection, session logic, and deployment. I would also make smaller pull requests and document decisions sooner. Overall, I learned a lot about teamwork in a bigger project.
 
 ### Reflection Forward
 
