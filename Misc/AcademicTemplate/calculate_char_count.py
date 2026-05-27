@@ -22,10 +22,10 @@ def calculate_characters(filepath):
     if yaml_match:
         content = content[yaml_match.end():]
         
-    # 3. Exclude Appendices
-    # Look for a header like "# Appendices" or "# Appendix" (case-insensitive)
-    appendices_pattern = re.compile(r'^\s*#+\s+appendix', re.IGNORECASE | re.MULTILINE)
-    split_parts = appendices_pattern.split(content)
+    # 3. Exclude References, Bibliography, Sources, and Appendices
+    # Look for headers like "# References", "# Bibliography", "# Appendix" (case-insensitive)
+    exclude_pattern = re.compile(r'^\s*#+\s+(?:appendix|references|bibliography|sources|8\.\s+references)', re.IGNORECASE | re.MULTILINE)
+    split_parts = exclude_pattern.split(content)
     main_content = split_parts[0]
     
     # 4. Count Figures (Markdown images and HTML img tags)

@@ -73,9 +73,9 @@ StudyHelper is a distributed study-environment monitoring system developed to ad
 
 ## 1.1 Background and Motivation
 
-[Describe the domain context. What real-world problem does the system address?
+<!-- [Describe the domain context. What real-world problem does the system address?
 Why is an IoT-based solution with machine learning relevant here?
-Who are the stakeholders and what do they need?]
+Who are the stakeholders and what do they need?] -->
 
 The physical environment in which learning takes place has a measurable impact on cognitive performance. Research has shown that indoor environmental conditions such as air quality, temperature, humidity, CO₂ concentration, and lighting can influence students' ability to concentrate and learn effectively (Bustamante-Mora et al., 2025; Satish et al., 2012; Allen et al., 2016). Despite growing awareness of this relationship, most study spaces - libraries, classrooms, dormitories - provide no real-time feedback on whether the ambient conditions are conducive to productive work. Students are left to rely on subjective perception, often noticing that conditions are poor only after their focus has already deteriorated.
 This makes the problem difficult to handle manually, because students may feel tired or distracted without knowing whether the cause is related to the environment. Objective measurements can help make these conditions visible before they noticeably affect the study session.
@@ -86,7 +86,7 @@ For schools and universities, this creates a practical need for a solution that 
 By combining low-cost IoT sensing with a machine learning prediction layer, the StudyHelper system closes the gap between raw environmental data and actionable guidance. Rather than simply logging sensor values, the system learns from historical patterns of user-rated study sessions and uses that knowledge to predict how suitable current conditions are likely to be - providing students and teachers with a tool to make informed decisions about when and where to study.
 
 The primary stakeholders are students, who benefit directly from improved self-awareness of their study environment; teachers, who can use condition overviews to assess classroom suitability.
-[Expand here if additional stakeholder interviews or literature sources are added.]
+<!-- [Expand here if additional stakeholder interviews or literature sources are added.] -->
 
 ## 1.2 Problem Statement
 
@@ -115,7 +115,7 @@ The concrete objectives of the StudyHelper project are as follows:
 - **Machine Learning:** The ML component shall train a classifier capable of predicting a Study Suitability Rating on an integer scale of one to five, using aggregated temperature window features derived from historical sensor data, and expose predictions through a FastAPI endpoint.
 - **Frontend:** The React web application shall display live sensor readings and the current ML-predicted suitability rating in a responsive layout that adapts to screen widths of 576 px, 768 px, and 1200 px.
 - **DevOps:** All components shall be containerised with Docker, deployed to a public cloud host, and supported by automated CI/CD pipelines on GitHub Actions that enforce unit-test passing and successful build compilation before merging to the main branch.
-- **Security:** Communication between the IoT device and the backend shall be protected by [encryption scheme to be specified]; frontend-facing API endpoints shall be protected by [JWT / API key to be confirmed].
+- **Security:** Communication between the IoT device and the backend was planned to use HTTPS, but remains over unencrypted HTTP due to memory constraints; frontend-facing API endpoints are protected by JWT authentication.
 
 [TODO: Review these objectives against the final delivered system before submission and adjust the wording where the implementation diverged from the original plan.]
 
@@ -136,7 +136,7 @@ The following delimitations were agreed at project inception and are reflected i
 
 **Medical and psychological analysis:** The system does not attempt to measure or infer physiological state, stress levels, or cognitive load directly. The Study Suitability Rating is an environmental proxy, not a clinical assessment.
 
-[Add any additional delimitations agreed with supervisors, particularly regarding scale of the ML dataset or the number of test participants.]
+<!-- [Add any additional delimitations agreed with supervisors, particularly regarding scale of the ML dataset or the number of test participants.] -->
 
 ## 1.5 Related Work
 
@@ -298,14 +298,14 @@ Modeling the parallel execution of these transactions helped the development tea
 
 ### 3.1.1 System Architecture {#311-system-architecture}
 
-[Describe the overall architecture: IoT device → Cloud backend → Frontend,
+<!-- [Describe the overall architecture: IoT device → Cloud backend → Frontend,
 with the ML pipeline integrated into or alongside the cloud layer.
-Reference the architecture diagram:]
+Reference the architecture diagram:] -->
 
 <!-- ![System Architecture](../../Documentation/Design/architecture.svg) -->
 
-[Justify the key architectural decisions: why this decomposition, how components
-communicate (protocols, data formats), and how data flows end-to-end.]
+<!-- [Justify the key architectural decisions: why this decomposition, how components
+communicate (protocols, data formats), and how data flows end-to-end.] -->
 
 The StudyHelper system follows a layered, distributed architecture comprising four runtime components: the embedded IoT firmware, the Core API, the MAL API, and the React frontend. All server-side components are deployed as Docker containers behind a Coolify-managed reverse proxy (Caddy/Traefik) and share a single PostgreSQL database, as described by `docker-compose.yml`.
 
@@ -344,13 +344,13 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 **IoT–cloud encryption:** The ATmega2560 does not have sufficient resources to perform TLS, so the device communicates with the backend over plain HTTP. This is a known limitation of the prototype. The device authenticates itself by including its device ID in the JSON payload only during registration and session creation. Once the server returns a session ID, all subsequent requests — data submissions and keepalive pulses — use that session ID instead, so the device ID is not transmitted for the duration of an active session. Sensitive build-time credentials are injected via a `secrets.ini` file that is excluded from the repository, so no credentials are committed to source control.
 
-**API authentication:** The MAL API export endpoint (`GET /export-data`) is protected by an `X-Export-Token` HTTP header checked against the `MAL_API_EXPORT_TOKEN` environment variable. This prevents unauthorised access to raw sensor exports. [Describe the authentication mechanism for the IoT backend endpoints — the `secrets.ini.example` file in the IoT firmware references a `SECRET_KEY` environment variable on the API container, which suggests token-based authentication is configured. Confirm whether JWT is implemented and which endpoints require it.]
+**API authentication:** The MAL API export endpoint (`GET /export-data`) is protected by an `X-Export-Token` HTTP header checked against the `MAL_API_EXPORT_TOKEN` environment variable. This prevents unauthorised access to raw sensor exports. <!-- [Describe the authentication mechanism for the IoT backend endpoints — the `secrets.ini.example` file in the IoT firmware references a `SECRET_KEY` environment variable on the API container, which suggests token-based authentication is configured. Confirm whether JWT is implemented and which endpoints require it.] -->
 
 **Secret management:** Sensitive credentials - database password, Wi-Fi SSID and password, server hostname, device ID, and the API secret key - are stored as environment variables, never hard-coded in source files. The firmware secrets are injected at build time via `secrets.ini`, which is excluded from the repository by `.gitignore`. Server-side secrets are passed to Docker containers via the `.env` file, which is similarly excluded. The `docker-compose.yml` uses mandatory variable substitution (`:?` syntax) so that a deployment will fail explicitly if any required secret is missing rather than silently using an empty value.
 
 **Additional considerations:** Because the ATmega2560 has limited cryptographic hardware support, the choice of encryption scheme involves a trade-off between security strength and memory and processing overhead. Plain HTTP was therefore chosen as the most practical option for this prototype, as implementing software encryption on the ATmega2560 would introduce additional complexity and risk of unpredictable issues within the project timeline. The database is not exposed on a public port; access is restricted to the Docker internal network, which limits the attack surface from the public internet.
 
-[Complete this section with any additional security measures implemented, such as rate limiting on the prediction endpoint, CORS configuration on the backends, or HTTPS enforcement by the Coolify reverse proxy.]
+<!-- [Complete this section with any additional security measures implemented, such as rate limiting on the prediction endpoint, CORS configuration on the backends, or HTTPS enforcement by the Coolify reverse proxy.] -->
 -->
 
 For frontend-facing API endpoints, the Core API uses JWT-based authentication. After a successful login, the backend creates a JWT signed with `SECRET_KEY` and stores it in an `HttpOnly` cookie named `access_token`. Protected endpoints read the token from this cookie through the shared `get_current_user` dependency. Bearer-token support is still kept as a fallback, but the frontend no longer stores the JWT in `localStorage`.
@@ -1148,8 +1148,8 @@ No automated integration testing was implemented, as the hardware constraints di
 
 ### 3.12.1 Testing Strategy {#3132-frontend-testing-strategy}
 
-[What test types were applied? Unit tests (component rendering), integration tests
-(API mocking), or E2E tests (full browser automation)?]
+<!-- [What test types were applied? Unit tests (component rendering), integration tests
+(API mocking), or E2E tests (full browser automation)?] -->
 
 ### 3.12.2 Test Results
 
@@ -1160,8 +1160,8 @@ No automated integration testing was implemented, as the hardware constraints di
 
 ### 3.12.3 Responsiveness Testing {#3123-responsiveness-testing}
 
-[How was responsive behaviour verified at the three required breakpoints
-(576px, 768px, 1200px)? Include screenshots if helpful.]
+<!-- [How was responsive behaviour verified at the three required breakpoints
+(576px, 768px, 1200px)? Include screenshots if helpful.] -->
 
 ## 3.13 Machine Learning Tests and DevOps (MLOps)
 
@@ -1302,10 +1302,10 @@ Deployment to Coolify triggers automatically on every push to `main`, with a con
 
 ## 4.7 Critical Evaluation and Limitations
 
-[Honestly evaluate validity and reliability of your results.
+<!-- [Honestly evaluate validity and reliability of your results.
 What are the system's remaining weaknesses? What assumptions constrain the findings?
 What would need to change for this to be a production-grade system?
-Address limitations per component where the issues differ significantly.]
+Address limitations per component where the issues differ significantly.] -->
 
 **MAL Evaluation**
 The biggest hurdle we faced in the ML part was what we call the "Subjectivity Paradox" already explained in paragraphs above. Because our training data came from different sources and different people, the model often got confused when two identical sensor readings had two different comfort ratings attached to them. This essentially caps the maximum possible accuracy for any generalized model.

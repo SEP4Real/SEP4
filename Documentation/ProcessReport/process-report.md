@@ -49,9 +49,9 @@ Organizationally, the process was managed by following Scrum-like sprints and ut
 
 ## 2.1 Group Composition and Profiles
 
-[Introduce each group member briefly — background, relevant skills, and prior
+<!-- [Introduce each group member briefly — background, relevant skills, and prior
 experience. If the group is multicultural or interdisciplinary, highlight this
-and reflect on how it influenced the collaboration.]
+and reflect on how it influenced the collaboration.] -->
 
 | Member                         | Main Area                       | Main Contributions                                                                                           |
 | :----------------------------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------- |
@@ -145,9 +145,9 @@ Furthermore, we originally required at least four people to approve merge reques
 
 <!-- Required: consider ethical dimensions relevant to your problem area. -->
 
-[What ethical questions arise from the problem your project addresses?
+<!-- [What ethical questions arise from the problem your project addresses?
 Consider: data privacy, environmental impact, fairness, accessibility, or societal effects.
-Were these considerations built into the project from the start, or addressed reactively?]
+Were these considerations built into the project from the start, or addressed reactively?] -->
 
 ### Data Privacy and User Consent
 
@@ -335,10 +335,10 @@ Overall, the frontend development phase demonstrated how frontend implementation
 
 ## 4.5 Application of Methods and Theories
 
-[Reflect on the engineering and analytical methods you applied (requirements analysis,
+<!-- [Reflect on the engineering and analytical methods you applied (requirements analysis,
 architecture design, testing frameworks, etc.). Were the methods well-suited to the
 problem? Did you feel confident using them, or were there learning curves?
-What worked well and what fell short?]
+What worked well and what fell short?] -->
 
 ### 4.5.1 IoT
 
@@ -354,10 +354,10 @@ Overall, the methods fit the problem well. Modular design and automated testing 
 
 ## 4.6 Challenges During Execution
 
-[Describe the most significant technical or organisational challenges encountered.
+<!-- [Describe the most significant technical or organisational challenges encountered.
 How did the team respond? What was the outcome?
 Examples: "The I2C sensor driver took much longer than expected," or
-"The API contract changes caused significant rework in the frontend."]
+"The API contract changes caused significant rework in the frontend."] -->
 
 ### 4.6.1 IoT
 
@@ -583,9 +583,9 @@ If I worked on a similar project again, I would try to clarify important decisio
 
 ### Reflection Forward
 
-[Based on this project, what will you deliberately do differently in future projects?
+<!-- [Based on this project, what will you deliberately do differently in future projects?
 Identify 2–3 concrete actions. Reference learning theory or professional frameworks
-if relevant (e.g. Kolb's learning cycle, growth mindset research).]
+if relevant (e.g. Kolb's learning cycle, growth mindset research).] -->
 
 # 6. Reflection on Supervision
 
@@ -596,8 +596,8 @@ if relevant (e.g. Kolb's learning cycle, growth mindset research).]
 
 ## 6.1 The Supervision Process
 
-[Describe how supervision was conducted. How often did you meet?
-How did you prepare for meetings? What format did sessions typically take?]
+<!-- [Describe how supervision was conducted. How often did you meet?
+How did you prepare for meetings? What format did sessions typically take?] -->
 
 ### 6.1.1 MAL
 
@@ -609,9 +609,9 @@ During the inception and elaboration phase we had a couple mandatory meetings wi
 
 ## 6.2 Impact on the Project
 
-[In what specific ways did supervision change or improve the project?
+<!-- [In what specific ways did supervision change or improve the project?
 Were there suggestions or challenges from the supervisor that redirected your work?
-Were there times you disagreed with feedback — how did you handle that?]
+Were there times you disagreed with feedback — how did you handle that?] -->
 
 ### 6.2.1 MAL
 
@@ -623,10 +623,10 @@ The meetings regarding the whole group greatly influenced some decisions. Howeve
 
 ## 6.3 Lessons for Future Projects
 
-[What will you do differently in your next supervised project?
+<!-- [What will you do differently in your next supervised project?
 Examples: prepare more structured agendas, present partial results earlier,
 ask more targeted questions, be more proactive about seeking feedback.
-Be concrete and actionable.]
+Be concrete and actionable.] -->
 
 As often, the main lesson is to be more proactive about seeking feedback and perhaps searching for efficient middle ground in many aspects. We correctly identified meetings of all to be inefficient and pointless, however, we suffered from alignment throughout the whole project. We sought supervision towards the end and missed it a lot in the middle. Overall, having a more structured start could have been of most advantage, it must, however, be noted that the semester project required utilizing the knowledge from other subjects which in the beginning made it difficult to have an accurate overview of the tasks to be accomplished and the approaches to be taken. We also had a lot of "silence and pointing fingers", which is expected of large groups, where everyone expects someone else to bear the responsibility. Better defined roles and responsibilities as well as more structure and alignment could have fixed this problem and made the project more efficient and enjoyable.
 
@@ -638,15 +638,15 @@ As often, the main lesson is to be more proactive about seeking feedback and per
 
 ## 7.1 Group Summary
 
-[Summarise the group's overall experience. What defined this project's process?
+<!-- [Summarise the group's overall experience. What defined this project's process?
 What are the most important things you collectively learned — about software
 engineering practice, teamwork, or the PBL learning model?
-How has this project prepared you for professional work?]
+How has this project prepared you for professional work?] -->
 
 ## 7.2 Recommendations
 
-[Produce a practical list of do's and don'ts for future groups undertaking a similar
-project. These should be grounded in your actual experience — not generic advice.
+<!-- [Produce a practical list of do's and don'ts for future groups undertaking a similar
+project. These should be grounded in your actual experience — not generic advice. -->
 
 **Do:**
 
