@@ -140,7 +140,7 @@ The StudyHelper system collects sensitive data about when, and for how long stud
 
 **Data Minimization**: The device transmitted only the environmental sensors necessary for the ML task (temperature, humidity, CO₂, light) — not geo-location, audio recordings, or biometric data.
 
-**User Consent and Transparency**: No user concent is needed currently and the data is retained indefinitely, in production, a retention policy would be needed. 
+**User Consent and Transparency**: No user concent is needed currently and the data is retained indefinitely, in production, a retention policy would be needed.
 
 **Database Security**: TO DO
 
@@ -404,16 +404,6 @@ Identify 2–3 concrete actions. Reference learning theory or professional frame
 if relevant (e.g. Kolb's learning cycle, growth mindset research).]
 
 -->
-
-## Piotr Junosz
-
-Fourth semester work was so far the most challanging in terms of communication, expectations, performing and coordination within the big 11 people group. It was my first time trying to develop a solid project in such a big team consisting of 3 subteams, trying to make sense out of the important assigment.
-
-The first significant change I noticed was how the motivation was working. It is well described by Victor Vroom's book "Work and motivation" where he says that effort is tied up to expectations (Vroom, 1964). So if you believe your hard work will result in a finished project, you are highly motivated, but if you look around and see that other people are not working, your expectation of success drops, and your motivation completely collapses. This was seen during this semester project period and led to periods of members not motivating themself as much as in previous semesters. Personally, this made the process of developing the system a lot less exciting.
-
-Another correlated phenomenon that occured is called diffusion of responsibility where a person is less likely to take responsibility for an action when others are present (Darley & Latane, 1968). This has grown even more because the group had 11 people and it is easier to "hide" in this group than group consisting of 4-5 people. The larger a group becomes, the less individual work each member will take. This combined with problem of motivation made me realised few times that I have to work more as individual in order our project to succeed but then I understood that alone I cannot finish it fully which made me loose motivation and not enjoy the process of work on this project.
-
-Having experienced those problems, I think what makes a big difference between a real job team and what i call "company simulation" of our big group is the role of a manager or a leader. Even though we were using Scrum roles such as Product owner and Scrum master, we were missing someone whos only responsibility would be focusing on connecting subteams work and generally leading the whole project process. I believe this could be a solution to at least the problem with motivation.
 
 ## Damian Michal Choina
 
