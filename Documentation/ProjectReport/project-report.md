@@ -355,6 +355,8 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 For frontend-facing API endpoints, the Core API uses JWT-based authentication. After a successful login, the backend creates a JWT signed with `SECRET_KEY` and stores it in an `HttpOnly` cookie named `access_token`. Protected endpoints read the token from this cookie through the shared `get_current_user` dependency. Bearer-token support is still kept as a fallback, but the frontend no longer stores the JWT in `localStorage`.
 
+During registration, user's password is hashed and stored in the database. The hashing is performed using a bcrypt algorithm through Passlib’s CryptContext. When a user logs in, the entered password is compared to the stored password hash. This way, plain text passwords are never used, which reduces risk of exposing user's credentials.
+
 The frontend sends authenticated requests with `credentials: "include"` so the browser includes the authentication cookie automatically. This is used by protected API calls such as dashboard, profile, calendar, session, device, and rating requests. Logout clears the authentication cookie on the backend.
 
 The JWT signing key is read from the `SECRET_KEY` environment variable instead of being hard-coded in the source code. The variable is documented in `.env.example` and passed into the API container through `docker-compose.yml`. This makes the signing key configurable per environment and avoids committing the real secret to Git.
