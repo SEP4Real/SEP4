@@ -698,16 +698,46 @@ Rather than using simple means or linear regression, we adopted a cluster-based 
 
 If a cluster suffered from extreme sparsity (e.g., completely missing a feature like noise), a global median was used as a fallback to prevent model bias.
 
-### 3.6.2 Feature Selection TODO: instant and session based
+### 3.6.2 Feature Selection: Session and Instant Pipelines
 
-Our feature extraction pipeline aggregates ("linearize") time-series sensor data into session-level metrics that are calculated dynamically for the active session. This generates a comprehensive 16-feature vector encompassing current (last non-null), maximum, minimum, and mean values for all four sensor types evaluated over the entire active session up to the prediction request:
+The MAL codebase implements two prediction pipelines. The following describes the exact inputs, datasets, saved artifacts.
 
-- **Temperature**: `currentTemperature`, `maxTemp`, `minTemp`, `meanTemp`
-- **Humidity**: `currentHumidity`, `maxHumidity`, `minHumidity`, `meanHumidity`
-- **CO2**: `currentCO2`, `maxCO2`, `minCO2`, `meanCO2`
-- **Light**: `currentLight`, `maxLight`, `minLight`, `meanLight`
+#### Session-Based Prediction
 
-This complete set of linearized features is passed to the `/predict` API endpoint to evaluate the user's current focus `rating`, providing the ML service with the full spectrum of environmental data.
+The session pipeline accumulates temporally contiguous device readings into a session window and computes summary statistics per each sensor. Input features (16 total) are current/mean/min/max statistics used by the session model:
+
+- `currentTemperature`, `meanTemp`, `minTemp`, `maxTemp`
+- `currentHumidity`, `humidity_mean`, `humidity_min`, `humidity_max`
+- `currentCO2`, `co2_mean`, `co2_min`, `co2_max`
+- `currentLight`, `light_mean`, `light_min`, `light_max`
+
+These features are produced from the processed dataset `MAL/data/processed/linearized_session_windows.csv`. The session model is trained in `MAL/scripts/train_model.py`. The final session-level artifact deployed by the service is `MAL/models/nn_model.pkl` (with its associated scaler/transform saved alongside the artifact).
+
+TO DO (what about noise?)
+
+#### Instant Prediction
+
+The instant pipeline makes point-in-time predictions from a compact set of immediate sensor readings. The input features are:
+- `temperature`, `humidity`, `co2`, `light`, `noise`
+
+Training data for the instant model is `MAL/data/processed/instant_mock_clean.csv`. The pipeline relies entirely on this fixed five-feature set. The `GridSearchCV` process in `MAL/ml_pipeline/instant_model.py` is utilized for hyperparameter tuning to configure the best-performing Random Forest model. The chosen production artifacts are `MAL/models/instantrfcmodel.pkl` and `MAL/models/instant_scaler.pkl`.
+
+The instant endpoint enforces the `InstantPredictionRequest` schema; when the client omits `noise` the backend substitutes the conservative default `noise=29.0` to maintain deterministic behaviour and avoid runtime failures.
+
+#### Endpoint and Artifact Mapping
+
+| Endpoint | Model Type | Input Features | Saved Artifact |
+| :------- | :--------- | :------------- | :------------- |
+| `/predict` | Session-level neural network | 16 session-aggregate features (current/mean/min/max for Temperature, Humidity, CO₂, Light) | `MAL/models/nn_model.pkl` (+scaler) |
+| `/instant-predict` | Instant Random Forest | 5 real-time features (temperature, humidity, CO₂, light, noise) | `MAL/models/instantrfcmodel.pkl`, `MAL/models/instant_scaler.pkl` |
+
+#### Data Provenance and Retraining
+
+Export and collection endpoints (`/collect-data`, `/export-data`) run `transform_real_data()` and persist processed CSVs to `MAL/data/processed/` with provenance metadata such as (TO DO). These artifacts are the inputs for offline retraining.
+
+#### Validation & Safety
+
+TO DO
 
 ### 3.6.3 Data Split and Validation Strategy
 
@@ -1012,9 +1042,12 @@ The models evaluated in the `model_related` notebooks were:
 
 ### 3.9.2 Training and Hyperparameter Tuning
 
-To guarantee rigorous Data Science methodology, all instant models were trained using a strict **80% Training / 20% Test** split. We eliminated redundant validation splits to maximize training data utility.
+The code distinguishes training procedures for the two model families:
 
-Instead of manual tuning, we leveraged `GridSearchCV` with 5-fold cross-validation exclusively on the 80% training set to find optimal hyperparameters. To prevent data leakage, the 20% test set was locked away during the Grid Search and only evaluated once at the very end of the experiment.
+- The session model uses `MAL/scripts/train_model.py`. It performs `train_validation_test_split()` on `MAL/data/processed/linearized_session_windows.csv` to create an 80% development set and a 20% holdout test set, then further separates the development set for validation. Once the model is validated, the final MLP is retrained on the full dataset and saved as `MAL/models/nn_model.pkl`.
+- The instant model uses `MAL/ml_pipeline/instant_model.py`. It applies `GridSearchCV` with 5-fold cross-validation directly to the full instant dataset from `MAL/data/processed/instant_mock_clean.csv`, then saves the best Random Forest model and scaler to `MAL/models/instantrfcmodel.pkl` and `MAL/models/instant_scaler.pkl`.
+
+The 80/20 split applies to the session model training workflow, while the instant model training is better described as a full-data grid-search tuning procedure followed by artifact serialization.
 
 The complete parameter grids searched during the tuning phase for each instant model were:
 
