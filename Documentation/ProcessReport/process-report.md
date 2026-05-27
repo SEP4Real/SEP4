@@ -53,18 +53,18 @@ Organizationally, the process was managed by following Scrum-like sprints and ut
 experience. If the group is multicultural or interdisciplinary, highlight this
 and reflect on how it influenced the collaboration.]
 
-| Member                         | Main Area                      | Main Contributions                                                                                           |
-| :----------------------------- | :----------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| Karina Rubahova                | Frontend / Scrum               | Localization, dashboard styling, theme system, testing, sprint documentation                                 |
-| Cristina Matei                 | Frontend / Backend Integration | Authentication integration, responsive improvements, profile functionality, backend/frontend synchronization |
-| Marta Zrno                     | Backend                        | JWT authentication, API endpoints, database-related functionality                                            |
-| Eduard Fekete                  |                                |                                                                                                              |
-| Damian Michal Choina           |                                |                                                                                                              |
-| Piotr Junosz                   |                                |                                                                                                              |
-| Jakub Maciej Baczek | Scrum Master / Devops / Backend | IOT Testing, IOT-facing API with unit tests, CI/CD for API and IOT |
-| Mara-Ioana Statie              |                                |                                                                                                              |
-| Alexandru Savin                |                                |                                                                                                              |
-| Tymoteusz Krzysztof Zydkiewicz |                                |                                                                                                              |
+| Member                         | Main Area                       | Main Contributions                                                                                           |
+| :----------------------------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------- |
+| Karina Rubahova                | Frontend / Scrum                | Localization, dashboard styling, theme system, testing, sprint documentation                                 |
+| Cristina Matei                 | Frontend / Backend Integration  | Authentication integration, responsive improvements, profile functionality, backend/frontend synchronization |
+| Marta Zrno                     | Backend                         | JWT authentication, API endpoints, database-related functionality                                            |
+| Eduard Fekete                  |                                 |                                                                                                              |
+| Damian Michal Choina           |                                 |                                                                                                              |
+| Piotr Junosz                   | MAL / Scrum Master              | Data search, Data imputation with clustering, Instant models                                                 |
+| Jakub Maciej Baczek            | Scrum Master / Devops / Backend | IOT Testing, IOT-facing API with unit tests, CI/CD for API and IOT                                           |
+| Mara-Ioana Statie              |                                 |                                                                                                              |
+| Alexandru Savin                |                                 |                                                                                                              |
+| Tymoteusz Krzysztof Zydkiewicz |                                 |                                                                                                              |
 
 ## 2.2 Roles and Contributions
 
@@ -335,7 +335,7 @@ Examples: "The I2C sensor driver took much longer than expected," or
 
 ### 4.6.1 Frontend
 
-A challenge that the frontend team encountered was with a teammate who was not contributing equally, was missing meetings, did not want to participate in a group presentation and refused to read and reply to messages. Unfortunately, the situation escalated and they left the group. 
+A challenge that the frontend team encountered was with a teammate who was not contributing equally, was missing meetings, did not want to participate in a group presentation and refused to read and reply to messages. Unfortunately, the situation escalated and they left the group.
 
 Additionally, poor coordination with the other subteams presented obstacles. For example, during the creation of the session and preferences functionalities, it was unclear how data travels, and if frontend should trigger the device. Also, we did not plan the development of backend properly, so there were some issues with deciding on which language it would use. These isses were resolved by holding a meeting with the whole group and coming to a decision and mutual understanding.
 
@@ -347,13 +347,13 @@ What changed and why? Were changes proactive (intentional pivots) or reactive
 
 ## 4.8 Use of Tools and Technologies
 
-Visual Studio Code was used as the development environment, since it supports various languages, extensions and tools. GitHub was crucial for team collaboration, since it enabled us to share code. It provided us with version control, ability to create pull requests, branch development style and GitHub Actions workflows for automated builds. 
+Visual Studio Code was used as the development environment, since it supports various languages, extensions and tools. GitHub was crucial for team collaboration, since it enabled us to share code. It provided us with version control, ability to create pull requests, branch development style and GitHub Actions workflows for automated builds.
 
 Jira was used to delegate tasks, split them up into sprints, keep track of deadlines, meetings. It helped structure the workflow and manage responsibilities. Discord was used to share messages, hold meetings and exchange feedback.
 
-Figma was used mostly for design. For example, for diagrams and wireframes. But it also served as a note taking site for ideas, goals, group availability, etc. 
+Figma was used mostly for design. For example, for diagrams and wireframes. But it also served as a note taking site for ideas, goals, group availability, etc.
 
-Overall, the selected tools and technologies that were used throughout the project were effective and useful. They simplified collaboration, which at times was hard. 
+Overall, the selected tools and technologies that were used throughout the project were effective and useful. They simplified collaboration, which at times was hard.
 
 # 5. Personal Reflections
 
@@ -543,7 +543,7 @@ Although we found brief moments of asking for advice in the beginning, around th
 
 ### 6.1.2 Frontend
 
-During the inception and elaboration phase we had a couple mandatory meetings with the supervisors. They gave us insights into our architecture and design, and asked questions to motivate us to optimize our system. Besides that, the frontend group had another meeting to get some feedback from the teacher regarding UI features and functionalities. All in all, the meetings were valuable, and we couldve benefited from a larger frequency. 
+During the inception and elaboration phase we had a couple mandatory meetings with the supervisors. They gave us insights into our architecture and design, and asked questions to motivate us to optimize our system. Besides that, the frontend group had another meeting to get some feedback from the teacher regarding UI features and functionalities. All in all, the meetings were valuable, and we couldve benefited from a larger frequency.
 
 ## 6.2 Impact on the Project
 
