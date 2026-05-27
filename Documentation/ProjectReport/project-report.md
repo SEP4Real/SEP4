@@ -161,9 +161,7 @@ Compared with related work, StudyHelper's contribution is not a new sensor techn
 
 The domain model represents the structural backbone of the StudyHelper platform, mapping physical hardware contexts to virtual user spaces and persistent storage entities. By conceptualizing the domain prior to database modeling, the system achieves strict normalization and clear separation of concerns.
 
-![Domain Model](../Analysis/StudyHelper.domain.svg)
-
-*Figure 2.1: Conceptual Domain Model of the StudyHelper System.*
+![Conceptual Domain Model of the StudyHelper System.](../Analysis/StudyHelper.domain.svg)
 
 ### Architectural and Structural Breakdown
 
@@ -238,13 +236,9 @@ System Sequence Diagrams (SSDs) establish the boundaries of the StudyHelper syst
 
 The start and end use cases governed by the physical button interface on the hardware box require precise synchronization between the microcontroller's local state and the database state.
 
-![SSD: Start Study Session](../Analysis/ssds/StudyHelper_StartStudySession.ssd.svg)
+![System Sequence Diagram for IoT-initiated session startup.](../Analysis/ssds/StudyHelper_StartStudySession.ssd.svg)
 
-*Figure 2.2: System Sequence Diagram for IoT-initiated session startup.*
-
-![SSD: End Study Session](../Analysis/ssds/StudyHelper_EndStudySession.ssd.svg)
-
-*Figure 2.3: System Sequence Diagram for IoT-initiated session termination.*
+![System Sequence Diagram for IoT-initiated session termination.](../Analysis/ssds/StudyHelper_EndStudySession.ssd.svg)
 
 #### Architectural Utility and Firmware Control Loops
 
@@ -257,13 +251,9 @@ These two SSDs guided the design of the device's main loop (`main.c`) and API in
 
 During a running session, the system must ingest telemetry and evaluate the environment without blocking the microcontroller or introducing dashboard delays.
 
-![SSD: Assess Study Conditions](../Analysis/ssds/StudyHelper_AssessStudyConditionsForStudySession.ssd.svg)
+![System Sequence Diagram for active telemetry ingestion.](../Analysis/ssds/StudyHelper_AssessStudyConditionsForStudySession.ssd.svg)
 
-*Figure 2.4: System Sequence Diagram for active telemetry ingestion.*
-
-![SSD: Receive Environment Alert](../Analysis/ssds/StudyHelper_ReceiveStudentEnvironmentAlert.ssd.svg)
-
-*Figure 2.5: System Sequence Diagram for real-time environment alerts.*
+![System Sequence Diagram for real-time environment alerts.](../Analysis/ssds/StudyHelper_ReceiveStudentEnvironmentAlert.ssd.svg)
 
 #### Ingestion and Alerting Execution Details
 
@@ -274,9 +264,7 @@ During a running session, the system must ingest telemetry and evaluate the envi
 
 After a study session, the student evaluates their comfort experience.
 
-![SSD: Rate Study Session Suitability](../Analysis/ssds/StudyHelper_RateStudySessionSuitability.ssd.svg)
-
-*Figure 2.6: System Sequence Diagram for post-session comfort feedback.*
+![System Sequence Diagram for post-session comfort feedback.](../Analysis/ssds/StudyHelper_RateStudySessionSuitability.ssd.svg)
 
 #### Feedback Loop and API Specification
 
@@ -289,9 +277,7 @@ The rating sequence maps the transition of user feedback into training labels:
 
 To ensure consistency in state handling across the IoT device firmware, web frontend, and cloud backend, we mapped the system's operational control flow.
 
-![Use Case Control Flow](../Analysis/StudyHelper.activity.svg)
-
-*Figure 2.7: Activity Control Flow Diagram of the StudyHelper Use Cases.*
+![Activity Control Flow Diagram of the StudyHelper Use Cases.](../Analysis/StudyHelper.activity.svg)
 
 ### System-Wide State Synchronization and Validation
 
@@ -369,6 +355,8 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 For frontend-facing API endpoints, the Core API uses JWT-based authentication. After a successful login, the backend creates a JWT signed with `SECRET_KEY` and stores it in an `HttpOnly` cookie named `access_token`. Protected endpoints read the token from this cookie through the shared `get_current_user` dependency. Bearer-token support is still kept as a fallback, but the frontend no longer stores the JWT in `localStorage`.
 
+During registration, user's password is hashed and stored in the database. The hashing is performed using a bcrypt algorithm through Passlib’s CryptContext. When a user logs in, the entered password is compared to the stored password hash. This way, plain text passwords are never used, which reduces risk of exposing user's credentials.
+
 The frontend sends authenticated requests with `credentials: "include"` so the browser includes the authentication cookie automatically. This is used by protected API calls such as dashboard, profile, calendar, session, device, and rating requests. Logout clears the authentication cookie on the backend.
 
 The JWT signing key is read from the `SECRET_KEY` environment variable instead of being hard-coded in the source code. The variable is documented in `.env.example` and passed into the API container through `docker-compose.yml`. This makes the signing key configurable per environment and avoids committing the real secret to Git.
@@ -411,11 +399,7 @@ The IoT design therefore combines sensors, user input, local status feedback, an
 
 ### 3.2.1 Hardware Architecture
 
-<p align="center">
-  <img src="image/iot-design/iot-hardware-block-diagram.svg" alt="IoT Hardware Block Diagram" width="50%">
-</p>
-
-*Figure 3.1: Hardware block diagram of the IoT device.*
+![Hardware block diagram of the IoT device.](image/iot-design/iot-hardware-block-diagram.svg){width=50%}
 
 The hardware architecture is centred around an ATmega2560-based microcontroller board. The ATmega2560 was chosen because it provides sufficient GPIO pins, ADC channels, timers, and UART interfaces for a multi-sensor embedded prototype, while remaining compatible with the Arduino and PlatformIO development environment used in the project.
 
@@ -443,11 +427,7 @@ Sound measurement was considered during the project, but it is not part of the f
 
 ### 3.2.2 Embedded Software Architecture
 
-<p align="center">
-  <img src="image/iot-design/iot-firmware-module-diagram.svg" alt="IoT Firmware Module Diagram" width="80%">
-</p>
-
-*Figure 3.2: Firmware module structure for the IoT component.*
+![Firmware module structure for the IoT component.](image/iot-design/iot-firmware-module-diagram.svg){width=80%}
 
 The embedded software is implemented in C for the ATmega2560 and follows a modular architecture. The `main.c` file coordinates the application flow, while individual modules handle backend communication, HTTP request construction, display status patterns, sensors, buttons, timers, and local alerts.
 
@@ -478,11 +458,7 @@ Three software timers define the main runtime schedule:
 
 The device communicates with the backend using HTTP over TCP through the Wi-Fi module. HTTP was chosen because the rest of the StudyHelper system exposes REST-style endpoints and JSON payloads. This keeps the interface between the IoT firmware and backend simple, transparent, and easy to test. Each request opens a TCP connection, sends an HTTP request, waits for a response for up to three seconds, and then closes the connection.
 
-<p align="center">
-  <img src="image/iot-design/iot-session-flow-diagram.svg" alt="IoT Session Flow Diagram" width="30%">
-</p>
-
-*Figure 3.3: Session flow between the user, IoT device, and backend API.*
+![Session flow between the user, IoT device, and backend API.](image/iot-design/iot-session-flow-diagram.svg){width=30%}
 
 The session flow begins during boot. The firmware initialises the display, UART, sensors, Wi-Fi module, and backend host resolution. It then registers the physical device ID with the backend. After this setup, the device enters idle mode and waits for user input.
 
@@ -508,15 +484,11 @@ The search for data focused on the relationship between environmental noise and 
 
 During the exploratory phase, several candidate datasets were evaluated. We identified and eliminated datasets that appeared synthetic or "too perfect" to be realistic sensor data. For example, in datasets labeled as "Data 2" and "Data 4," the distributions of humidity, noise, and light were suspiciously uniform or perfectly bell-shaped, lacking the stochastic noise typical of real-world environments.
 
-![1779870165382](image/project-report/1779870165382.png)
-
-*Figure 3.x: Suspiciously perfect feature distributions in candidate datasets.*
+![Suspiciously perfect feature distributions in candidate datasets.](image/project-report/1779870165382.png)
 
 Correlation analysis further revealed insights into data quality. Healthy datasets exhibited natural correlations between temperature, CO2, and humidity. Conversely, some "suspicious" datasets showed near-zero correlation across all features, suggesting high randomness or artificial generation.
 
-![Healthy vs Suspicious Correlation Matrices](../ProcessReport/image/process-report/1778581896856.png)
-
-*Figure 3.y: Correlation matrices showing healthy physical relationships (left) vs suspicious randomness (right).*
+![Correlation matrices showing healthy physical relationships (left) vs suspicious randomness (right).](../ProcessReport/image/process-report/1778581896856.png)
 
 ### 3.3.3 ML Problem Formulation
 
@@ -556,11 +528,7 @@ The frontend was built for students who want to quickly check if their study env
 
 The application is split into a few main views. The login and register pages are used before the user enters the system. The dashboard shows live sensor readings, historical data, a short recommendation and the current predicted study quality as both a numeric suitability value in the sensor cards and as a prediction line in the chart. The profile page is used for user information, password changes, and connecting the physical device. The calendar page gives the user a simple place to plan study events. This keeps the monitoring part easy to access, while settings and profile information are kept separate.
 
-<p align="center">
-  <img src="../Design/Frontend/Dashboard.jpeg" alt="Dashboard" width="70%">
-</p>
-
-*Figure 3X: Dashboard states during an active study session and before. The active session view shows live readings, the chart, recommendations, and session controls after the frontend attaches to an active IoT session; the second view keeps live sensor cards and the chart hidden while history remains available.*
+![Dashboard states during an active study session and before. The active session view shows live readings, the chart, recommendations, and session controls after the frontend attaches to an active IoT session; the second view keeps live sensor cards and the chart hidden while history remains available.](../Design/Frontend/Dashboard.jpeg){width=70%}
 
 <!-- Include wireframes or mockups:
 ![Wireframe: Dashboard](../../Documentation/Design/Frontend/wireframe_dashboard.png) -->
@@ -584,11 +552,7 @@ Routing is handled with `react-router-dom`. The public routes are `/login`, and 
 
 <!-- ![Component Diagram](../../Documentation/Design/Frontend/component_diagram.svg) -->
 
-<p align="center">
-  <img src="../Design/Frontend/Component_diagram.svg" alt="Front Component Diagram" width="90%">
-</p>
-
-*Figure 3X: Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.*
+![Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.](../Design/Frontend/Component_diagram.svg){width=90%}
 
 ### 3.4.3 Responsiveness Strategy
 
@@ -757,11 +721,7 @@ The dashboard also includes the session flow used for rating study sessions. The
 
 While the frontend session is active, a timer is started. After 60 minutes, the rating popup opens automatically. The user can also press Stop Session manually, which opens the same popup. The popup is implemented in the `SessionRating` component and requires the user to choose a rating from 1 to 5 before submitting. When the rating is submitted, `RatingService` sends the device ID, session ID, rating value, and an empty comment field to the backend. This connects the user's experience to the active study session created by the IoT device.
 
-<p align="center">
-  <img src="../Design/Frontend/rating_stopSession.png" alt="ratingS" width="60%">
-</p>
-
-*Figure 3X: Session rating popup shown when the user stops an active study session. The user selects a rating from 1 to 5, which is submitted together with the device and session identifiers.*
+![Session rating popup shown when the user stops an active study session. The user selects a rating from 1 to 5, which is submitted together with the device and session identifiers.](../Design/Frontend/rating_stopSession.png){width=60%}
 
 Loading and empty states are also handled in the dashboard. While the page checks the device connection or loads data, it shows `LoadingSpinner`. If no device is connected, it shows an empty state telling the user to connect a device from the profile page. If a device is connected but no readings are available yet, another empty state is shown. This makes the page clearer when data is missing.
 
@@ -817,135 +777,113 @@ This function is used when a user connects a device from the profile page. First
 
 The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
 
-<p align="center">
-  <img src="image/FE/image-9.png" alt="FullCalendar in CalendarPage.jsx" width="60%">  
-</p>
+![FullCalendar configuration in CalendarPage.jsx](image/FE/image-9.png){width=60%}
 
 The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
 
-<p align="center">
-  <img src="image/FE/image-10.png" alt="useEffect in CalendarPage.jsx" width="60%">  
-</p>
+![Using useEffect for dynamic event loading in CalendarPage.jsx](image/FE/image-10.png){width=60%}
 
 Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
 
-<p align="center">
-  <img src="image/FE/image-11.png" alt="handleSelect() in CalendarPage.jsx" width="60%">  
-</p>
+![Event selection handler handleSelect() in CalendarPage.jsx](image/FE/image-11.png){width=60%}
 
 If the user decides to edit, the handleEventClick() function loads event data into the form.
 
-<p align="center">
-  <img src="image/FE/image-12.png" alt="handleEventClick() in CalendarPage.jsx" width="60%">  
-</p>
+![Event click and edit handler handleEventClick() in CalendarPage.jsx](image/FE/image-12.png){width=60%}
 
 CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
-<p align="center">
-  <img src="image/FE/image-13.png" alt="createCalendarEvent() in CalendarService.js" width="60%">  
-</p>
+![Service function createCalendarEvent() in CalendarService.js](image/FE/image-13.png){width=60%}
+```c
+//FullCalendar in CalendarPage.jsx
+      <FullCalendar
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
+        selectable={true}
+        select={handleSelect} // create event
+        editable={true} // drag + resize
+        eventDurationEditable={true}
+        events={events}
+        timeZone="local"
+        eventClick={handleEventClick} // edit event
+```
 
-Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
+The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval. Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes. If the user decides to edit, the handleEventClick() function loads event data into the form.
 
-<p align="center">
-  <img src="image/FE/image-14.png" alt="credentials check in CalendarService.js requests" width="60%">  
-</p>
+CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
-REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
+```c
+//createCalendarEvent() in CalendarService.js
+export async function createCalendarEvent(eventData) {
+  const response = await fetch(`${API_URL}/calendar-events`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
 
-<p align="center">
-  <img src="image/FE/image-15.png" alt="GET endpoint in calendar.py" width="60%">  
-</p>
+    body: JSON.stringify(eventData),
+  });
 
-<p align="center">
-  <img src="image/FE/image-16.png" alt="request model in calendar.py" width="60%">  
-</p>
+![API request with credentials option in CalendarService.js](image/FE/image-14.png){width=60%}
+  if (!response.ok) {
+    throw new Error("Failed to create event");
+  }
+
+  return response.json();
+}
+```
+
+![Calendar API GET endpoint in calendar.py](image/FE/image-15.png){width=60%}
+
+![Pydantic request validation model in calendar.py](image/FE/image-16.png){width=60%}
+Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar. REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
 
 ### 3.7.2 API Integration
 
 
 
-[How does the frontend communicate with the backend? Describe error handling, loading states, polling vs websocket decisions, and how ML predictions are retrieved and displayed.]
-
 The frontend communicates with backend services through REST API requests, which are implemented with Fetch API. Fetch API is a provider of a JS interface used for making HTTP requests. Polling-based communication was selected because the IoT device transmits sensor values at fixed time intervals, which makes two-way communication unnecessary.
 
-In order to separate API communication from frontend components and pages, a new layer was created for authentication, calendar and profile management, and other system features. This resulted in the code being reusable, modular and easily maintainable.
+In order to separate API communication from frontend components and pages, a new layer was created for authentication, calendar and profile management, and other system features. This resulted in the code being reusable, modular and easily maintainable. Fetch API performs the requests to the backend and is used to load the data in the webpages. Data is exchanged using JSON format, since it is human-readable and is supported by various environments. For local and deployed environment, an API configuration was created. To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
 
-Fetch API performs the requests to the backend and is used to load the data in the webpages. Data is exchanged using JSON format, since it is human-readable and is supported by various environments.
-
-For local and deployed environment, an API configuration was created:
-
-<p align="center">
-  <img src="image/FE/image.png" alt="apiConfig.js" width="60%">  
-</p>
-
-To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
-
-<p align="center">
-  <img src="image/FE/image-1.png" alt="getDashboardData in DashboardService.js" width="60%">  
-</p>
-
-Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
-
-<p align="center">
-  <img src="image/FE/image-2.png" alt="login() in AuthService.js" width="60%">  
-</p>
-
-These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
-
-<p align="center">
-  <img src="image/FE/image-3.png" alt="handleSubmit() in LoginPage.jsx" width="60%">  
-</p>
+Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails. These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
 In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-<p align="center">
-  <img src="image/FE/image-4.png" alt="LoadingSpinner() in LoadingSpinner.jsx" width="60%">  
-</p>
+MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction. Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
-<p align="center">
-  <img src="image/FE/image-5.png" alt="EmptyState() in EmptyState.jsx" width="60%">  
-</p>
+```c
+// apiConfig.js
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 
-MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
+const shouldUseDefaultApiUrl =
+  !configuredApiUrl ||
+  configuredApiUrl === "/" ||
+  configuredApiUrl === "." ||
+  configuredApiUrl === window.location.origin ||
+  configuredApiUrl === `${window.location.origin}/`;
 
-<p align="center">
-  <img src="image/FE/image-6.png" alt="getPrediction() in malService.js" width="60%">  
-</p>
-
-Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
-
-<p align="center">
-  <img src="image/FE/image-7.png" alt="visualization of prediction" width="45%">  
-  <img src="image/FE/image-8.png" alt="visualization of prediction" width="45%">  
-</p>
+export const API_URL = shouldUseDefaultApiUrl
+  ? "/api"
+  : configuredApiUrl.replace(/\/$/, "");
+```
 
 ### 3.7.3 Hosting and Deployment
 
 
 
-<!-- Required: must be hosted and accessible online. -->
-
-[Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
-
 The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers.
 
 The Docker build process was divided into 3 stages to separate the build from the runtime environment. In the first stage, Node.js Alpine container installed all dependencies and the product was generated using "npm run build" command. In the second stage, the generated files were copied into an Nginx container.
 
-![alt text](image/FE/image-17.png)
-Figure x: Dockerfile
+In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured. When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify. The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
 
-In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured.
-
-![alt text](image/FE/image-18.png)
-Figure x:  .env
-
-When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify.
-
-![alt text](image/FE/image-19.png)
-Figure x: deployment workflow
-
-The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
+```c
+// .env
+VITE_IOT_API_URL=http://localhost/api
+VITE_MAL_API_URL=http://localhost/mal-api
+```
 
 ## 3.8 IoT CI/CD
 
@@ -1128,35 +1066,38 @@ Session-based:
 | Multi-Layer Perceptron | Classifier | 69.9%          | 68.3%         | 0.663            |
 
 **Linear Regression**
-![LR Error Plot](../../Documentation/Design/ML/cm_LR_updated.png)
+![Linear Regression: predicted values error plot.](../../Documentation/Design/ML/cm_LR_updated.png){width=70%}
 
 In the basic linear regression model the predicted values were all around the most common value (3) which suggested that the problem might need more complex model than linear.
 
 **Random Forest Regressor**
-![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_updated.png)
+![Random Forest Regressor: predicted values error plot.](../../Documentation/Design/ML/cm_RFR_updated.png){width=70%}
 
 Random forest regressor did a little better - it preserved more variance and the predicted values were compressed in the middle most common value but not as much as in the linear regression, due to its ensemble nature and ability to model non-linear boundaries. However, it still could not effectively address the lack of precision in the labels - the same environmental conditions often resulted in different reported comfort levels.
 
 **Random Forest Classifier**
-![RFC Best Model: CV vs Test](../../Documentation/Design/ML/cm_RFC_best.png)
-![RFC Overfit: Train vs Test](../../Documentation/Design/ML/cm_RFC_overfit.png)
+![Random Forest Classifier: best model confusion matrix (cross-validation vs test).](../../Documentation/Design/ML/cm_RFC_best.png){width=70%}
+
+![Random Forest Classifier: overfit model confusion matrix (train vs test).](../../Documentation/Design/ML/cm_RFC_overfit.png){width=70%}
 
 First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. Of course the goal was to achieve this beautiful diagonal line on the test confusion matrix but unfortunately this was not possible, because then the model started to overfit a lot on the training set which can be seen on the overfitting model confusion matrix above.
 
 **Gradient Boosting Classifier**
-![GBC Best Model: CV vs Test](../../Documentation/Design/ML/cm_GBC_best.png)
-![GBC Overfit: Train vs Test](../../Documentation/Design/ML/cm_GBC_overfit.png)
+![Gradient Boosting Classifier: best model confusion matrix (cross-validation vs test).](../../Documentation/Design/ML/cm_GBC_best.png){width=70%}
+
+![Gradient Boosting Classifier: overfit model confusion matrix (train vs test).](../../Documentation/Design/ML/cm_GBC_overfit.png){width=70%}
 
 The Gradient Boosting Classifier performed slightly better than the Random Forest, reaching 40.7% accuracy. By focusing on the errors of previous iterations, it managed to sharpen the decision boundaries between the middle classes, though the extreme values (1 and 5) remained difficult to predict due to their rarity in the dataset.
 
 **Multi-Layer Perceptron**
-![MLP Best Model: CV vs Test](../../Documentation/Design/ML/cm_MLP_best.png)
-![MLP Overfit: Train vs Test](../../Documentation/Design/ML/cm_MLP_overfit.png)
+![Multi-Layer Perceptron: best model confusion matrix (cross-validation vs test).](../../Documentation/Design/ML/cm_MLP_best.png){width=70%}
+
+![Multi-Layer Perceptron: overfit model confusion matrix (train vs test).](../../Documentation/Design/ML/cm_MLP_overfit.png){width=70%}
 
 The Multi-Layer Perceptron was our best standalone classifier at 46.1%. The neural network's ability to create complex internal representations allowed it to find patterns that the tree-based models missed. However, as seen in the overfitting plots, it was very prone to memorizing the training data, requiring heavy regularization to stay useful on the test set.
 
 **Two-Stage Pipeline**
-![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_best.png)
+![Two-Stage Pipeline confusion matrix.](../../Documentation/Design/ML/cm_two_stage_best.png){width=70%}
 
 The goal of this 2 stage pipeline was to use "perception" values already existing in original data that was found together with the comfort rating. The idea was to see if this way models can predict more accurately - it turned out that not really. It led again to overfitting on the train set and squeezing most of predictions around the mode of targets both for regressor and classifier.
 
@@ -1192,19 +1133,25 @@ To prevent integration issues, it was important to find a way to keep the code m
 
 One of the most important things when sharing code between teammates, is to ensure code is clean and consistent. This was done by using ESLint. ESLint was used for finding errors, unused variables, etc.
 
-<p align="center">
-  <img src="image/FE/image-20.png" alt="scripts config in package.json" width="60%">  
-</p>
+### 3.10.2 Tools and Pipeline
+
+Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+
+```c
+//scripts configuration in package.json
+"scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+```
 
 ### 3.10.2 Tools and Pipeline
 
-Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js.
-
-<p align="center">
-  <img src="image/FE/image-21.png" alt="Vitest env config" width="60%">  
-</p>
-
-Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+>>>>>>> d6c03cd (screenshot removal)
 
 ### 3.10.3 Integration into Workflow
 

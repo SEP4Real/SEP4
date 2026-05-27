@@ -63,8 +63,8 @@ and reflect on how it influenced the collaboration.]
 | Piotr Junosz                   | MAL / Scrum Master              | Data search, Data imputation with clustering, Instant models                                                 |
 | Jakub Maciej Baczek            | Scrum Master / Devops / Backend | IOT Testing, IOT-facing API with unit tests, CI/CD for API and IOT                                           |
 | Mara-Ioana Statie              |                                 |                                                                                                              |
-| Alexandru Savin                |                                 |                                                                                                              |
-| Tymoteusz Krzysztof Zydkiewicz |                                 |                                                                                                              |
+| Alexandru Savin                | MAL                             | Mock data analsis and preprocessing, models training and evaluation, API endpoints                          |
+| Tymoteusz Krzysztof Zydkiewicz | IoT                             | Start/stop button feature, CO2 sensor integration, sound sensor investigation, database design               |
 
 ## 2.2 Roles and Contributions
 
@@ -205,9 +205,8 @@ This section describes the development process, divided into our collective effo
 
 This section describes the development process, divided into our collective efforts and team-specific contributions.
 
-## 4.1 Together Process
-
 As our project plan progressed, our system began to evolve into an integrated system requiring a high degree of interdependence across all components. Initially, at the beginning of the semester, subgroups were able to work more independently, as many components were implemented as mockupsor were in a work-in-progress state. However, as the development process progressed, the need for coordination increased significantly.
+
 First, the frontend depended on several aspects of the backend, including authentication, API design, sessions, and sensor endpoints. Second, both the backend and MAL implementations relied on certain common conventions, such as JSON structures and predictive models. Thus, API contracts and data structures became integral to cross-team collaboration. To avoid collisions and conflicting implementations, the project relied heavily on branches and pull requests on GitHub. We used feature branches to allow teams to implement their solutions in parallel and then merge them into shared branches. However, the synchronization process sometimes became problematic due to changes in the backend and work on the frontend. Communication took place through Discord chats,sprint sessions, Jira tickets, and personal contacts with those responsible. The more complex the integration task, the clearer it became that even minor changes could simultaneously impact multiple aspects of the system.Among other interesting process observations, it's worth noting that the integration proved quite labor-intensive. Although everything worked individually, integrating all components, including the frontend, MAL, and IoT, proved to be a more complex task.
 
 ## 4.2 IOT Team Process
@@ -341,6 +340,18 @@ architecture design, testing frameworks, etc.). Were the methods well-suited to 
 problem? Did you feel confident using them, or were there learning curves?
 What worked well and what fell short?]
 
+### 4.5.1 IoT
+
+For the IoT team, the main engineering method was turning general project requirements into concrete device behavior. The Arduino was not just a standalone prototype, but part of the full StudyHelper system. It had to read temperature, humidity, CO2, and light, start and stop sessions with a button, send data to the backend, and trigger the buzzer based on prediction results.
+
+The modular firmware structure worked well for this. Separating areas such as server communication, Wi-Fi handling, sensors, buttons, timers, display status, and buzzer logic made the code easier to understand and test. This was especially useful because embedded C can become messy quickly if too much logic is placed directly in the main loop.
+
+Testing was also a valuable method. Since running every test on the physical Arduino would be slow and unreliable, we used Unity and FFF fakes to verify firmware logic on the host machine. This allowed us to test session handling, response parsing, and server communication without constantly depending on the hardware. The CI/CD pipeline further supported this by compiling the firmware and running tests automatically on every pull request.
+
+There was a learning curve early on. PlatformIO, AVR tooling, embedded C, timers, and hardware communication were all new to the team, which made the first sprint slower than expected. Once the setup and project structure were in place, development became much smoother.
+
+Overall, the methods fit the problem well. Modular design and automated testing made the firmware more maintainable and testable, while requirements analysis helped clarify how the IoT device should interact with the backend and frontend. One area that fell short was API stability: endpoint names, response fields, and session behavior changed during development, causing rework. This showed that API contracts need to be treated as living documentation and kept updated throughout the project, not just agreed upon at the start.
+
 ## 4.6 Challenges During Execution
 
 [Describe the most significant technical or organisational challenges encountered.
@@ -348,7 +359,15 @@ How did the team respond? What was the outcome?
 Examples: "The I2C sensor driver took much longer than expected," or
 "The API contract changes caused significant rework in the frontend."]
 
-### 4.6.1 Frontend
+### 4.6.1 IoT
+
+One of the main technical challenges for the IoT team was the sound sensor. Noise level was originally considered an important environmental factor for study conditions, but the available sensor did not work well for this purpose. It reacted mostly to sudden or close loud sounds, but it did not reliably measure background noise in a room. Because of this limitation, using it in the final system would have produced misleading data, so the team decided not to include sound measurement in the active firmware.
+
+Another challenge was the development and testing setup around PlatformIO. While PlatformIO was useful for flashing and building the Arduino firmware, it was difficult to control exactly which files should be included in specific test builds. This became a problem when trying to test isolated modules, because PlatformIO tended to force its own build structure instead of giving us full control over compilation. To solve this, the team created Makefile-based test builds and compiled the unit tests with GCC. This made the testing process more predictable and allowed us to use Unity and FFF fakes without depending on the full embedded build every time.
+
+The most difficult technical area overall was networking between the Arduino, the Wi-Fi module, and the backend API. Some of the Wi-Fi-related drivers and communication layers were harder to work with than expected, especially because errors could come from several places: UART communication, Wi-Fi module responses, HTTP formatting, backend availability, or timing issues in the firmware. The team responded by separating the networking logic into smaller modules and testing server communication as much as possible outside the physical device. In the end, the device was able to register, start sessions, send keep alive pulses, transmit sensor data, and receive prediction responses, but this part of the system required more debugging than most other IoT features.
+
+### 4.6.3 Frontend
 
 A challenge that the frontend team encountered was with a teammate who was not contributing equally, was missing meetings, did not want to participate in a group presentation and refused to read and reply to messages. Unfortunately, the situation escalated and they left the group.
 
@@ -356,9 +375,29 @@ Additionally, poor coordination with the other subteams presented obstacles. For
 
 ## 4.7 Deviations from the Plan
 
-### 4.7.1 Machine Learning (MAL) Team
+Several parts of the project changed compared to the original plan. Some changes were intentional decisions after the team understood the problem better, while others were caused by technical limitations or integration issues. Overall, the project moved from a more simple frontend prototype with mock data toward an integrated system connected to backend, IoT, ML, and deployment. The changes made the project more complex, but they also made the final solution more realistic.
 
-For MAL team, several deviations from the plan took place during the process of work. Initial plan was to mock the data while developing the models pipelines so that we can start experiments before getting real data from the sensors. After the meeting with supervisor and strict feedback we knew that we cannot generate the data in order to mock it, but we have to search for available datasets on the internet. Another deviation from the plan was that we wanted and thought that the only data we are going to use is going to be the real one collected from iot/frontend (the mock one only for experiments before real data coming in). Unfortunatelly, we hadto change the plan again because the amount and variety of data was not sufficient. So plan changed to search for even more available, related datasets on the internet, which was a real challange since the datasets never had all required features. Than we had to glue those sets which also was not existing in the initial plan. The last significant change of plans was regarding the ml model. Initialy we were developing the model which were learning based on sessions but another type of model was needed as well - for instant predictions where the prediction is just based on the current sensor values and user raiting.
+### 4.7.1 IoT
+
+The IoT part changed in several ways compared to the original plan. The biggest removed feature was sound measurement. Noise level was originally considered relevant for study conditions, but the available sound sensor only reacted reliably to sudden close sounds, not normal background noise. Because of this, including it would have produced misleading data, so it was removed from the active firmware.
+
+The device interaction also changed. At first, the plan did not include both a start/stop session button and an instant measurement button, but these were added because they made the prototype more practical. The start/stop button gave the device clear control over the session lifecycle, while the instant measurement button allowed a quick reading and prediction without waiting for a full session.
+
+Some technical choices also changed during implementation. The backend moved from an earlier C# idea to Python FastAPI because it fit the final architecture and MAL integration better. The buzzer logic was adjusted from activating only at study quality `1` to warning for generally poor conditions. The IoT tests were also moved from the PlatformIO test runner to Makefile-based GCC builds because PlatformIO did not give enough control over isolated test compilation.
+
+Finally, HTTPS was considered for device-to-backend communication, but the final prototype used HTTP. Based on research, HTTPS was judged difficult to implement reliably on the available Arduino and Wi-Fi setup within the project scope. Since the transmitted data was mainly environmental sensor readings, HTTP was accepted for the prototype, although HTTPS would be necessary in a production version.
+
+### 4.7.2 MAL
+
+For MAL team, several deviations from the plan took place during the process of work. Initial plan was to mock the data while developing the models pipelines so that we can start experiments before getting real data from the sensors. After the meeting with supervisor and strict feedback we knew that we cannot generate the data in order to mock it, but we have to search for available datasets on the internet. Another deviation from the plan was that we wanted and thought that the only data we are going to use is going to be the real one collected from iot/frontend (the mock one only for experiments before real data coming in). Unfortunatelly, we had to change the plan again because the amount and variety of data was not sufficient. So plan changed to search for even more available, related datasets on the internet, which was a real challange since the datasets never had all required features. Than we had to glue those sets which also was not existing in the initial plan. The last significant change of plans was regarding the ml model. Initialy we were developing the model which were learning based on sessions but another type of model was needed as well - for instant predictions where the prediction is just based on the current sensor values and user raiting.
+
+### 4.7.3 Frontend
+
+The session flow also changed during the project. Earlier frontend ideas assumed that the user could start and stop a study session directly from the web application. During integration, the team clarified that the real session lifecycle should be handled by the IoT device and backend. Because of this, the frontend Start Session button was changed to attach the dashboard to an already active IoT session instead of creating a new session.
+
+The frontend also changed more than expected. At first, many pages used mock data and simple local state. Later, these had to be adapted to real backend responses, authentication cookies, protected requests, device connection, active session checks, and rating submission. This caused extra rework, especially on the dashboard and profile page, but it made the application closer to the final system.
+
+Deployment also required adjustments. The team originally worked mostly with local development, but later the application had to work through Docker, Nginx, and Coolify. This created some issues with API routing between local and deployed environments. The team adapted by using `/api` routes and environment-based configuration so the frontend could work in different environments.
 
 ## 4.8 Use of Tools and Technologies
 
@@ -369,6 +408,14 @@ Jira was used to delegate tasks, split them up into sprints, keep track of deadl
 Figma was used mostly for design. For example, for diagrams and wireframes. But it also served as a note taking site for ideas, goals, group availability, etc.
 
 Overall, the selected tools and technologies that were used throughout the project were effective and useful. They simplified collaboration, which at times was hard.
+
+### 4.8.1 IoT
+
+For communication, the IoT team mainly used Discord for quick discussions, progress updates, and solving problems between meetings. Trello was used for task management, which worked well for a small three-person subteam.
+
+The firmware was developed in C for the ATmega2560 Arduino setup, using Visual Studio Code and PlatformIO for development, building, and flashing. YAT was used to inspect serial communication, especially when debugging UART messages and Wi-Fi module responses.
+
+For testing, we used Unity with FFF fakes to test firmware logic without always depending on the physical Arduino. Since PlatformIO was not flexible enough for some isolated test builds, Makefile-based GCC compilation was also used. GitHub and GitHub Actions supported version control, pull requests, automatic firmware compilation, and test execution.
 
 # 5. Personal Reflections
 

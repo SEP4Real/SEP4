@@ -23,7 +23,8 @@ FEATURE_COLUMNS = [
     "currentTemperature", "maxTemp", "minTemp", "meanTemp",
     "humidity_latest", "humidity_mean", "humidity_min", "humidity_max",
     "co2_latest", "co2_mean", "co2_min", "co2_max",
-    "light_latest", "light_mean", "light_min", "light_max"
+    "light_latest", "light_mean", "light_min", "light_max",
+    "noise_latest", "noise_mean", "noise_min", "noise_max",
 ]
 TARGET_COLUMN = "rating"
 RANDOM_STATE = 42
@@ -154,13 +155,18 @@ def predict(
     max_light: float,
     min_light: float,
     mean_light: float,
+    current_noise: float,
+    max_noise: float,
+    min_noise: float,
+    mean_noise: float,
 ) -> int:
     input_df = pd.DataFrame(
         [[
             current_temperature, max_temperature, min_temperature, mean_temperature,
             current_humidity, mean_humidity, min_humidity, max_humidity,
             current_co2, mean_co2, min_co2, max_co2,
-            current_light, mean_light, min_light, max_light
+            current_light, mean_light, min_light, max_light,
+            current_noise, mean_noise, min_noise, max_noise,
         ]],
         columns=FEATURE_COLUMNS,
     )

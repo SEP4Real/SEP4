@@ -40,6 +40,10 @@ _VALID_PAYLOAD = {
     "maxLight": 350.0,
     "minLight": 300.0,
     "meanLight": 320.0,
+    "currentNoise": 5.39,
+    "maxNoise": 5.39,
+    "minNoise": 5.39,
+    "meanNoise": 5.39,
 }
 
 _INSTANT_PAYLOAD = {
@@ -131,6 +135,15 @@ def test_predict_with_mean_outside_window_returns_422(client):
 def test_predict_with_current_outside_window_returns_422(client):
     # Arrange - currentTemperature > maxTemp violates the model_validator
     payload = _VALID_PAYLOAD | {"currentTemperature": 30.0}
+    # Act
+    response = client.post("/predict", json=payload)
+    # Assert
+    assert response.status_code == 422
+
+
+def test_predict_with_invalid_noise_window_returns_422(client):
+    # Arrange - maxNoise < minNoise violates the model_validator
+    payload = _VALID_PAYLOAD | {"maxNoise": 5.0, "minNoise": 5.5}
     # Act
     response = client.post("/predict", json=payload)
     # Assert
