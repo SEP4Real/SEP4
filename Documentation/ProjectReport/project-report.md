@@ -320,7 +320,7 @@ Modeling the parallel execution of these transactions helped the development tea
 <!-- SHARED section — written as one coherent unit BEFORE branching.
      Present the overall system architecture and cloud design here. -->
 
-*Authors: [Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Cristina Matei*
 
 ### 3.1.1 System Architecture
 
@@ -1331,7 +1331,7 @@ The coverage report gave a clearer view of test quality than pass/fail results a
      Objective tone only. No personal opinions — those go in the Process Report.
      Cover: full-system integration, objectives met, critical evaluation, limitations. -->
 
-*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek, Cristna Matei*
 
 ## 4.1 Integrated System Results
 
@@ -1377,8 +1377,13 @@ All in all compared to a naive baseline, the team built something that actually 
 
 ## 4.5 Frontend Quality
 
-[Does the application meet the functional requirements? Does it display data correctly
-across all required breakpoints? Are all customer-facing features accessible via the UI?]
+The frontend meets the main user-facing requirements of the system. Users can register, log in, view the dashboard, connect a device from the profile page, view historical sensor readings, use the calendar, switch language and theme, and submit a rating after a study session. The dashboard shows the latest sensor values, historical data, recommendations, and the predicted study suitability value returned from the backend.
+
+The application was designed for the required screen widths of 576 px, 768 px, and 1200 px. The layout uses responsive CSS so that content stacks on smaller screens and uses more space on larger screens. The main features remain accessible through the navigation bar, dashboard, profile page, and calendar page.
+
+The frontend also includes automated tests for several important flows, including login, dashboard states, active session handling, stop-session rating popup, profile device connection, session rating submission, language switching, and theme switching. Manual testing was also used to check the main workflows in the browser.
+
+One frontend limitation is that some flows depend on backend and IoT state. For example, the dashboard can only unlock the live session view when the backend has an active IoT-created session for the connected device. The rating popup also needs a valid device ID and session ID before the rating can be stored correctly. Because of this, the complete session flow needs integration testing with the backend and IoT device, not only isolated frontend testing.
 
 ## 4.6 Cloud and DevOps Evaluation
 
