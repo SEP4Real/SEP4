@@ -73,6 +73,32 @@
   color: black;
 }
 
+body.dark-theme .chart-toggle {
+  background: #111;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.dark-theme .chart-toggle.temperature.active {
+  background: #8BE78B !important;
+  color: black !important;
+}
+
+body.dark-theme .chart-toggle.humidity.active {
+  background: #4DA6FF !important;
+  color: white !important;
+}
+
+body.dark-theme .chart-toggle.co2_level.active {
+  background: #C77DFF !important;
+  color: white !important;
+}
+
+body.dark-theme .chart-toggle.light_level.active {
+  background: #FFD166 !important;
+  color: black !important;
+}
+
 .chart-wrapper {
   width: 100%;
   height: 500px;
