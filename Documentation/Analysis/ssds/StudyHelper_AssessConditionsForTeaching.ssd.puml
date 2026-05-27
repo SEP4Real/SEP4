@@ -5,5 +5,5 @@ actor "Teacher" as Actor
 participant "system" as System
 
 Actor -> System : requestTeachingConditionOverview
-System -> Actor : sendTeachingConditionOverview(environmentStatus, temperature, humidity, co2Level, lightLevel, noiseLevel, predictedSuitabilityLevel, predictedTrend)
+System -> Actor : sendTeachingConditionOverview(temperature, humidity, co2Level, lightLevel, predictedStudyQuality)
 @enduml
