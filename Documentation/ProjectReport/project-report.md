@@ -711,14 +711,14 @@ This complete set of linearized features is passed to the `/predict` API endpoin
 
 ### 3.6.3 Data Split and Validation Strategy
 
-To ensure robust evaluation and prevent data leakage, we implemented a 64/16/20 split for training, validation, and testing:
+To ensure robust evaluation and prevent data leakage, all machine-learning experiments used a locked hold-out test set that was kept separate from model selection. The exact validation strategy differed between the instant-measurement and session-based pipelines:
 
-1. **Initial Split**: The dataset is split into an 80% development set (training + validation) and a 20% hold-out test set.
-2. **Validation Split**: The development set is further split, reserving 20% of it (16% of the total data) for validation and hyperparameter tuning, leaving 64% for model training.
+1. **Instant-measurement models**: Most instant-model notebooks used an 80% training/development set and a 20% hold-out test set, with hyperparameters selected through 5-fold cross-validation on the training/development set. The Gradient Boosting and MLP instant notebooks used a stricter room-grouped split instead, separating rooms into train, validation, and test groups to evaluate generalisation to unseen rooms.
+2. **Session-based models**: The data was first split into an 80% development set and a 20% hold-out test set. For hyperparameter tuning, 20% of the development set was then used as a static validation fold through `PredefinedSplit`, resulting in an effective 64/16/20 train/validation/test setup during tuning.
 
-Both splits employ **stratified sampling** based on the target `rating` variable to guarantee that all three subsets maintain the same proportional distribution of user ratings. However, a dynamic fallback is implemented to temporarily disable stratification if extreme class imbalances are present (e.g., if a rating class has fewer than two samples). The final models are evaluated primarily using **Accuracy** and **Macro F1-score**.
+Hold-out splits used **stratified sampling** where class counts allowed it, so the subsets preserved the proportional distribution of the target labels. Where extreme class imbalance made stratification unsafe, the implementation fell back to an unstratified split. Final model quality was evaluated primarily using **Accuracy** and **Macro F1-score**.
 
-Initially ideal test set would be the one taken from the real usage of the system (both iot and frontend) but since not enough data was received this could not have been accomplished.
+An ideal final test set would have consisted of real StudyHelper usage data collected through the IoT device and frontend. Because too few complete real sessions were available, the project used the hold-out test subsets described above instead.
 
 ## 3.7 Frontend Implementation
 
@@ -1012,9 +1012,11 @@ The models evaluated in the `model_related` notebooks were:
 
 ### 3.9.2 Training and Hyperparameter Tuning
 
-To guarantee rigorous Data Science methodology, all instant models were trained using a strict **80% Training / 20% Test** split. We eliminated redundant validation splits to maximize training data utility.
+For most instant-measurement experiments, the dataset was split into an **80% training/development set** and a **20% hold-out test set**. A separate fixed validation set was not used in the Linear Regression, Random Forest Regressor, Random Forest Classifier, and two-stage pipeline notebooks, because hyperparameter selection was handled inside the training/development set.
 
-Instead of manual tuning, we leveraged `GridSearchCV` with 5-fold cross-validation exclusively on the 80% training set to find optimal hyperparameters. To prevent data leakage, the 20% test set was locked away during the Grid Search and only evaluated once at the very end of the experiment.
+Instead of manual tuning, we leveraged `GridSearchCV` with 5-fold cross-validation exclusively on the 80% training/development set to find optimal hyperparameters. To prevent data leakage, the 20% test set was locked away during the Grid Search and only evaluated once at the very end of the experiment.
+
+For the Gradient Boosting and MLP instant classifiers, the notebooks used `GroupShuffleSplit` by room: two rooms were used for training, one room for validation, and one room for testing. These grouped experiments were included to test whether the model could generalise to rooms not seen during fitting.
 
 The complete parameter grids searched during the tuning phase for each instant model were:
 
@@ -1046,10 +1048,9 @@ The complete parameter grids searched during the tuning phase for each instant m
   - `max_depth`: [None, 10, 20]
   - `class_weight`: ['balanced', None]
 
-  
-  For the session-based models, the processed dataset was also split into an 80% training set and a 20% test set. Identifier and leakage columns such as `session_id`, `segment_id`, `source`, and timestamp fields were removed before training. Numerical features were scaled using `StandardScaler`, especially because KNN, Logistic Regression, and the Neural Network are sensitive to feature magnitude.
+For the session-based models, the processed dataset was also first split into an 80% development set and a 20% hold-out test set. Identifier and leakage columns such as `session_id`, `segment_id`, `source`, and timestamp fields were removed before training. Numerical features were scaled using `StandardScaler`, especially because KNN, Logistic Regression, and the Neural Network are sensitive to feature magnitude.
 
-Hyperparameter tuning was performed with a static validation split using `PredefinedSplit`. This kept the setup consistent across the model notebooks while avoiding unnecessary computation. The final test set was kept separate and only used after tuning.
+Hyperparameter tuning was performed by splitting the 80% development set again: 80% of it was used for fitting candidate models, and 20% of it was used as a static validation fold through `PredefinedSplit`. This made the effective tuning setup 64% training, 16% validation, and 20% final test. The final test set was kept separate and only used after tuning.
 
 The best parameters found during tuning were:
 
