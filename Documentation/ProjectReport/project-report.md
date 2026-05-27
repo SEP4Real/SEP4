@@ -210,8 +210,6 @@ The domain is partitioned into distinct logical spaces that coordinate during ac
 <!-- Present ALL user stories as a single shared backlog.
      Format: "As a [role], I want to [action], so that [benefit]." -->
 
-
-
 The following user stories were derived from the use cases defined in the project analysis and reflect the agreed shared backlog across all three sub-teams:
 
 | ID   | User Story                                                                                                                                                                       | Priority    | Component                   |
@@ -223,34 +221,33 @@ The following user stories were derived from the use cases defined in the projec
 | US05 | As a Student, I want to start and stop a monitored study session using a physical button on the device, so that I do not need to interact with any software to begin monitoring. | Must have   | IoT                         |
 | US06 | As a Teacher, I want an overview of current and predicted environmental conditions, so that I can decide if the environment is suitable for teaching.                            | Could have  | Frontend / ML               |
 | US07 | As a Student, I want the web application to work correctly on my phone, tablet, and laptop, so that I can check conditions from any device.                                      | Should have | Frontend                    |
-| US08 | As a User, I want to register, log in, and log out securely, so that my personal data and study information are protected. | Must have | Frontend|
-| US09 | As a Student, I want to connect my physical device to my account, so that the dashboard can show data from my own study device. | Must have | Frontend|
-| US10 | As a Student, I want to manage my profile information, so that the application can be personalized to me. | Should have | Frontend|
-| US11 | As a Student, I want to manage calendar events, so that I can plan study sessions in the same application. | Could have | Frontend|
-| US12 | As a User, I want to switch between English and Danish and use dark mode, so that the application is easier to use in different contexts. | Could have | Frontend |
+| US08 | As a User, I want to register, log in, and log out securely, so that my personal data and study information are protected.                                                       | Must have   | Frontend                    |
+| US09 | As a Student, I want to connect my physical device to my account, so that the dashboard can show data from my own study device.                                                  | Must have   | Frontend                    |
+| US10 | As a Student, I want to manage my profile information, so that the application can be personalized to me.                                                                        | Should have | Frontend                    |
+| US11 | As a Student, I want to manage calendar events, so that I can plan study sessions in the same application.                                                                       | Could have  | Frontend                    |
+| US12 | As a User, I want to switch between English and Danish and use dark mode, so that the application is easier to use in different contexts.                                        | Could have  | Frontend                    |
 
 ## 2.3 System Requirements
 
 The following requirements were derived from the user stories and supplemented by cross-cutting concerns identified during analysis:
 
-| ID    | Requirement Description                                                                                                                                                                                             | Type           | Source      |
-| :---- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------- | :---------- |
-| FR01  | The IoT device shall measure temperature (°C), humidity (%), CO₂ (ppm), and light level (raw ADC), and transmit a JSON payload to the backend API at intervals not exceeding 60 seconds during an active session. | Functional     | US01, US05  |
-| FR02  | The backend shall persist sensor readings, device identities, and session records in a PostgreSQL database.                                                                                                         | Functional     | US01, US03  |
-| FR03  | The backend API shall expose endpoints for device registration (`POST /device`), session management (`POST /session`, `PATCH /session/{id}/pulse`), and data submission (`POST /data`).                     | Functional     | US01, US05  |
-| FR04  | The ML service shall expose a `POST /predict` endpoint returning an integer Study Suitability Rating between 1 and 5.                                                                                            | Functional     | US01, US06  |
-| FR05  | The frontend shall display the current sensor readings, the ML-predicted suitability rating, and a time-series chart of historical readings for the active session.                                                 | Functional     | US01, US03  |
-| FR06  | The frontend shall allow a student to submit a post-session quality rating, which is stored against the session record.                                                                                             | Functional     | US02        |
-| FR07  | The IoT device shall sound the onboard buzzer when the predicted study quality returned by the server reaches level 1 (lowest).                                                                                     | Functional     | US04        |
-| NFR01 | The user interface must adapt dynamically without horizontal scrolling or text clipping across screen widths from $320\text{ px}$ to $1920\text{ px}$.                                                      | Non-functional | US07        |
-| NFR02 | The backend must automatically end a study session if no keepalive signal is received from the device for a continuous period of $30\text{ seconds}$.                                                              | Non-functional | Reliability |
-| NFR03 | The ML prediction service must return comfort ratings in less than $200\text{ ms}$ for $99\%$ of requests under concurrent load.                                                                                   | Non-functional | US01, US06  |
-| NFR04 | All server-side applications must be deployable to a target environment using a single orchestration command in under $5\text{ minutes}$.                                                                          | Non-functional | Supportability|
-| NFR05 | The authentication service must temporarily lock a user account for $15\text{ minutes}$ after 5 consecutive failed login attempts.                                                                                 | Non-functional | Security    |
-| NFR06 | The CI/CD pipeline must execute automated unit tests and block code merges if test coverage falls below $80\%$ or if any test fails.                                                                              | Non-functional | DevOps      |
+| ID    | Requirement Description                                                                                                                                                                                             | Type           | Source         |
+| :---- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------- | :------------- |
+| FR01  | The IoT device shall measure temperature (°C), humidity (%), CO₂ (ppm), and light level (raw ADC), and transmit a JSON payload to the backend API at intervals not exceeding 60 seconds during an active session. | Functional     | US01, US05     |
+| FR02  | The backend shall persist sensor readings, device identities, and session records in a PostgreSQL database.                                                                                                         | Functional     | US01, US03     |
+| FR03  | The backend API shall expose endpoints for device registration (`POST /device`), session management (`POST /session`, `PATCH /session/{id}/pulse`), and data submission (`POST /data`).                     | Functional     | US01, US05     |
+| FR04  | The ML service shall expose a `POST /predict` endpoint returning an integer Study Suitability Rating between 1 and 5.                                                                                            | Functional     | US01, US06     |
+| FR05  | The frontend shall display the current sensor readings, the ML-predicted suitability rating, and a time-series chart of historical readings for the active session.                                                 | Functional     | US01, US03     |
+| FR06  | The frontend shall allow a student to submit a post-session quality rating, which is stored against the session record.                                                                                             | Functional     | US02           |
+| FR07  | The IoT device shall sound the onboard buzzer when the predicted study quality returned by the server reaches level 1 (lowest).                                                                                     | Functional     | US04           |
+| NFR01 | The user interface must adapt dynamically without horizontal scrolling or text clipping across screen widths from$320\text{ px}$ to $1920\text{ px}$.                                                           | Non-functional | US07           |
+| NFR02 | The backend must automatically end a study session if no keepalive signal is received from the device for a continuous period of$30\text{ seconds}$.                                                              | Non-functional | Reliability    |
+| NFR03 | The ML prediction service must return comfort ratings in less than$200\text{ ms}$ for $99\%$ of requests under concurrent load.                                                                                 | Non-functional | US01, US06     |
+| NFR04 | All server-side applications must be deployable to a target environment using a single orchestration command in under$5\text{ minutes}$.                                                                          | Non-functional | Supportability |
+| NFR05 | The authentication service must temporarily lock a user account for$15\text{ minutes}$ after 5 consecutive failed login attempts.                                                                                 | Non-functional | Security       |
+| NFR06 | The CI/CD pipeline must execute automated unit tests and block code merges if test coverage falls below$80\%$ or if any test fails.                                                                               | Non-functional | DevOps         |
 
 A comprehensive specification of these non-functional criteria under the FURPS+ quality framework is maintained in the project's [Non-Functional Requirements Document](../NonFunctionalRequirements.md).
-
 
 ## 2.4 System Sequence Diagrams
 
@@ -269,7 +266,9 @@ The start and end use cases governed by the physical button interface on the har
 *Figure 2.3: System Sequence Diagram for IoT-initiated session termination.*
 
 #### Architectural Utility and Firmware Control Loops
+
 These two SSDs guided the design of the device's main loop (`main.c`) and API integration layer (`server_api.c`) in several ways:
+
 1. **Watchdog Self-Healing Routine**: The start sequence highlights a synchronous POST request to `/session`. If the network fails or the server returns an error, the firmware triggers a hardware Watchdog reset (`wdt_enable(WDTO_30MS)`) after 5 retries, forcing a clean device reboot. This self-healing mechanism is directly derived from modeling the system boundary response to connection failures.
 2. **Button Cooldown and Debouncing**: To prevent double-triggering or race conditions on the server (creating multiple ghost sessions for a single physical press), we implemented a software-based timer cooldown (`session_button_cooldown_timer`) of 10 seconds. This state locking is reflected in the SSD transitions where session commands are serialized.
 
@@ -286,6 +285,7 @@ During a running session, the system must ingest telemetry and evaluate the envi
 *Figure 2.5: System Sequence Diagram for real-time environment alerts.*
 
 #### Ingestion and Alerting Execution Details
+
 1. **Asynchronous Dual-Timer Routine**: The firmware utilizes two distinct software-based interrupts. A 5-second timer (`pulse_timer`) posts keep-alives to `/session/{id}/pulse` to maintain session persistence on the server. A 30-second timer (`data_timer`) reads physical sensors (DHT11, light ADC, MH-Z19 CO2 UART) and transmits telemetry to `/data`. Modeling these as separate SSD streams allowed us to decouple connection validation (keep-alives) from resource-heavy sensor polling.
 2. **Direct Feedback Loop**: The response from `/data` returns the ML-predicted study suitability score. The SSD shows that if the returned score is less than 4 (poor or moderate comfort), the device enters a local buzzer alerting loop (`buzzer_beep()`). Modeling this response loop as a direct system output payload prevented the need for the device to perform local calculation or pull data, saving processing power and memory on the ATmega2560.
 
@@ -298,7 +298,9 @@ After a study session, the student evaluates their comfort experience.
 *Figure 2.6: System Sequence Diagram for post-session comfort feedback.*
 
 #### Feedback Loop and API Specification
+
 The rating sequence maps the transition of user feedback into training labels:
+
 1. **API Validation Contract**: The SSD defines a single transaction `submitStudySessionRating(ratingValue)` to `/ratings`. This guided the definition of the FastAPI Pydantic schema (`RatingRequest`), enforcing that rating values remain between 1 and 5 in the client payload.
 2. **Frontend UI State Mapping**: By modeling the receipt confirmation, the frontend React application (`SessionRating.jsx`) is structured to reset local states (clearing the rating selection) and close the modal container only upon receiving a successful status code from the backend.
 
@@ -327,7 +329,7 @@ Modeling the parallel execution of these transactions helped the development tea
 
 *Authors: [Name, Name]*
 
-### 3.1.1 System Architecture {#311-system-architecture}
+### 3.1.1 System Architecture
 
 [Describe the overall architecture: IoT device → Cloud backend → Frontend,
 with the ML pipeline integrated into or alongside the cloud layer.
@@ -350,8 +352,7 @@ The React frontend is a static single-page application served by Nginx inside a 
 
 Data flows through the system as follows: the IoT device pushes a sensor payload to the Core API during an active session; the Core API persists the reading in PostgreSQL and requests a suitability prediction from the MAL API; the MAL API returns a rating; the Core API stores the rating together with the sensor data and relays the result to the frontend. The frontend polls the Core API for dashboard data and renders the latest readings, chart, and recommendation.
 
-
-### 3.1.2 Cloud Architecture {#312-cloud-architecture}
+### 3.1.2 Cloud Architecture
 
 <!-- Required by SEP4: must use public cloud hosting, containers, and serverless. -->
 
@@ -367,7 +368,7 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 **Continuous delivery:** On every push to `main`, a GitHub Actions workflow sends a webhook to Coolify, which pulls updated images from GHCR and restarts the affected containers. Pre-built images for `mal-api` and `frontend` are published to GHCR as part of the MLOps and frontend CI/CD pipelines.
 
-### 3.1.3 Security Design {#313-security-design}
+### 3.1.3 Security Design
 
 *Authors: [Cristina Matei]*
 
@@ -391,7 +392,7 @@ The frontend sends authenticated requests with `credentials: "include"` so the b
 
 The JWT signing key is read from the `SECRET_KEY` environment variable instead of being hard-coded in the source code. The variable is documented in `.env.example` and passed into the API container through `docker-compose.yml`. This makes the signing key configurable per environment and avoids committing the real secret to Git.
 
-Additional considerations: 
+Additional considerations:
 Login rate limiting is implemented to reduce repeated brute-force login attempts. The API allows up to five failed login attempts within a 15-minute window for the same client/email combination. After the limit is reached, login returns HTTP 429 until the window expires. CORS is configured to allow the frontend origins used in local development and to support credentials, which is required because authentication uses cookies.
 
 Calendar events are also protected by the logged-in user identity. The calendar endpoints use the current authenticated user from the JWT cookie, and every create, read, update, and delete operation is linked to `current_user["id"]`. This means users only see and modify their own calendar events, not events created by other users.
@@ -435,7 +436,7 @@ The design is based on three central requirements. First, the device must measur
 
 The IoT design therefore combines sensors, user input, local status feedback, and network communication in one embedded prototype. The firmware is divided into small modules with clear responsibilities, so that hardware drivers, backend communication, display status logic, and the main session controller can be developed and tested separately.
 
-### 3.2.1 Hardware Architecture {#321-hardware-architecture}
+### 3.2.1 Hardware Architecture
 
 <p align="center">
   <img src="image/iot-design/iot-hardware-block-diagram.svg" alt="IoT Hardware Block Diagram" width="50%">
@@ -467,7 +468,7 @@ The device also includes local user interaction and feedback. Button 1 controls 
 
 Sound measurement was considered during the project, but it is not part of the final active IoT design because the available sound sensor did not provide reliable enough readings. The final hardware design therefore focuses on temperature, humidity, CO2, and light, which are the sensor values actually transmitted by the firmware.
 
-### 3.2.2 Embedded Software Architecture {#322-embedded-software-architecture}
+### 3.2.2 Embedded Software Architecture
 
 <p align="center">
   <img src="image/iot-design/iot-firmware-module-diagram.svg" alt="IoT Firmware Module Diagram" width="80%">
@@ -528,7 +529,7 @@ The firmware also includes an instant measurement mode controlled by Button 2. T
 
 ### 3.3.1 Data Sources and Collection Strategy
 
-The initial search for data focused on the relationship between environmental noise and cognitive focus. We explored combining datasets describing focus-related effects of background noise with labeled sound categories from WAV files, extracting frequencies and loudness. However, as the project evolved, we narrowed the ML objective from direct focus prediction to predicting a user-provided **Study Suitability Rating**. This shift was necessary because "focus" is a subjective internal state that cannot be directly measured by our sensors. By using a user-provided rating, we anchored our target variable in observable environmental conditions and explicit user feedback. [...]
+The search for data focused on the relationship between environmental noise and cognitive focus raiting. Initially the main source of data was supposed to be getting collected from iot sensors combined with raitings provided by users using the system through frontend UI. To address the limitations of initially planned dataset size, we expanded our search to include publicly available data from sources like Kaggle. We explored combining datasets describing focus-related effects of background noise with labeled sound categories from WAV files, extracting frequencies and loudness. However, as the project evolved, we narrowed the ML objective from direct focus prediction to predicting a user-provided **Study Suitability Rating**. This shift was necessary because "focus" is a subjective internal state that cannot be directly measured by our sensors. By using a user-provided rating, we anchored our target variable in observable environmental conditions and explicit user feedback.
 
 ### 3.3.2 Exploratory Data Analysis
 
@@ -544,7 +545,7 @@ Correlation analysis further revealed insights into data quality. Healthy datase
 
 *Figure 3.y: Correlation matrices showing healthy physical relationships (left) vs suspicious randomness (right).*
 
-### 3.3.3 ML Problem Formulation {#333-ml-problem-formulation}
+### 3.3.3 ML Problem Formulation
 
 The ML task is formulated as a supervised learning problem aimed at predicting the Study Suitability Rating. Specifically, this is defined as a **Multi-Class Classification** problem:
 
@@ -558,7 +559,7 @@ The ML task is formulated as a supervised learning problem aimed at predicting t
 
 <!-- Design of the React web application. -->
 
-### 3.4.1 UI/UX Design {#341-uiux-design}
+### 3.4.1 UI/UX Design
 
 The frontend was built for students who want to quickly check if their study environment is suitable. The most important actions are logging in, connecting a device, seeing the current sensor values, checking previous measurements, and rating a study session afterwards. Because of this, the dashboard is the main page after login, while the profile and calendar pages are available from the navigation bar.
 
@@ -579,7 +580,6 @@ The frontend is implemented with React and Vite. React is used to build the inte
 
 The frontend uses React Context API together with local component state managed through `useState`. Context providers are used for global state such as language selection and theme management, while page-specific state such as form input, loading states, selected ratings, and dashboard session state is kept inside the relevant components. Communication with the backend API is handled through service modules using the Fetch API. These service modules keep API calls separate from the page components and make the component code easier to read.
 
-
 The source code is divided into folders by responsibility:
 
 - `components/` contains reusable UI parts and route helpers. This includes `Navbar`, `ProtectedRoute`, `PublicRoute`, `SensorCard`, `SensorChart`, `SessionRating`, `LoadingSpinner`, and `EmptyState`.
@@ -599,7 +599,7 @@ Routing is handled with `react-router-dom`. The public routes are `/login`, and 
 
 *Figure 3X: Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.*
 
-### 3.4.3 Responsiveness Strategy {#343-responsiveness-strategy}
+### 3.4.3 Responsiveness Strategy
 
 <!-- Required: must adapt well to 576px, 768px, and 1200px screen widths. -->
 
@@ -611,7 +611,7 @@ The layout was made to work at the required widths of 576 px, 768 px, and 1200 p
 
 *Authors: [Damian Michal Choina]*
 
-### 3.5.1 Sensor and Actuator Drivers {#351-sensor-and-actuator-drivers}
+### 3.5.1 Sensor and Actuator Drivers
 
 The firmware uses a layered driver structure: each peripheral is encapsulated behind a small header in `IOT/lib/` that exposes a minimal initialisation function and one or two read or write operations. This separation keeps the application code in `main.c`, `server_api.c`, and `wifi_http.c` free of register-level concerns and makes individual drivers replaceable without touching the application logic.
 
@@ -630,7 +630,7 @@ if (co2_read_ppm(&current_co2) == CO2_OK) {
 co2_request_measurement();           /* request next reading */
 ```
 
-### 3.5.2 Cloud Communication Implementation {#352-cloud-communication-implementation}
+### 3.5.2 Cloud Communication Implementation
 
 Network communication is split into two layers. The lower layer (`wifi_http.c`) is responsible for the HTTP transport — DNS resolution, TCP connection lifecycle, and request formatting. The upper layer (`server_api.c`) is responsible for protocol concerns — endpoint paths, JSON payloads, response parsing, and session state. This separation keeps the HTTP layer reusable and the protocol layer free of low-level transport details.
 
@@ -687,7 +687,7 @@ Rather than using simple means or linear regression, we adopted a cluster-based 
 
 If a cluster suffered from extreme sparsity (e.g., completely missing a feature like noise), a global median was used as a fallback to prevent model bias.
 
-### 3.6.2 Feature Selection {#362-feature-selection}
+### 3.6.2 Feature Selection TODO: instant and session based
 
 Our feature extraction pipeline aggregates ("linearize") time-series sensor data into session-level metrics that are calculated dynamically for the active session. This generates a comprehensive 16-feature vector encompassing current (last non-null), maximum, minimum, and mean values for all four sensor types evaluated over the entire active session up to the prediction request:
 
@@ -711,7 +711,8 @@ Initially ideal test set would be the one taken from the real usage of the syste
 
 ## 3.7 Frontend Implementation
 
-### 3.7.1 Core Features Implementation {#371-core-features-implementation}
+### 3.7.1 Core Features Implementation
+
 *Authors: [Cristina Matei]*
 
 The frontend implements the main user-facing workflows of the system: authentication, dashboard monitoring, session rating, profile management, device connection, calendar planning, theme switching, and language switching. Each workflow is built as a React page or reusable component, while backend communication is kept in service files under `src/services`.
@@ -758,8 +759,8 @@ export async function getDashboardData() {
   return response.json();
 }
 ```
-This service function is used by the dashboard to retrieve the latest sensor readings and predicted study quality from the Core API. The request includes credentials so the authentication cookie is sent with the request. Keeping this code in a service file separates backend communication from the dashboard UI logic.
 
+This service function is used by the dashboard to retrieve the latest sensor readings and predicted study quality from the Core API. The request includes credentials so the authentication cookie is sent with the request. Keeping this code in a service file separates backend communication from the dashboard UI logic.
 
 ### 3.7.1.2 Profile and Device Connection
 
@@ -785,6 +786,7 @@ export async function ensureDeviceExists(deviceId) {
   }
 }
 ```
+
 This function is used when a user connects a device from the profile page. First, the frontend checks if the device already exists in the backend. If it exists, the device can be connected. If the backend returns that the device was not found, the frontend tries to register it. Other backend errors are not hidden, because they may mean the API is unavailable or the request failed for another reason.
 
 ### 3.7.1.3 Calendar
@@ -803,12 +805,12 @@ Figure x: useEffect in CalendarPage.jsx
 
 Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
 
-![alt text](image/fe-implementation/image-11.png) 
+![alt text](image/fe-implementation/image-11.png)
 Figure x: handleSelect() in CalendarPage.jsx
 
 If the user decides to edit, the handleEventClick() function loads event data into the form.
 
-![alt text](image/fe-implementation/image-12.png) 
+![alt text](image/fe-implementation/image-12.png)
 Figure x: handleEventClick() in CalendarPage.jsx
 
 CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
@@ -865,7 +867,7 @@ In order to improve user experience, loading and empty-state components were cre
 
 ![alt text](image/fe-implementation/image-4.png)
 Figure x: LoadingSpinner() in LoadinSpinner.jsx
- 
+
 ![alt text](image/fe-implementation/image-5.png)
 Figure x: EmptyState() in EmptyState.jsx
 
@@ -883,10 +885,10 @@ Figure x: visualization of prediction
 ### 3.7.3 Hosting and Deployment
 
 *Authors: [Marta Zrno]*
+
 <!-- Required: must be hosted and accessible online. -->
 
 [Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
-
 
 The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers. It is build using Vite- a fast frontend building tool which optimizes React's code.
 
@@ -906,8 +908,6 @@ Deployment was automated through GitHub Actions workflows. When new changes were
 Figure x: deployment workflow
 
 The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
-
-
 
 ## 3.8 IoT CI/CD
 
@@ -930,7 +930,7 @@ Automatic deployment presents a similar problem. In a conventional software proj
 
 These constraints were acknowledged from the outset, and the CI/CD strategy was designed accordingly. Rather than attempting to run firmware on the target or simulate peripherals fully, the CI side of the pipeline focuses on two concerns: automated unit testing of hardware-independent logic, compiled and run natively on the CI runner using GCC, and a firmware build step using PlatformIO to verify that the codebase compiles correctly for the ATmega2560 target. The CD side is reduced to producing and publishing the `.hex` artifact, deferring the final flashing step to the developer. This separation allowed meaningful automation despite the inherent limitations of embedded CI/CD.
 
-### 3.8.2 Tools and Pipeline {#382-tools-and-pipeline}
+### 3.8.2 Tools and Pipeline
 
 ## CI Pipeline
 
@@ -979,7 +979,7 @@ In our project, we developed two distinct kinds of models to tackle different as
 1. **Session-based Models:** These models rely on chronological session data where linearization is in place. They account for the aspect of environment changes over time.
 2. **Instant Measurement Models:** These models rely solely on point-in-time environmental sensor data (temperature, humidity, noise, co2, light) to predict the user's study suitability. We rigorously evaluated multiple approaches for this instant measurement prediction pipeline.
 
-### 3.9.1 Model Selection {#391-model-selection}
+### 3.9.1 Model Selection
 
 1. For the instant measurement predictions, we evaluated both regression and classification approaches since `comfortValue` is an ordinal rating (1 to 5). The models evaluated include:
 
@@ -996,7 +996,7 @@ To guarantee rigorous Data Science methodology, all instant models were trained 
 
 Instead of manual tuning, we leveraged `GridSearchCV` with 5-fold cross-validation exclusively on the 80% training set to find optimal hyperparameters. To prevent data leakage, the 20% test set was locked away during the Grid Search and only evaluated once at the very end of the experiment.
 
-The complete parameter grids searched during the tuning phase for each model were:
+The complete parameter grids searched during the tuning phase for each instant model were:
 
 - **Linear Regression:**
   - `fit_intercept`: [True, False]
@@ -1026,7 +1026,7 @@ The complete parameter grids searched during the tuning phase for each model wer
   - `max_depth`: [None, 10, 20]
   - `class_weight`: ['balanced', None]
 
-### 3.9.3 Model Evaluation {#393-model-evaluation}
+### 3.9.3 Model Evaluation
 
 The models were evaluated strictly on the holdout test set to determine how well point-in-time sensor data correlates to a user's comfort. Regressors were evaluated using Mean Absolute Error (MAE), while classifiers were evaluated on Accuracy.
 
@@ -1154,7 +1154,7 @@ No automated integration testing was implemented, as the hardware constraints di
 | Component tests   |       |        |        |          |
 | Integration tests |       |        |        |          |
 
-### 3.12.3 Responsiveness Testing {#3123-responsiveness-testing}
+### 3.12.3 Responsiveness Testing
 
 [How was responsive behaviour verified at the three required breakpoints
 (576px, 768px, 1200px)? Include screenshots if helpful.]
@@ -1163,7 +1163,7 @@ No automated integration testing was implemented, as the hardware constraints di
 
 *Authors: [Piotr, Name]*
 
-### 3.13.1 Machine Learning Testing Strategy {#3131-machine-learning-testing-strategy}
+### 3.13.1 Machine Learning Testing Strategy
 
 The Machine Learning and API (MAL) component is verified through a multi-layered testing strategy that ensures both the data processing logic and the serving infrastructure are robust.
 
@@ -1186,7 +1186,7 @@ To verify the serving layer, we use `pytest` (e.g., `test_prediction_api.py`) to
 
 The MAL component requires a specialized DevOps approach to manage the lifecycle of both code and serialized model weights. The primary challenge is ensuring that changes to the data processing logic in `ml_pipeline/` are always compatible with the model artifact committed in `models/`. Unlike traditional software, the "build" artifact in MLOps includes both the code and the serialized model weights (`rf_model.pkl`).
 
-### 3.13.3 Tools and Pipeline {#3133-tools-and-pipeline}
+### 3.13.3 Tools and Pipeline
 
 The MLOps pipeline is automated via GitHub Actions (`mlops.yaml`) and executes the testing strategy described above on every pull request.
 
@@ -1222,14 +1222,14 @@ What does actual sensor data look like flowing through to the frontend predictio
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
-| Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                                                    |
-| :----------------------------------------------------------------------------------- | :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                                                   |
-| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#system-requirements) FR02–FR03; [§4.6](#cloud-and-devops-evaluation) stack stable throughout project period                                                                          |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified     |
-| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#system-requirements) FR05 |
-| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#cloud-and-devops-evaluation) zero manual deployment effort                                                                         |
-| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml`                            |
+| Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                   |
+| :----------------------------------------------------------------------------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                  |
+| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#system-requirements) FR02–FR03; [§4.6](#cloud-and-devops-evaluation) stack stable throughout project period                                                                                   |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified |
+| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#system-requirements) FR05                        |
+| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#cloud-and-devops-evaluation) zero manual deployment effort                                           |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml`                                                                                  |
 
 ## 4.3 IoT Performance
 
@@ -1302,11 +1302,9 @@ Be specific and actionable.]
 - **Cloud/DevOps**: full CD with staged environments, infrastructure-as-code (Terraform),
   monitoring and alerting (Grafana, Prometheus), load testing...]
 
-
-
 **Frontend**
-Future work should mainly focus on making the prototype more reliable and easier to use. 
-The frontend could be improved with a mobile app or progressive web app, since many students would probably check the system from a phone. Push notifications could warn the user when the environment becomes poor during a session. The dashboard could also become customisable, so users can choose which cards or charts they want to see. 
+Future work should mainly focus on making the prototype more reliable and easier to use.
+The frontend could be improved with a mobile app or progressive web app, since many students would probably check the system from a phone. Push notifications could warn the user when the environment becomes poor during a session. The dashboard could also become customisable, so users can choose which cards or charts they want to see.
 The connected device is currently stored in the backend user profile, which allows it to be restored after logout and login. A future improvement would be to support multiple devices per user and enforce device ownership fully in the backend. This would allow users to manage several devices and would ensure that session and rating data can only be accessed for devices assigned to the logged-in account.
 
 The system also gives recommendations but does not control physical room equipment. The frontend can inform the user about poor conditions, but it does not directly control ventilation, heating, lighting, or other actuators. This keeps the project within scope, but it also means the system supports decision-making rather than automatic environment control.
