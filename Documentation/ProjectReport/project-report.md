@@ -61,14 +61,7 @@ institution: "VIA University College"
 
 *Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
-[Concise summary of the entire project. State the problem being solved, the three-part
-technical approach (embedded IoT on ATmega2560, machine learning pipeline, React web
-frontend), the cloud infrastructure, and the main results. Should stand alone as a
-paragraph that lets a reader decide whether to read further.]
-
-[TODO: each team check and adjust sentences about their parts of the system so its 100% correct]
-
-StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning models - Random Forest Classifier and Neural Network trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
+StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning pipeline evaluated both instant measurement models and session-based models that aggregate sensor readings across a full study session. Session-based experiments reached up to 69.0% test accuracy with Random Forest (macro F1: 0.63), while the selected Neural Network model reached 68.3% with a smaller train-test gap and a more useful prediction distribution; both results were above the 57.9% majority-class baseline. Instant-measurement models were weaker overall, with standalone classifiers ranging from 37.2% to 46.1% accuracy and the best two-stage instant pipeline reaching 48.5%, supporting the project's central finding and the Subjectivity Paradox: raw point-in-time sensor readings alone are insufficient for reliably predicting subjective study quality.
 
 # 1. Introduction
 
@@ -327,7 +320,7 @@ Modeling the parallel execution of these transactions helped the development tea
 <!-- SHARED section — written as one coherent unit BEFORE branching.
      Present the overall system architecture and cloud design here. -->
 
-*Authors: [Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Cristina Matei*
 
 ### 3.1.1 System Architecture
 
@@ -555,6 +548,22 @@ The ML task is formulated as a supervised learning problem aimed at predicting t
 - **Output (Y):** The target variable is the Study Suitability Rating, consisting of discrete integer classes ranging from 1 (poor suitability) to 5 (excellent suitability). To minimize false positives and ensure the system only recommends definitively optimal environments, these ratings are evaluated with a conservative threshold across all models: ratings of 4 and 5 denote favorable conditions, while ratings of 1 through 3 are strictly classified as unsuitable.
 - **Objective:** The goal is to learn the complex, non-linear relationships between the physical characteristics of a room and subjective human suitability ratings. By mapping environmental metrics to historical user feedback, the system can automatically predict the quality of a study environment both instantaneously and throughout a prolonged session.
 
+### 3.3.4 MAL Architecture
+
+The MAL service is implemented as a dedicated FastAPI application in `MAL/backend/app/main.py`. Its architecture separates live API deployment, training logic, serialized artifacts, and data preprocessing into clearly defined folders:
+
+- `MAL/backend/app/main.py`: the FastAPI service exposing prediction and data endpoints.
+- `MAL/ml_pipeline/`:  model loading, training, and data transformations.
+- `MAL/scripts/`: executable training scripts used to produce artifacts.
+- `MAL/data/`: original, intermediate and final data artifacts.
+- `MAL/models/`: serialized model and scaler files consumed by the API.
+- `MAL/tests/`: validation tests for the ML service and prediction logic.
+- `MAL/notebooks/`: exploratory notebooks used during data analysis and model experimentation.
+
+This implementation is not just a model file; it is a live deployment with endpoints for `/predict`, `/instant-predict`, `/collect-data`, `/model-info`, and `/export-data`. The `/collect-data` endpoint exports rows from the database and transforms them with `transform_real_data()` to produce a real focus dataset, enabling live data provenance and eventual retraining from actual device data.
+
+The codebase explicitly separates two prediction pipelines rather than treating them as a single generic ML task. Session predictions use a 16-feature aggregate vector built from historical readings, while instant predictions use a compact 5-feature real-time snapshot.
+
 ## 3.4 Frontend Design
 
 *Authors: [Cristina Matei]*
@@ -689,27 +698,57 @@ Rather than using simple means or linear regression, we adopted a cluster-based 
 
 If a cluster suffered from extreme sparsity (e.g., completely missing a feature like noise), a global median was used as a fallback to prevent model bias.
 
-### 3.6.2 Feature Selection TODO: instant and session based
+### 3.6.2 Feature Selection: Session and Instant Pipelines
 
-Our feature extraction pipeline aggregates ("linearize") time-series sensor data into session-level metrics that are calculated dynamically for the active session. This generates a comprehensive 16-feature vector encompassing current (last non-null), maximum, minimum, and mean values for all four sensor types evaluated over the entire active session up to the prediction request:
+The MAL codebase implements two prediction pipelines. The following describes the exact inputs, datasets, saved artifacts.
 
-- **Temperature**: `currentTemperature`, `maxTemp`, `minTemp`, `meanTemp`
-- **Humidity**: `currentHumidity`, `maxHumidity`, `minHumidity`, `meanHumidity`
-- **CO2**: `currentCO2`, `maxCO2`, `minCO2`, `meanCO2`
-- **Light**: `currentLight`, `maxLight`, `minLight`, `meanLight`
+#### Session-Based Prediction
 
-This complete set of linearized features is passed to the `/predict` API endpoint to evaluate the user's current focus `rating`, providing the ML service with the full spectrum of environmental data.
+The session pipeline accumulates temporally contiguous device readings into a session window and computes summary statistics per each sensor. Input features (16 total) are current/mean/min/max statistics used by the session model:
+
+- `currentTemperature`, `meanTemp`, `minTemp`, `maxTemp`
+- `currentHumidity`, `humidity_mean`, `humidity_min`, `humidity_max`
+- `currentCO2`, `co2_mean`, `co2_min`, `co2_max`
+- `currentLight`, `light_mean`, `light_min`, `light_max`
+
+These features are produced from the processed dataset `MAL/data/processed/linearized_session_windows.csv`. The session model is trained in `MAL/scripts/train_model.py`. The final session-level artifact deployed by the service is `MAL/models/nn_model.pkl` (with its associated scaler/transform saved alongside the artifact).
+
+TO DO (what about noise?)
+
+#### Instant Prediction
+
+The instant pipeline makes point-in-time predictions from a compact set of immediate sensor readings. The input features are:
+- `temperature`, `humidity`, `co2`, `light`, `noise`
+
+Training data for the instant model is `MAL/data/processed/instant_mock_clean.csv`. The pipeline relies entirely on this fixed five-feature set. The `GridSearchCV` process in `MAL/ml_pipeline/instant_model.py` is utilized for hyperparameter tuning to configure the best-performing Random Forest model. The chosen production artifacts are `MAL/models/instantrfcmodel.pkl` and `MAL/models/instant_scaler.pkl`.
+
+The instant endpoint enforces the `InstantPredictionRequest` schema; when the client omits `noise` the backend substitutes the conservative default `noise=29.0` to maintain deterministic behaviour and avoid runtime failures.
+
+#### Endpoint and Artifact Mapping
+
+| Endpoint | Model Type | Input Features | Saved Artifact |
+| :------- | :--------- | :------------- | :------------- |
+| `/predict` | Session-level neural network | 16 session-aggregate features (current/mean/min/max for Temperature, Humidity, CO₂, Light) | `MAL/models/nn_model.pkl` (+scaler) |
+| `/instant-predict` | Instant Random Forest | 5 real-time features (temperature, humidity, CO₂, light, noise) | `MAL/models/instantrfcmodel.pkl`, `MAL/models/instant_scaler.pkl` |
+
+#### Data Provenance and Retraining
+
+Export and collection endpoints (`/collect-data`, `/export-data`) run `transform_real_data()` and persist processed CSVs to `MAL/data/processed/` with provenance metadata such as (TO DO). These artifacts are the inputs for offline retraining.
+
+#### Validation & Safety
+
+TO DO
 
 ### 3.6.3 Data Split and Validation Strategy
 
-To ensure robust evaluation and prevent data leakage, we implemented a 64/16/20 split for training, validation, and testing:
+To ensure robust evaluation and prevent data leakage, all machine-learning experiments used a locked hold-out test set that was kept separate from model selection. The exact validation strategy differed between the instant-measurement and session-based pipelines:
 
-1. **Initial Split**: The dataset is split into an 80% development set (training + validation) and a 20% hold-out test set.
-2. **Validation Split**: The development set is further split, reserving 20% of it (16% of the total data) for validation and hyperparameter tuning, leaving 64% for model training.
+1. **Instant-measurement models**: Most instant-model notebooks used an 80% training/development set and a 20% hold-out test set, with hyperparameters selected through 5-fold cross-validation on the training/development set. The Gradient Boosting and MLP instant notebooks used a stricter room-grouped split instead, separating rooms into train, validation, and test groups to evaluate generalisation to unseen rooms.
+2. **Session-based models**: The data was first split into an 80% development set and a 20% hold-out test set. For hyperparameter tuning, 20% of the development set was then used as a static validation fold through `PredefinedSplit`, resulting in an effective 64/16/20 train/validation/test setup during tuning.
 
-Both splits employ **stratified sampling** based on the target `rating` variable to guarantee that all three subsets maintain the same proportional distribution of user ratings. However, a dynamic fallback is implemented to temporarily disable stratification if extreme class imbalances are present (e.g., if a rating class has fewer than two samples). The final models are evaluated primarily using **Accuracy** and **Macro F1-score**.
+Hold-out splits used **stratified sampling** where class counts allowed it, so the subsets preserved the proportional distribution of the target labels. Where extreme class imbalance made stratification unsafe, the implementation fell back to an unstratified split. Final model quality was evaluated primarily using **Accuracy** and **Macro F1-score**.
 
-Initially ideal test set would be the one taken from the real usage of the system (both iot and frontend) but since not enough data was received this could not have been accomplished.
+An ideal final test set would have consisted of real StudyHelper usage data collected through the IoT device and frontend. Because too few complete real sessions were available, the project used the hold-out test subsets described above instead.
 
 ## 3.7 Frontend Implementation
 
@@ -797,40 +836,40 @@ This function is used when a user connects a device from the profile page. First
 
 The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
 
-![alt text](image/fe-implementation/image-9.png)
+![alt text](image/FE/image-9.png)
 Figure x: FullCalendar in CalendarPage.jsx
 
 The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
 
-![alt text](image/fe-implementation/image-10.png)
+![alt text](image/FE/image-10.png)
 Figure x: useEffect in CalendarPage.jsx
 
 Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
 
-![alt text](image/fe-implementation/image-11.png)
+![alt text](image/FE/image-11.png)
 Figure x: handleSelect() in CalendarPage.jsx
 
 If the user decides to edit, the handleEventClick() function loads event data into the form.
 
-![alt text](image/fe-implementation/image-12.png)
+![alt text](image/FE/image-12.png)
 Figure x: handleEventClick() in CalendarPage.jsx
 
 CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
-![alt text](image/fe-implementation/image-13.png)
+![alt text](image/FE/image-13.png)
 Figure x: createCalendarEvent() in CalendarService.js
 
 Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
 
-![alt text](image/fe-implementation/image-14.png)
+![alt text](image/FE/image-14.png)
 Figure x: credentials check in CalendarService.js requests
 
 REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
 
-![alt text](image/fe-implementation/image-15.png)
+![alt text](image/FE/image-15.png)
 Figure x: GET endpoint in calendar.py
 
-![alt text](image/fe-implementation/image-16.png)
+![alt text](image/FE/image-16.png)
 Figure x: request model in calendar.py
 
 ### 3.7.2 API Integration
@@ -847,41 +886,41 @@ Fetch API performs the requests to the backend and is used to load the data in t
 
 For local and deployed environment, an API configuration was created:
 
-![alt text](image/fe-implementation/image.png)
+![alt text](image/FE/image.png)
 Figure x: apiConfig.js
 
 To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
 
-![alt text](image/fe-implementation/image-1.png)
+![alt text](image/FE/image-1.png)
 Figure x: getDashboardData in DashboardService.js
 
 Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
 
-![alt text](image/fe-implementation/image-2.png)
+![alt text](image/FE/image-2.png)
 Figure x: login() in AuthService.js
 
 These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
-![alt text](image/fe-implementation/image-3.png)
+![alt text](image/FE/image-3.png)
 Figure x: handleSubmit() in LoginPage.jsx
 
 In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-![alt text](image/fe-implementation/image-4.png)
+![alt text](image/FE/image-4.png)
 Figure x: LoadingSpinner() in LoadinSpinner.jsx
 
-![alt text](image/fe-implementation/image-5.png)
+![alt text](image/FE/image-5.png)
 Figure x: EmptyState() in EmptyState.jsx
 
 MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
 
-![alt text](image/fe-implementation/image-6.png)
+![alt text](image/FE/image-6.png)
 Figure x: getPrediction() in malService.js
 
 Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
-![alt text](image/fe-implementation/image-7.png)
-![alt text](image/fe-implementation/image-8.png)
+![alt text](image/FE/image-7.png)
+![alt text](image/FE/image-8.png)
 Figure x: visualization of prediction
 
 ### 3.7.3 Hosting and Deployment
@@ -892,28 +931,28 @@ Figure x: visualization of prediction
 
 [Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
 
-The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers. It is build using Vite- a fast frontend building tool which optimizes React's code.
+The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers.
 
 The Docker build process was divided into 3 stages to separate the build from the runtime environment. In the first stage, Node.js Alpine container installed all dependencies and the product was generated using "npm run build" command. In the second stage, the generated files were copied into an Nginx container.
 
-![alt text](image/fe-implementation/image-17.png)
+![alt text](image/FE/image-17.png)
 Figure x: Dockerfile
 
 In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured.
 
-![alt text](image/fe-implementation/image-18.png)
+![alt text](image/FE/image-18.png)
 Figure x:  .env
 
-Deployment was automated through GitHub Actions workflows. When new changes were pushed to the main branch, the frontend container image is automatically rebuilt and the new frontend is deployed through Coolify.
+When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify.
 
-![alt text](image/fe-implementation/image-19.png)
+![alt text](image/FE/image-19.png)
 Figure x: deployment workflow
 
 The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
 
 ## 3.8 IoT CI/CD
 
-*Authors: [Jakub Maciej Baczek, Name]*
+*Authors: Jakub Baczek*
 
 <!-- DevOps checklist — address all four points:
      1. General DevOps considerations and planning
@@ -992,11 +1031,22 @@ In our project, we developed two distinct kinds of models to tackle different as
 - **Multi-Layer Perceptron (MLP):** A feedforward artificial neural network evaluated to see if deep, non-linear pattern recognition could better map raw sensors to human comfort.
 - **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating.
 
+2. For the session-based predictions, we evaluated classification models on linearized study-session windows. Unlike instant measurement prediction, this model does not rely on a single sensor snapshot. Instead, it uses aggregated values from a session, such as maximum, minimum, and mean temperature, humidity, CO2, and light. The goal was to predict the final Study Suitability Rating based on how the environment developed over time.
+
+The models evaluated in the `model_related` notebooks were:
+
+- **Logistic Regression:** Used as a simple baseline classifier to test whether the relationship between environmental features and ratings could be captured linearly.
+- **K-Nearest Neighbours (KNN):** Evaluated because it can classify based on similarity between session windows, which seemed relevant when comparing study environments with similar sensor patterns.
+- **Random Forest Classifier:** Chosen for its ability to capture non-linear relationships and provide feature importance, while being more robust than a single decision tree.
+- **Neural Network (MLP):** A neural network classifier evaluated to determine whether a more flexible model could capture complex interactions between environmental changes over time.
+
 ### 3.9.2 Training and Hyperparameter Tuning
 
-To guarantee rigorous Data Science methodology, all instant models were trained using a strict **80% Training / 20% Test** split. We eliminated redundant validation splits to maximize training data utility.
+For most instant-measurement experiments, the dataset was split into an **80% training/development set** and a **20% hold-out test set**. A separate fixed validation set was not used in the Linear Regression, Random Forest Regressor, Random Forest Classifier, and two-stage pipeline notebooks, because hyperparameter selection was handled inside the training/development set.
 
-Instead of manual tuning, we leveraged `GridSearchCV` with 5-fold cross-validation exclusively on the 80% training set to find optimal hyperparameters. To prevent data leakage, the 20% test set was locked away during the Grid Search and only evaluated once at the very end of the experiment.
+Instead of manual tuning, we leveraged `GridSearchCV` with 5-fold cross-validation exclusively on the 80% training/development set to find optimal hyperparameters. To prevent data leakage, the 20% test set was locked away during the Grid Search and only evaluated once at the very end of the experiment.
+
+For the Gradient Boosting and MLP instant classifiers, the notebooks used `GroupShuffleSplit` by room: two rooms were used for training, one room for validation, and one room for testing. These grouped experiments were included to test whether the model could generalise to rooms not seen during fitting.
 
 The complete parameter grids searched during the tuning phase for each instant model were:
 
@@ -1028,9 +1078,39 @@ The complete parameter grids searched during the tuning phase for each instant m
   - `max_depth`: [None, 10, 20]
   - `class_weight`: ['balanced', None]
 
+For the session-based models, the processed dataset was also first split into an 80% development set and a 20% hold-out test set. Identifier and leakage columns such as `session_id`, `segment_id`, `source`, and timestamp fields were removed before training. Numerical features were scaled using `StandardScaler`, especially because KNN, Logistic Regression, and the Neural Network are sensitive to feature magnitude.
+
+Hyperparameter tuning was performed by splitting the 80% development set again: 80% of it was used for fitting candidate models, and 20% of it was used as a static validation fold through `PredefinedSplit`. This made the effective tuning setup 64% training, 16% validation, and 20% final test. The final test set was kept separate and only used after tuning.
+
+The best parameters found during tuning were:
+
+- **Logistic Regression:**
+  - `C`: 100
+  - `class_weight`: None
+- **KNN:**
+  - `n_neighbors`: 17
+  - `weights`: distance
+  - `metric`: minkowski
+  - `p`: 1
+  - `leaf_size`: 20
+- **Random Forest Classifier:**
+  - `n_estimators`: 200
+  - `max_depth`: 20
+  - `max_features`: log2
+  - `min_samples_split`: 10
+  - `min_samples_leaf`: 2
+- **Multi-Layer Perceptron:**
+  - `hidden_layer_sizes`: (128, 64)
+  - `alpha`: 0.0001
+  - `learning_rate_init`: 0.001
+  - `learning_rate`: constant
+  - `solver`: adam
+
 ### 3.9.3 Model Evaluation
 
-The models were evaluated strictly on the holdout test set to determine how well point-in-time sensor data correlates to a user's comfort. Regressors were evaluated using Mean Absolute Error (MAE), while classifiers were evaluated on Accuracy.
+The instant models were evaluated strictly on the holdout test set to determine how well point-in-time sensor data correlates to a user's comfort. Regressors were evaluated using Mean Absolute Error (MAE), while classifiers were evaluated on Accuracy.
+
+Instant:
 
 | Model                        | Type       | Test Metric | Result        |
 | :--------------------------- | :--------- | :---------- | :------------ |
@@ -1040,6 +1120,16 @@ The models were evaluated strictly on the holdout test set to determine how well
 | Gradient Boosting Classifier | Classifier | Accuracy    | 40.7%         |
 | Multi-Layer Perceptron       | Classifier | Accuracy    | 46.1%         |
 | Two-Stage Pipeline           | Hybrid     | MAE / Acc   | 0.667 / 48.5% |
+
+Session-based:
+
+| Model                  | Type       | Train Accuracy | Test Accuracy | Test Weighted F1 |
+| :--------------------- | :--------- | :------------- | :------------ | :--------------- |
+| Logistic Regression    | Classifier | 63.6%          | 62.5%         | 0.563            |
+| KNN                    | Classifier | 100.0%         | 67.2%         | 0.656            |
+| Random Forest          | Classifier | 93.2%          | 69.0%         | 0.664            |
+| Multi-Layer Perceptron | Classifier | 69.9%          | 68.3%         | 0.663            |
+
 
 **Linear Regression**
 ![LR Error Plot](../../Documentation/Design/ML/cm_LR_updated.png)
@@ -1076,11 +1166,19 @@ The goal of this 2 stage pipeline was to use "perception" values already existin
 
 #### Final Evaluation
 
+__Instant__:
+
 As clearly visible in the confusion matrices, the instant measurement models struggled to capture a robust predictive signal. The models typically exhibited two failure modes: they either heavily overfitted to the training data, or they collapsed into predicting the majority class.
 
 Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding whether the feature could actually be built with data that was found and agreed between the teams' plan. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
 
 A universal instant-comfort model cannot exist. To solve this, future iterations of the system must rely on personalized, user-specific profiling or hardcoded rules per user rather than attempting to map objective sensor data to a generalized subjective comfort scale.
+
+__Session-based__:
+
+The session-based prediction experiments showed that using aggregated session windows gives the model more context than instant measurements. However, the same core challenge remained: Study Suitability Rating is subjective. The same environmental values can still lead to different user ratings depending on personal preference, activity, tiredness, and expectations.
+
+For that reason, the final model choice was not based only on maximum test accuracy. Random Forest reached the highest accuracy, but the overfitting gap was too large. The Neural Network was selected because it gave a better balance between accuracy, generalization, and prediction distribution.
 
 ### 3.9.4 Result export
 
@@ -1099,6 +1197,8 @@ How were code ownership and review responsibilities organised?]
 
 ### 3.10.2 Tools and Pipeline
 
+*Authors: [Marta Zrno]*
+
 [Describe the CI/CD pipeline for the frontend:
 
 - Linting and formatting (ESLint, Prettier)
@@ -1106,6 +1206,19 @@ How were code ownership and review responsibilities organised?]
 - E2E tests if applicable (Cypress, Playwright)
 - Automated build and deployment to hosting
 - Container usage for frontend (if applicable)]
+
+ESLint was used in the frontend for finding errors, such as variables that were not used, incorrectly used hooks, etc. It provided a way to keep the code clean and consistent, which is crucial when shared between teammates.
+
+![alt text](image/FE/image-20.png)
+Figure x:  scripts config in package.json
+
+Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. 
+
+![alt text](image/FE/image-21.png)
+Figure x: Vitest env config
+
+Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+
 
 ### 3.10.3 Integration into Workflow
 
@@ -1118,7 +1231,7 @@ What automated checks ran on every PR? What gaps remained?]
 
 ## 3.11 IoT Tests
 
-*Authors: [Jakub Maciej Baczek, Name]*
+*Authors: Jakub Baczek*
 
 ### 3.11.1 Testing Strategy for Embedded C
 
@@ -1184,6 +1297,10 @@ To verify the serving layer, we use `pytest` (e.g., `test_prediction_api.py`) to
 - **Input Validation**: Test the API's resilience to malformed or out-of-range sensor data.
 - **Inference Correctness**: Validate that the prediction output matches the expected schema and logical bounds of the Study Suitability Rating.
 
+**Coverage Measurement**
+
+Python test coverage for the MAL component was measured using `pytest-cov`. The coverage run focuses on the MAL application code in `ml_pipeline/` and `backend/`, while test files and generated artifacts are excluded from the measurement. The CI pipeline runs the tests with `--cov=ml_pipeline`, `--cov=backend`, `--cov-report=term-missing`, and `--cov-report=html`, producing both terminal output and an HTML report. The HTML report is uploaded as the GitHub Actions artifact `mal-coverage-report`, making it possible to inspect which files and lines are not covered by the automated tests.
+
 ### 3.13.2 MLOps Considerations
 
 The MAL component requires a specialized DevOps approach to manage the lifecycle of both code and serialized model weights. The primary challenge is ensuring that changes to the data processing logic in `ml_pipeline/` are always compatible with the model artifact committed in `models/`. Unlike traditional software, the "build" artifact in MLOps includes both the code and the serialized model weights (`rf_model.pkl`).
@@ -1201,9 +1318,12 @@ The pipeline automates several critical verification steps:
 3. **Model Artifact Integrity**: The workflow explicitly fails if the `rf_model.pkl` is missing or corrupted, preventing "empty" deployments.
 4. **Containerized Continuous Delivery**: On successful validation and merge to `main`, the pipeline builds a Docker image (`mal-api`) and pushes it to the GitHub Container Registry (GHCR).
 
+Coverage is also collected as part of the automated MAL test job. The workflow runs `pytest` with `pytest-cov` enabled using `--cov=ml_pipeline`, `--cov=backend`, `--cov-report=term-missing`, and `--cov-report=html`. This measures coverage for both the model/data pipeline code and the MAL FastAPI backend. The terminal report shows uncovered lines directly in the CI log, while the HTML report is uploaded as the GitHub Actions artifact `mal-coverage-report` for later inspection.
+
 ### 3.13.4 Outcomes and Evaluation
 
 This integrated Testing and MLOps approach significantly reduced deployment risks. By coupling data transformation tests with live API integration checks, we ensured that the entire pipeline—from raw data to study suitability prediction—is verifiable and reproducible. The use of Docker images for deployment ensures that the exact environment used during CI is replicated in production.
+The coverage report gave a clearer view of test quality than pass/fail results alone. It showed that the core model logic is well covered, while some backend API paths and real-data transformation code still contain uncovered lines. Therefore, the current test suite is useful for regression testing model loading, prediction behaviour, and key API responses, but it does not fully remove the need for additional tests around edge cases and less frequently used data-processing paths.
 
 # 4. Results and Discussion
 
@@ -1211,13 +1331,23 @@ This integrated Testing and MLOps approach significantly reduced deployment risk
      Objective tone only. No personal opinions — those go in the Process Report.
      Cover: full-system integration, objectives met, critical evaluation, limitations. -->
 
-*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek, Cristna Matei*
 
 ## 4.1 Integrated System Results
 
 [How does the complete system perform end-to-end?
 Demonstrate all three parts working together (reference the submitted demo video).
 What does actual sensor data look like flowing through to the frontend predictions?]
+
+The complete StudyHelper system was verified end-to-end with all four runtime components running simultaneously: the IoT firmware on the ATmega2560, the Core API, the MAL API, and the React frontend. The following describes how data flows through the system from physical sensor acquisition to user-facing prediction.
+
+When a user presses Button 1 on the device, the firmware sends a `POST /session` request to the Core API containing the configured device ID. The Core API creates a session record in PostgreSQL and returns a session ID, which the firmware stores locally. From this point, the device begins its dual-timer routine: a keepalive pulse is sent to `PATCH /session/{id}/pulse` every five seconds to maintain session persistence, and a sensor payload is transmitted to `POST /data` every thirty seconds. A typical transmitted payload contains the session ID alongside the four sensor readings, for example a temperature of 22.4°C, humidity of 48%, CO₂ of 743 ppm, and a light ADC value of 612.
+
+On receiving a sensor payload, the Core API persists the reading to the `data_points` table in PostgreSQL and forwards the session aggregate features to the MAL API `POST /predict` endpoint. The MAL API loads the trained Neural Network model, constructs the 16-feature session vector from the current and historical readings for that session (current, mean, min, and max values for each sensor), runs inference, and returns an integer Study Suitability Rating between 1 and 5. The Core API stores this rating alongside the sensor reading as `predicted_study_quality` and returns it in the response to the firmware. If the returned rating is 1, the firmware activates the onboard buzzer to alert the user locally, as described in [§3.5.1](#351-sensor-and-actuator-drivers).
+
+On the frontend, the user starts a session from the dashboard by pressing Start Session. The dashboard calls the backend through `SessionService` to confirm that the connected device has an active session, as described in [§3.7.1.1](#3711-dashboard-implementation). Once confirmed, the live sensor cards and chart are unlocked. The dashboard polls the Core API for updated readings and renders the latest temperature, humidity, CO₂, light, and predicted suitability values in the sensor cards. The `SensorChart` component plots the time-series history of all four sensor channels alongside the predicted study quality on a secondary axis, giving the user a view of how environmental conditions and suitability have developed across the session.
+
+The session itself is ended by pressing Button 1 again on the physical device, which causes the firmware to terminate the session on the backend. The frontend detects that no active session is present on its next poll and closes the live view, at which point the rating popup opens and the user can submit a 1–5 post-session quality rating. This rating is sent via `RatingService` to the Core API and stored against the session record in PostgreSQL, associating the user's subjective experience with the full telemetry history of that session. This completes the data lifecycle from physical sensor acquisition through cloud persistence, ML inference, frontend display, and user feedback collection, as originally specified in the system sequence diagrams in [§2.4](#24-system-sequence-diagrams).
 
 ## 4.2 Evaluation Against Objectives
 
@@ -1227,11 +1357,11 @@ partially met, or not met, and support the assessment with evidence.]
 | Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                   |
 | :----------------------------------------------------------------------------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                  |
-| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#system-requirements) FR02–FR03; [§4.6](#cloud-and-devops-evaluation) stack stable throughout project period                                                                                   |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified |
-| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#system-requirements) FR05                        |
-| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#cloud-and-devops-evaluation) zero manual deployment effort                                           |
-| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml`                                                                                  |
+| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period                                                                                   |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector [TODO fill in when section done]; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified |
+| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05                        |
+| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort                                           |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; secret management via environment variables enforced in `docker-compose.yml`                                                                                  |
 
 ## 4.3 IoT Performance
 
@@ -1247,8 +1377,13 @@ All in all compared to a naive baseline, the team built something that actually 
 
 ## 4.5 Frontend Quality
 
-[Does the application meet the functional requirements? Does it display data correctly
-across all required breakpoints? Are all customer-facing features accessible via the UI?]
+The frontend meets the main user-facing requirements of the system. Users can register, log in, view the dashboard, connect a device from the profile page, view historical sensor readings, use the calendar, switch language and theme, and submit a rating after a study session. The dashboard shows the latest sensor values, historical data, recommendations, and the predicted study suitability value returned from the backend.
+
+The application was designed for the required screen widths of 576 px, 768 px, and 1200 px. The layout uses responsive CSS so that content stacks on smaller screens and uses more space on larger screens. The main features remain accessible through the navigation bar, dashboard, profile page, and calendar page.
+
+The frontend also includes automated tests for several important flows, including login, dashboard states, active session handling, stop-session rating popup, profile device connection, session rating submission, language switching, and theme switching. Manual testing was also used to check the main workflows in the browser.
+
+One frontend limitation is that some flows depend on backend and IoT state. For example, the dashboard can only unlock the live session view when the backend has an active IoT-created session for the connected device. The rating popup also needs a valid device ID and session ID before the rating can be stored correctly. Because of this, the complete session flow needs integration testing with the backend and IoT device, not only isolated frontend testing.
 
 ## 4.6 Cloud and DevOps Evaluation
 
@@ -1282,14 +1417,17 @@ The frontend also includes automated tests for several important flows, such as 
 
 # 5. Conclusions
 
-*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: Jakub Baczek, Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
-[Summarise the project in 3–5 paragraphs:
+This project addressed the challenge of suboptimal indoor environmental conditions affecting student concentration and academic performance. Despite growing awareness of the relationship between physical environment and cognitive function, most study spaces provide no real-time feedback on whether ambient conditions are conducive to productive work. StudyHelper was developed to close this gap through an integrated three-part approach: an embedded IoT device continuously measuring temperature, humidity, CO₂ concentration, and light level; a machine learning pipeline predicting a Study Suitability Rating from aggregated sensor data; and a React web frontend presenting live readings, historical trends, and ML-generated predictions to the user. All components were deployed as Docker containers on a cloud host managed through Coolify, with a FastAPI Core API acting as the central gateway.
 
-1. Restate the problem and the three-part approach taken
-2. What was achieved — per component and as an integrated system
-3. Did the system solve the stated problem, and to what degree?
-4. What is the overall answer to the problem statement?]
+Each component met its primary objectives. The IoT firmware, running on the ATmega2560, reliably collected sensor data and transmitted structured JSON payloads to the backend every 30 seconds, with keepalive pulses every five seconds, across all testing performed. Unit tests covering the wifi_http, server_api, and display_status modules achieved between 93.9% and 100% line coverage, and a flashable firmware artifact was produced automatically on every passing pull request. The Core API persisted sensor readings, session lifecycle data, and user information in a shared PostgreSQL database and exposed a RESTful interface consumed by both the frontend and the MAL service. The ML pipeline trained and evaluated multiple classification models for both session-based and instant-measurement prediction scenarios, ultimately deploying a Neural Network model for session-based prediction that reached 68.3% test accuracy with a macro F1 of 0.663, above the 57.9% majority-class baseline. The React frontend displayed live sensor cards, a historical time-series chart, and ML-predicted suitability ratings across the required screen breakpoints of 576 px, 768 px, and 1200 px.
+
+As an integrated system, StudyHelper demonstrated that all three components could operate together in a real deployment. Sensor readings captured by the IoT device flowed through the Core API into the PostgreSQL database, triggered a suitability prediction from the MAL service, and were rendered on the frontend dashboard within a single data cycle. The automated CI/CD pipelines enforced test coverage and successful compilation before any merge to the main branch, and deployment to the production Coolify stack was triggered automatically on every push to main with no manual intervention required.
+
+The system partially solved the stated problem. For the session-based prediction use case, the ML component demonstrated a measurable relationship between aggregated environmental sensor data and user-provided study ratings, validating the core premise of the project. However, the instant-measurement models revealed an important finding termed the Subjectivity Paradox: point-in-time sensor readings alone are insufficient to reliably predict subjective study quality, because different users in identical environmental conditions can assign substantially different comfort ratings. This finding is not a failure of the pipeline but a meaningful empirical result — it confirms that a generalized instant-comfort model cannot be built from environmental sensors alone without user-specific profiling. The security objective was also only partially met, as IoT-to-backend communication remained over plain HTTP rather than an encrypted channel.
+
+The overall answer to the problem statement is that indoor environmental data can be monitored continuously and used to produce meaningful study suitability guidance, provided predictions are derived from session-level aggregates rather than isolated point-in-time readings. A system combining low-cost IoT sensing, a session-aware ML pipeline, and a responsive web interface is technically feasible within a university project context and delivers actionable environmental feedback to students and teachers. Realizing the system's full potential — particularly for instant-measurement prediction and personalized comfort modelling — would require larger datasets, user-specific preference profiling, and encrypted device communication, all of which are tractable directions for future development.
 
 # 6. Future Work
 
@@ -1316,6 +1454,22 @@ For the frontend, future work could include better deployment testing before cha
 The tests should also be expanded beyond the current automated frontend tests. Future tests could include browser-based end-to-end tests, backend integration tests, ML regression tests, and simple deployment smoke tests. This would make it easier to change the system later without breaking the existing functionality.
 
 Some originally discussed features were not included in the final prototype. Noise measurement was considered relevant for study environments, but the final firmware does not include a reliable working noise sensor. Because of this, the frontend only displays the implemented sensor values: temperature, humidity, CO2, and light.
+
+**IOT**
+
+Several improvements could be made to the IoT component in future iterations of the system.
+
+The most important security improvement would be migrating device-to-backend communication from plain HTTP to HTTPS. The current firmware communicates over unencrypted TCP, meaning sensor payloads and session tokens are transmitted in plaintext. TLS termination is already handled by the Coolify reverse proxy for browser traffic, so the primary remaining step would be adding TLS support to the ESP8266 Wi-Fi module communication layer and validating the server certificate on the device side. Given the memory constraints of the ATmega2560, a lightweight TLS implementation such as mbedTLS with a minimal cipher suite would be required.
+
+A noise sensor was considered during the project but could not be included in the final hardware design. The microphone module available during development was only sensitive enough to detect sudden, loud, close-range sounds and did not reliably pick up ambient background noise at normal room distances. Because noise level is a relevant environmental factor for study quality — and is already an input feature in the instant ML prediction pipeline — replacing the current module with a calibrated sound pressure level sensor capable of measuring continuous ambient noise in decibels would meaningfully expand the sensor coverage of the device.
+
+The current four-digit seven-segment display is limited to showing simple numeric status codes and predefined patterns. A more capable display, such as a small OLED or LCD module, would allow the device to present readable status messages, current sensor values, and the predicted study suitability rating directly on the hardware without requiring the user to open the web frontend. As an intermediate step, the existing display could also be used more effectively by encoding additional states or using decimal points and blinking patterns to convey more information within the existing hardware constraints.
+
+The current alerting mechanism uses the onboard buzzer to notify the user when predicted study quality reaches its lowest level. While functional, a buzzer is potentially disruptive in a shared study environment such as a library or classroom. At minimum, the firmware could be extended to allow the buzzer to be silenced by the user, for example by pressing one of the existing buttons. More broadly, a less intrusive alert mechanism would be preferable — a visual indicator such as an LED or a notification pushed to the frontend would communicate poor conditions without disturbing others nearby. Extending the device to directly address the cause of poor conditions, for example by activating a small fan when temperature is too high, is another direction worth exploring, though actuators of this kind cannot be driven directly from the ATmega2560's GPIO pins due to their limited voltage and current output, and would require additional driver circuitry. No clearly satisfying general-purpose solution was identified within the scope of this project, and this remains an open design question for future iterations.
+
+Powering the device currently requires a USB connection to a computer or a wall-mounted USB power supply, which limits where the device can be placed and makes it less convenient to use in varied study environments. Adding an onboard rechargeable battery with a suitable charging circuit would make the device fully portable, allowing it to be placed anywhere in a room without dependency on a nearby power outlet. A dedicated power supply would also be a prerequisite for including any higher-draw actuators, such as those discussed above.
+
+Finally, the current process for configuring Wi-Fi credentials requires the user to edit a secrets.ini file and reflash the firmware, which is not practical for non-technical users. A more accessible approach would be to implement a provisioning mode on the device, where the ATmega2560 and Wi-Fi module expose a temporary access point or serial configuration interface at first boot. A companion desktop application or browser-based tool could then be used to send the network credentials to the device without requiring a full firmware reflash, significantly lowering the barrier to setup for new users.
 
 # References
 

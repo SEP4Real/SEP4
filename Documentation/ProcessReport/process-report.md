@@ -145,7 +145,23 @@ First, the frontend depended on several aspects of the backend, including authen
 
 ## 4.2 IOT Team Process
 
-[... Describe the development of the embedded C code, hardware assembly, and testing. ...]
+The IoT sub-team consisted of three members: Jakub Maciej Baczek, Damian Michal Choina, and Tymoteusz Krzysztof Żydkiewicz. None of the team members had prior experience with embedded systems programming in C, which meant the first sprint was spent largely on getting the environment working rather than writing application code. Setting up PlatformIO, understanding the AVR toolchain, and getting the first successful flash onto the Arduino took more time than anticipated, but it was a necessary foundation that paid off once development picked up pace.
+
+### 4.2.1 Work Division
+ 
+The team divided work based on voluntary preference rather than top-down assignment. At the start of each sprint, everyone stated what they were willing to pick up, and tasks were distributed accordingly. From previous SEP projects together the team had found that this approach works better than assigning tasks externally, since people are more invested in work they have chosen themselves. In practice, responsibilities emerged naturally: server communication and HTTP layer, sensor integration, main loop logic and testing - each had a clear owner without formal negotiation. The team maintained its own backlog rather than using a shared tool like Trello or Jira, which kept things lightweight for a three-person team.
+
+### 4.2.2 Development Milestones
+ 
+The project ran across seven sprints and progress was measured against three concrete milestones rather than abstract story points. The first was getting the Arduino communicating with the server at all — once that worked end-to-end, even with hardcoded values, the rest of the work had a clear foundation to build on. The second milestone was the running session feature, where the device could start a session, send periodic data with keepalive pulses and end the session cleanly via button press. The third was the instant measurement feature, where a button press triggered a one-off sensor reading and sent it for immediate ML prediction. Reaching each of these felt like a genuine shift in confidence for the team.
+
+### 4.2.3 Testing and CI/CD
+ 
+One deliberate process decision was investing in automated testing and a CI/CD pipeline early in the project. Because the firmware runs on hardware, the team chose to run unit tests on the host machine rather than the device, using the Unity testing framework with FFF-generated fakes to replace AVR hardware dependencies. This allowed testing of application logic — server communication, session state, response parsing — without needing the physical Arduino present. A GitHub Actions workflow was set up to compile the firmware, run the full test suite, and upload coverage reports on every pull request. In practice the pipeline needed some adjustment as the project evolved, and having it fully configured from the very beginning would have saved some rework. That said, having it in place at all caught several issues before they reached the hardware and gave the team confidence during integration.
+
+### 4.2.4 Integration with Other Teams
+ 
+The API contract between the IoT team and the rest of the group was discussed at the start of the project, which gave a clear target for the communication layer. However, the contract evolved over time as certain features turned out to be impractical and requirements became clearer on both sides. Endpoint paths and response field names changed at points during development, which required adjustments to the firmware. These were manageable but reinforced the value of treating the API contract as a living document that all teams need to stay aligned on throughout the project, not just at the kickoff.
 
 ## 4.3 MAL Team Process
 
@@ -303,14 +319,6 @@ Even though the project was stressful at times, I still think it was a valuable 
        - Address: What did I learn? How did I learn it? What will I do differently?
      This section demonstrates your ability to identify and organise your own learning.
 
-Marta:
-
-"I thoroughly enjoyed working on this project, specifically the division into subgroups. These subgroups allowed us to have clear roles and responsibilities during the development process. It helped emulate a semi-professional working environment, which I consider to be valuable preparation for future projects in the software industry. The team had consistent good communication and organization, which allowed us to efficiently develop the system, while maintaining flexibility.
-
-My subgroup had a mix of different personalities and perspectives, which attributed to a positive working environment. When disagreements occured, they were quickly resolved with mutual understanding and by following conflict resolution strategies. Consequently, the team collaboration and workflow grew stronger.
-
-From a technical perspective, I believe that my knowledge and practical experience expanded. Especially because I got the chance to develop the frontend of the system, which was not my usual area of preference. Through implementation of user interfaces, frontend components and interactive features, I gained a deeped understanding of modern frontend development processes."
-
 
 ## 5.1 [Your Name]
 
@@ -394,6 +402,33 @@ It is difficult to point out in several small chunks the key takeaways from such
 **Talk to people** - I have very strongly outlined the idea behind this above but again, the best solution for uncertainty, and overall "human problems" is to talk to "humans". Seeking supervision, understanding the situation beyond the project, aligning, and so on.
 
 **Being remote is not about the distance** - Regardless of how inaccurate this point sounds, yes, sometimes even though we are in the same class, we communicate in highly asynchronous ways and as it is usual with Software projects, a lot is managed digitally. I will treat more projects in this way as disregarding the specific aspects of such projects can be problematic and the gap will reveal itself in nasty ways.
+
+## Mara-Ioana Statie
+
+Before this project, machine learning theory feelt abstract. Some concepts I understood in class, but not always as engineering decisions. During this project, I got to apply those ideas more directly. Working with imperfect datasets, creating said datasets, trying different models, checking whether results were meaningful, and seeing how the ML service had to fit into the rest of the system helped me understand the theory much better than only reading about it.
+
+I also learned that communication becomes much more difficult when the team is large and split into sub-teams. We did have full team meetings, and they were useful, but looking back I wish we had more of them, especially during the middle of the project. At the same time, I can see why this is complicated in a group of this size. Full team meetings can become long, and hard to schedule, and not every topic is relevant to every member. Still, I think more regular alignment meetings would have helped us notice dependencies earlier and made it easier for everyone to understand how the IoT, MAL, frontend, and backend parts were developing together.
+
+One thing I think worked well was that we stayed consistent with Scrum meetings throughout the project in my subteam. Even when progress was uneven or some tasks were unclear, the routine of meeting, discussing what had been done, and identifying blockers helped the MAL team keep moving. This matched the purpose of Scrum events described by Schwaber and Sutherland (2020): they are not just meetings for the sake of meetings, but checkpoints that create transparency and give the team a chance to inspect and adapt.
+
+For future projects, I would like to be more active in asking for cross-team updates earlier, not only when it becomes urgent. Overall, this project made me more confident in applying machine learning theory in practice, and it also showed me that technical progress depends heavily on communication, especially in large teams.
+
+## Marta:
+
+I thoroughly enjoyed working on this project, specifically the division into subgroups. These subgroups allowed us to have clear roles and responsibilities during the development process. It helped emulate a semi-professional working environment, which I consider to be valuable preparation for future projects in the software industry. On the other hand, organization was chaotic at times, and it was hard to get on the same page, especially among the subgroups. I personally didn't have an easy time adjusting to the amount of people in the group, because I usually prefer working individually, or as a leader, which was not possible in this setup. But I managed to take a step back and allow the group to make some decisions, even when I didn't agree.
+
+My subgroup had a mix of different personalities and perspectives, which attributed to a positive working environment. When disagreements occured, they were quickly resolved with mutual understanding and by following conflict resolution strategies. Consequently, the team collaboration and workflow grew stronger. We had an issue with a student not participating, but after their removal, the task delegation was easier and more equal. I believe I contributed fairly and tried to make sure everyone was involved on the same level. 
+
+From a technical perspective, I believe that my knowledge and practical experience expanded. Especially because I got the chance to develop the frontend of the system, which was not my usual area of preference. Through implementation of user interfaces, frontend components and interactive features, I gained a deeped understanding of modern frontend development processes. 
+
+The main lesson I would bring with me to my next project would be to establish clear communication between subgroups as early in the process as possible. I would try harder to integrate into the group, instead of trying to lead a workflow. And I would try to introduce some new technologies, which we could experiment with and broaden our skillsets.
+
+
+### Reflection Forward
+
+[Based on this project, what will you deliberately do differently in future projects?
+Identify 2–3 concrete actions. Reference learning theory or professional frameworks
+if relevant (e.g. Kolb's learning cycle, growth mindset research).] 
 
 # 6. Reflection on Supervision
 
@@ -479,7 +514,7 @@ project. These should be grounded in your actual experience — not generic advi
 
 - Vroom, V. H. (1964).  *Work and motivation* .
 - Darley, J. M., & Latane, B. (1968). Bystander intervention in emergencies: Diffusion of responsibility.  *Journal of Personality and Social Psychology* ,  *8* (4, Pt.1), 377–383. **https://doi.org/10.1037/h0025589**
-- 
+- Schwaber, K., & Sutherland, J. (2020). *The Scrum Guide: The definitive guide to Scrum: The rules of the game*. Scrum.org.
 
 ::: {#refs}
 :::

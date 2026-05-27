@@ -16,6 +16,7 @@ class UpdateProfileRequest(BaseModel):
     preferred_temp: int | None = None
     preferred_co2: int | None = None
 
+    connected_device_id: str | None = None
     profile_picture: str | None = None
 
 class UpdatePasswordRequest(BaseModel):
@@ -65,9 +66,10 @@ async def update_profile(
                 study_goal,
                 preferred_temp,
                 preferred_co2,
+                connected_device_id,
                 profile_picture
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
 
             ON CONFLICT (user_id)
             DO UPDATE SET
@@ -77,6 +79,7 @@ async def update_profile(
                 study_goal = EXCLUDED.study_goal,
                 preferred_temp = EXCLUDED.preferred_temp,
                 preferred_co2 = EXCLUDED.preferred_co2,
+                connected_device_id = EXCLUDED.connected_device_id,
                 profile_picture = EXCLUDED.profile_picture
             """,
             (
@@ -87,6 +90,7 @@ async def update_profile(
                 data.study_goal,
                 data.preferred_temp,
                 data.preferred_co2,
+                data.connected_device_id,
                 data.profile_picture
             )
         )

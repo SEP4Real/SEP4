@@ -32,6 +32,13 @@ const readUser = () => {
 
 const DEFAULT_DEVICE_ID = "arduino-device-01";
 
+const getStoredDeviceForUser = (email) => {
+  const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+  const connectedDevice = userDevices.find((device) => device.email === email);
+
+  return connectedDevice?.deviceId || "";
+};
+
 const Profile = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -73,6 +80,9 @@ const Profile = () => {
         const result = await getProfile();
 
         if (result.profile) {
+          const savedDeviceId =
+            result.profile.connected_device_id || getStoredDeviceForUser(user?.email);
+
           setStudentInfo({
             university: result.profile.university || "",
             StudyProgram: result.profile.study_program || "",
@@ -85,6 +95,9 @@ const Profile = () => {
             temp: result.profile.preferred_temp || 22,
             co2: result.profile.preferred_co2 || 800,
           });
+
+          setConnectedDeviceId(savedDeviceId);
+          setDeviceId(savedDeviceId || DEFAULT_DEVICE_ID);
         }
       } catch (e) {
         console.error("Error loading profile:", e);
@@ -92,13 +105,10 @@ const Profile = () => {
     };
 
     const loadConnectedDevice = () => {
-      const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
-      const connectedDevice = userDevices.find(
-        (device) => device.email === user?.email,
-      );
+      const storedDeviceId = getStoredDeviceForUser(user?.email);
 
-      setConnectedDeviceId(connectedDevice?.deviceId || "");
-      setDeviceId(connectedDevice?.deviceId || DEFAULT_DEVICE_ID);
+      setConnectedDeviceId(storedDeviceId);
+      setDeviceId(storedDeviceId || DEFAULT_DEVICE_ID);
     };
 
     loadProfile();
@@ -147,6 +157,7 @@ const Profile = () => {
 
     try {
       await ensureDeviceExists(id);
+      await saveProfile(studentInfo.profilePic, id);
     } catch (error) {
       console.error(error);
       alert(error.message);
@@ -167,7 +178,10 @@ const Profile = () => {
    alert(`${t.deviceConnected} ${id}`);
   };
 
-  const saveProfile = async (profilePic = studentInfo.profilePic) => {
+  const saveProfile = async (
+    profilePic = studentInfo.profilePic,
+    deviceIdToSave = connectedDeviceId,
+  ) => {
     await updateProfile({
       university: studentInfo.university,
       study_program: studentInfo.StudyProgram,
@@ -175,6 +189,7 @@ const Profile = () => {
       study_goal: studentInfo.goal,
       preferred_temp: prefs.temp,
       preferred_co2: prefs.co2,
+      connected_device_id: deviceIdToSave || null,
       profile_picture: profilePic,
     });
   };
