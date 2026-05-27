@@ -217,6 +217,15 @@ Were there tools you wished you had used, or tools you regret choosing?]
        - Address: What did I learn? How did I learn it? What will I do differently?
      This section demonstrates your ability to identify and organise your own learning.
 
+Marta:
+
+"I thoroughly enjoyed working on this project, specifically the division into subgroups. These subgroups allowed us to have clear roles and responsibilities during the development process. It helped emulate a semi-professional working environment, which I consider to be valuable preparation for future projects in the software industry. The team had consistent good communication and organization, which allowed us to efficiently develop the system, while maintaining flexibility.
+
+My subgroup had a mix of different personalities and perspectives, which attributed to a positive working environment. When disagreements occured, they were quickly resolved with mutual understanding and by following conflict resolution strategies. Consequently, the team collaboration and workflow grew stronger.
+
+From a technical perspective, I believe that my knowledge and practical experience expanded. Especially because I got the chance to develop the frontend of the system, which was not my usual area of preference. Through implementation of user interfaces, frontend components and interactive features, I gained a deeped understanding of modern frontend development processes."
+
+
 ## 5.1 [Your Name]
 
 ### Learning Outcomes

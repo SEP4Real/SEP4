@@ -68,7 +68,7 @@ paragraph that lets a reader decide whether to read further.]
 
 [TODO: each team check and adjust sentences about their parts of the system so its 100% correct]
 
-StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning model [TODO: update after making the final model] - a Random Forest classifier trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
+StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning models - Random Forest Classifier and Neural Network trained on environmental datasets with MICE imputation - produces both instant and trend based sustainability ratings on a scale of one to five, which are shown to users through the web interface. [Summarise the main quantitative results here, e.g. model accuracy, test coverage, and system uptime, once final figures are available.]
 
 # 1. Introduction
 
@@ -325,7 +325,7 @@ Modeling the parallel execution of these transactions helped the development tea
 <!-- SHARED section — written as one coherent unit BEFORE branching.
      Present the overall system architecture and cloud design here. -->
 
-*Authors: [Name, Name, Name]*
+*Authors: [Name, Name]*
 
 ### 3.1.1 System Architecture {#311-system-architecture}
 
@@ -342,15 +342,14 @@ The StudyHelper system follows a layered, distributed architecture comprising fo
 
 The IoT device sits at the edge of the system. It collects sensor readings and transmits them over HTTP to the Core API, acting as the sole source of real-world environmental data. This unidirectional push pattern was chosen because the device does not need to receive commands in normal operation and because HTTP over TCP is straightforward to implement with the ESP8266-based Wi-Fi module used alongside the ATmega2560.
 
-The Core API (FastAPI) is the system's central gateway. It handles device registration, session lifecycle management, sensor data persistence, and user authentication. It is the only component with direct write access to the PostgreSQL database. The Core API also acts as a proxy to the MAL API for suitability predictions - forwarding prediction requests from the frontend and returning the result - so that the frontend has a single API surface to communicate with. Separating the prediction concern into the MAL service means the ML component can be retrained and redeployed independently without affecting the Core API.
+The Core API (FastAPI) is the system's central gateway. It handles device registration, session lifecycle management, sensor data persistence, ratings and user authentication. It is the only component with direct write access to the PostgreSQL database. When new sensor data is received, the Core API can call the MAL API to obtain a predicted study suitability rating and store the result together with the sensor reading. This keeps the frontend connected to one API surface while allowing the MAL service to be retrained and redeployed independently without affecting the Core API.
 
 The MAL API (FastAPI) is responsible for model inference and data collection for retraining. It receives prediction requests forwarded by the Core API, loads the trained model artifact, and returns a suitability rating. It also exposes endpoints for exporting raw sensor data from the database to support offline retraining workflows.
 
-The React frontend is a static single-page application served by Nginx inside a Docker container. It communicates exclusively with the Core API via REST calls - for sensor history, user authentication, and suitability predictions. All inter-service communication uses JSON over HTTP. The Coolify reverse proxy handles TLS termination and routes public traffic to the frontend and Core API containers.
+The React frontend is a static single-page application served by Nginx inside a Docker container. It communicates exclusively with the Core API via REST calls - user authentication, profile/device data, session state, dashboard readings, sensor history, calendar data, and ratings. The frontend does not calculate predictions itself, it displays the predicted_study_quality value returned by the Core API. All inter-service communication uses JSON over HTTP. The Coolify reverse proxy handles TLS termination and routes public traffic to the frontend and Core API containers.
 
-Data flows through the system as follows: the IoT device pushes a sensor payload to the Core API every thirty seconds; the Core API persists the reading in PostgreSQL; the frontend polls the Core API for the latest readings and requests a prediction, which the Core API forwards to the MAL API; the MAL API returns a rating; the Core API relays it to the frontend, which renders the result.
+Data flows through the system as follows: the IoT device pushes a sensor payload to the Core API during an active session; the Core API persists the reading in PostgreSQL and requests a suitability prediction from the MAL API; the MAL API returns a rating; the Core API stores the rating together with the sensor data and relays the result to the frontend. The frontend polls the Core API for dashboard data and renders the latest readings, chart, and recommendation.
 
-[TODO: Insert the architecture diagram reference here once the SVG is exported.]
 
 ### 3.1.2 Cloud Architecture {#312-cloud-architecture}
 
@@ -358,7 +357,7 @@ Data flows through the system as follows: the IoT device pushes a sensor payload
 
 The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted PaaS running on a public VPS. Coolify provides container lifecycle management and a built-in reverse proxy (Caddy/Traefik) that terminates TLS and routes public traffic to the frontend and Core API services. Internal traffic between services stays on the Docker network.
 
-**Containerisation:** All runtime services are defined in `docker-compose.yml` and run as Docker containers: `postgres`, `api`, `mal-api`, and `frontend`. The `api` service is built from `API/Dockerfile` (Python 3.12) and serves the Core API with Uvicorn on port 8080. The `mal-api` service is built from `MAL/Dockerfile` and serves the ML inference API on port 8000, including the committed Random Forest[TODO: update after final model] model artifact (`models/rf_model.pkl`). The `frontend` service is built from `Frontend/Dockerfile`, compiles the Vite/React application, and serves static assets with Nginx on port 80. The `postgres` container uses the official `postgres:16-alpine` image with a named volume (`postgres_data`) for persistence.
+**Containerisation:** All runtime services are defined in `docker-compose.yml` and run as Docker containers: `postgres`, `api`, `mal-api`, and `frontend`. The `api` service is built from `API/Dockerfile` (Python 3.12) and serves the Core API with Uvicorn on port 8080. The `mal-api` service is built from `MAL/Dockerfile` and serves the ML inference API on port 8000, including the committed models artifacts. The `frontend` service is built from `Frontend/Dockerfile`, compiles the Vite/React application, and serves static assets with Nginx on port 80. The `postgres` container uses the official `postgres:16-alpine` image with a named volume (`postgres_data`) for persistence.
 
 **Database:** A single PostgreSQL 16 instance is the shared persistence layer. The schema is initialized via `initdb/01_schema.sql` mounted as an entrypoint init script. The Core API owns write access for devices, sessions, and sensor data, while the MAL API reads data for export and model support.
 
@@ -369,6 +368,8 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 **Continuous delivery:** On every push to `main`, a GitHub Actions workflow sends a webhook to Coolify, which pulls updated images from GHCR and restarts the affected containers. Pre-built images for `mal-api` and `frontend` are published to GHCR as part of the MLOps and frontend CI/CD pipelines.
 
 ### 3.1.3 Security Design {#313-security-design}
+
+*Authors: [Cristina Matei]*
 
 <!-- SEP4 requires: encryption for IoT–cloud (symmetric or asymmetric),
      and JWT (or equivalent) protection for frontend-facing API endpoints. -->
@@ -382,6 +383,18 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 **Additional considerations:** Because the ATmega2560 has limited cryptographic hardware support, the choice of encryption scheme involves a trade-off between security strength and memory and processing overhead. [Justify the chosen approach in light of these constraints.] The database is not exposed on a public port; access is restricted to the Docker internal network, which limits the attack surface from the public internet.
 
 [Complete this section with any additional security measures implemented, such as rate limiting on the prediction endpoint, CORS configuration on the backends, or HTTPS enforcement by the Coolify reverse proxy.]
+-->
+
+For frontend-facing API endpoints, the Core API uses JWT-based authentication. After a successful login, the backend creates a JWT signed with `SECRET_KEY` and stores it in an `HttpOnly` cookie named `access_token`. Protected endpoints read the token from this cookie through the shared `get_current_user` dependency. Bearer-token support is still kept as a fallback, but the frontend no longer stores the JWT in `localStorage`.
+
+The frontend sends authenticated requests with `credentials: "include"` so the browser includes the authentication cookie automatically. This is used by protected API calls such as dashboard, profile, calendar, session, device, and rating requests. Logout clears the authentication cookie on the backend.
+
+The JWT signing key is read from the `SECRET_KEY` environment variable instead of being hard-coded in the source code. The variable is documented in `.env.example` and passed into the API container through `docker-compose.yml`. This makes the signing key configurable per environment and avoids committing the real secret to Git.
+
+Additional considerations: 
+Login rate limiting is implemented to reduce repeated brute-force login attempts. The API allows up to five failed login attempts within a 15-minute window for the same client/email combination. After the limit is reached, login returns HTTP 429 until the window expires. CORS is configured to allow the frontend origins used in local development and to support credentials, which is required because authentication uses cookies.
+
+Calendar events are also protected by the logged-in user identity. The calendar endpoints use the current authenticated user from the JWT cookie, and every create, read, update, and delete operation is linked to `current_user["id"]`. This means users only see and modify their own calendar events, not events created by other users.
 
 ### 3.1.4 DevOps Strategy
 
@@ -541,38 +554,58 @@ The ML task is formulated as a supervised learning problem aimed at predicting t
 
 ## 3.4 Frontend Design
 
-*Authors: [Name, Name]*
+*Authors: [Cristina Matei]*
 
 <!-- Design of the React web application. -->
 
 ### 3.4.1 UI/UX Design {#341-uiux-design}
 
-[Describe the user interface design:
+The frontend was built for students who want to quickly check if their study environment is suitable. The most important actions are logging in, connecting a device, seeing the current sensor values, checking previous measurements, and rating a study session afterwards. Because of this, the dashboard is the main page after login, while the profile and calendar pages are available from the navigation bar.
 
-- Target users and their primary tasks
-- Navigation structure and information architecture
-- Key screens/views and their purpose]
+The application is split into a few main views. The login and register pages are used before the user enters the system. The dashboard shows live sensor readings, historical data, a short recommendation and the current predicted study quality as both a numeric suitability value in the sensor cards and as a prediction line in the chart. The profile page is used for user information, password changes, and connecting the physical device. The calendar page gives the user a simple place to plan study events. This keeps the monitoring part easy to access, while settings and profile information are kept separate.
+
+<p align="center">
+  <img src="../Design/Frontend/Dashboard.jpeg" alt="Dashboard" width="70%">
+</p>
+
+*Figure 3X: Figure 3X: Dashboard states during an active study session and before. The active session view shows live readings, the chart, recommendations, and session controls after the frontend attaches to an active IoT session; the second view keeps live sensor cards and the chart hidden while history remains available.*
 
 <!-- Include wireframes or mockups:
 ![Wireframe: Dashboard](../../Documentation/Design/Frontend/wireframe_dashboard.png) -->
 
-### 3.4.2 Component Architecture
+### 3.4.2 Frontend Architecture
 
-[Describe the React component hierarchy. How is the application decomposed?
-What state management approach is used (useState, Context API, Redux, Zustand)?
-How does the app communicate with the backend API (fetch, axios, React Query)?]
+The frontend is implemented with React and Vite. React is used to build the interface from reusable components, and Vite is used for local development and for creating the production build. The application starts in `src/main.jsx`, where the React app is rendered and wrapped in `BrowserRouter`, `ThemeProvider`, and `LanguageProvider`. The routes are defined in `src/App.jsx`, where public routes such as login/register and protected routes such as dashboard, profile, and calendar are configured.
+
+The frontend uses React Context API together with local component state managed through `useState`. Context providers are used for global state such as language selection and theme management, while page-specific state such as form input, loading states, selected ratings, and dashboard session state is kept inside the relevant components. Communication with the backend API is handled through service modules using the Fetch API. These service modules keep API calls separate from the page components and make the component code easier to read.
+
+
+The source code is divided into folders by responsibility:
+
+- `components/` contains reusable UI parts and route helpers. This includes `Navbar`, `ProtectedRoute`, `PublicRoute`, `SensorCard`, `SensorChart`, `SessionRating`, `LoadingSpinner`, and `EmptyState`.
+- `pages/` contains the main screens of the application, such as `LoginPage`, `RegisterPage`, `Dashboard`, `Profile`, and `CalendarPage`. Some page-specific tests are also placed here.
+- `services/` contains the functions that communicate with the backend. For example, authentication, dashboard data, profile updates, device connection, session lookup, and rating submission are handled here.
+- `context/` contains state that is needed in several places. `LanguageContext` handles the selected language, and `ThemeContext` handles light and dark mode.
+- `translations/` contains the text used for English and Danish labels. The components use the `t` object from the language context instead of hardcoding all text directly.
+- `tests/` contains the shared test setup and frontend tests. Page-specific tests are located together with their related pages inside the `pages/` folder.
+
+Routing is handled with `react-router-dom`. The public routes are `/login`, and `/register`. These routes use `PublicRoute`, so a user who is already logged in is redirected to `/dashboard`. The protected routes are `/dashboard`, `/profile`, and `/calendar`. These routes use `ProtectedRoute`, which redirects the user to `/login` if no user is stored. Unknown routes (path="*") are redirected to the dashboard. This gives a simple separation between pages that can be opened before login and pages that require authentication.
 
 <!-- ![Component Diagram](../../Documentation/Design/Frontend/component_diagram.svg) -->
+
+<p align="center">
+  <img src="../Design/Frontend/Component_diagram.svg" alt="Front Component Diagram" width="90%">
+</p>
+
+*Figure 3X: Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.*
 
 ### 3.4.3 Responsiveness Strategy {#343-responsiveness-strategy}
 
 <!-- Required: must adapt well to 576px, 768px, and 1200px screen widths. -->
 
-[Describe the responsive design approach:
+The frontend uses custom CSS with Flexbox and CSS Grid. No large UI framework was used, because the pages needed fairly specific layouts for the dashboard, profile page, and navigation. Sensor cards and profile fields use grid layouts, while buttons, forms, and navigation areas mostly use flex layouts.
 
-- CSS framework or approach (Tailwind, Bootstrap, CSS Grid/Flexbox)
-- Breakpoints used and how layouts reflow at each
-- Specifically address the three mandatory widths: 576px, 768px, 1200px]
+The layout was made to work at the required widths of 576 px, 768 px, and 1200 px. On smaller screens, the dashboard content stacks vertically so that the user can still read the sensor cards, chart, recommendation, and history. On medium screens, the cards and profile fields can use more columns. On larger screens, the dashboard has more space for the chart and the detailed history list. The goal was to keep the same features available on both phones and laptops, without requiring horizontal scrolling.
 
 ## 3.5 IoT Implementation
 
@@ -678,35 +711,203 @@ Initially ideal test set would be the one taken from the real usage of the syste
 
 ## 3.7 Frontend Implementation
 
-*Authors: [Name, Name]*
-
 ### 3.7.1 Core Features Implementation {#371-core-features-implementation}
+*Authors: [Cristina Matei]*
 
-[Describe how the key features were built:
+The frontend implements the main user-facing workflows of the system: authentication, dashboard monitoring, session rating, profile management, device connection, calendar planning, theme switching, and language switching. Each workflow is built as a React page or reusable component, while backend communication is kept in service files under `src/services`.
 
-- Fetching, parsing, and displaying live sensor data from the REST API
-- Historical data visualisation (charts/graphs — which library: Recharts, Chart.js, D3?)
-- User interactions and controls for managing the system
-- Any state management patterns worth highlighting]
+The application uses protected routes to separate public pages from authenticated pages. Login and registration are available before authentication, while dashboard, profile, and calendar pages require a logged-in user. After login, the dashboard becomes the main page because it shows the current environment state and study suitability.
 
-```jsx
-/* Include a representative React component illustrating a key implementation
-   decision — e.g. a data-fetching hook, a chart component, or an API call. */
+The following subsections describe the most important frontend features in more detail.
+
+### 3.7.1.1 Dashboard Implementation
+
+*Authors: [Cristina Matei]*
+
+The dashboard is the main part of the frontend. It loads environment data through `DashboardService`, prepares the data for display, and shows the newest values in sensor cards. The cards show temperature, humidity, CO2, light level, and suitability level. They use the reusable `SensorCard` component, so the same structure can be reused for each sensor value.
+
+The history graph is built with Recharts in the `SensorChart` component. It shows temperature, humidity, CO2, and light values over time. It also shows the predicted study quality on a separate axis, because the rating uses a different scale than the sensor values. The user can turn sensor lines on and off, which makes the chart easier to read when many lines are visible at the same time.
+
+The recommendation card is based on the latest predicted study quality. Ratings 4 and 5 are shown as good conditions, rating 3 is shown as acceptable, and ratings below 3 are shown as poor. The card uses different status classes and messages for these cases, so the user does not only see a number but also gets a short explanation.
+
+The dashboard also includes the session flow used for rating study sessions. The frontend does not create the real IoT session itself. Instead, when the user presses Start Session, the dashboard calls the backend through `SessionService` to check whether the connected device has an active session. If an active session is found, the frontend stores the session ID in state, marks the dashboard session as active, and shows the live sensor cards and chart. If no active session is found, the live view remains locked and the dashboard shows a message explaining that no active device session was found.
+
+While the frontend session is active, a timer is started. After 60 minutes, the rating popup opens automatically. The user can also press Stop Session manually, which opens the same popup. The popup is implemented in the `SessionRating` component and requires the user to choose a rating from 1 to 5 before submitting. When the rating is submitted, `RatingService` sends the device ID, session ID, rating value, and an empty comment field to the backend. This connects the user's experience to the active study session created by the IoT device.
+
+<p align="center">
+  <img src="../Design/Frontend/rating_stopSession.png" alt="ratingS" width="60%">
+</p>
+
+*Figure 3X: Session rating popup shown when the user stops an active study session. The user selects a rating from 1 to 5, which is submitted together with the device and session identifiers.*
+
+Loading and empty states are also handled in the dashboard. While the page checks the device connection or loads data, it shows `LoadingSpinner`. If no device is connected, it shows an empty state telling the user to connect a device from the profile page. If a device is connected but no readings are available yet, another empty state is shown. This makes the page clearer when data is missing.
+
+```c
+// Frontend/src/services/DashboardService.js
+import { API_URL } from "./apiConfig";
+
+export async function getDashboardData() {
+  const response = await fetch(`${API_URL}/dashboard`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch dashboard data");
+  }
+
+  return response.json();
+}
 ```
+This service function is used by the dashboard to retrieve the latest sensor readings and predicted study quality from the Core API. The request includes credentials so the authentication cookie is sent with the request. Keeping this code in a service file separates backend communication from the dashboard UI logic.
+
+
+### 3.7.1.2 Profile and Device Connection
+
+*Authors: [Cristina Matei]*
+
+The profile page handles both user information and device connection. When the page loads, it reads the logged-in user and then requests the profile from the backend through `ProfileService`. The user can update profile information such as university, study programme, study year, study goal, and profile picture. The page also includes password change fields with basic checks before sending the update request.
+
+The device connection part uses `DeviceService`. The user enters a device ID, and the frontend checks if that device exists in the backend. If the device is not found, the frontend tries to register it. After this, the device ID is stored locally together with the user's email. The dashboard uses this information to decide whether it should show environment data or show the "no device connected" empty state.
+
+This solution works for the prototype, but it is still quite simple. In a more complete version, the connection between user and device should be stored and checked fully in the backend. That would make device ownership more secure and less dependent on local browser storage.
+
+```c
+// Frontend/src/services/DeviceService.js
+export async function ensureDeviceExists(deviceId) {
+  try {
+    return await getDeviceById(deviceId);
+  } catch (error) {
+    if (!error.message.startsWith("Device not found")) {
+      throw error;
+    }
+
+    return registerDevice(deviceId);
+  }
+}
+```
+This function is used when a user connects a device from the profile page. First, the frontend checks if the device already exists in the backend. If it exists, the device can be connected. If the backend returns that the device was not found, the frontend tries to register it. Other backend errors are not hidden, because they may mean the API is unavailable or the request failed for another reason.
+
+### 3.7.1.3 Calendar
+
+*Authors: [Marta Zrno]*
+
+The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
+
+![alt text](image/fe-implementation/image-9.png)
+Figure x: FullCalendar in CalendarPage.jsx
+
+The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
+
+![alt text](image/fe-implementation/image-10.png)
+Figure x: useEffect in CalendarPage.jsx
+
+Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
+
+![alt text](image/fe-implementation/image-11.png) 
+Figure x: handleSelect() in CalendarPage.jsx
+
+If the user decides to edit, the handleEventClick() function loads event data into the form.
+
+![alt text](image/fe-implementation/image-12.png) 
+Figure x: handleEventClick() in CalendarPage.jsx
+
+CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
+
+![alt text](image/fe-implementation/image-13.png)
+Figure x: createCalendarEvent() in CalendarService.js
+
+Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
+
+![alt text](image/fe-implementation/image-14.png)
+Figure x: credentials check in CalendarService.js requests
+
+REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
+
+![alt text](image/fe-implementation/image-15.png)
+Figure x: GET endpoint in calendar.py
+
+![alt text](image/fe-implementation/image-16.png)
+Figure x: request model in calendar.py
 
 ### 3.7.2 API Integration
 
-[How does the frontend communicate with the backend?
-Describe error handling, loading states, polling vs websocket decisions,
-and how ML predictions are retrieved and displayed.]
+*Authors: [Marta Zrno]*
+
+[How does the frontend communicate with the backend? Describe error handling, loading states, polling vs websocket decisions, and how ML predictions are retrieved and displayed.]
+
+The frontend communicates with backend services through REST API requests, which are implemented with Fetch API. Fetch API is a provider of a JS interface used for making HTTP requests. Polling-based communication was selected because the IoT device transmits sensor values at fixed time intervals, which makes two-way communication unnecessary.
+
+In order to separate API communication from frontend components and pages, a new layer was created for authentication, calendar and profile management, and other system features. This resulted in the code being reusable, modular and easily maintainable.
+
+Fetch API performs the requests to the backend and is used to load the data in the webpages. Data is exchanged using JSON format, since it is human-readable and is supported by various environments.
+
+For local and deployed environment, an API configuration was created:
+
+![alt text](image/fe-implementation/image.png)
+Figure x: apiConfig.js
+
+To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
+
+![alt text](image/fe-implementation/image-1.png)
+Figure x: getDashboardData in DashboardService.js
+
+Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
+
+![alt text](image/fe-implementation/image-2.png)
+Figure x: login() in AuthService.js
+
+These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
+
+![alt text](image/fe-implementation/image-3.png)
+Figure x: handleSubmit() in LoginPage.jsx
+
+In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
+
+![alt text](image/fe-implementation/image-4.png)
+Figure x: LoadingSpinner() in LoadinSpinner.jsx
+ 
+![alt text](image/fe-implementation/image-5.png)
+Figure x: EmptyState() in EmptyState.jsx
+
+MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
+
+![alt text](image/fe-implementation/image-6.png)
+Figure x: getPrediction() in malService.js
+
+Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
+
+![alt text](image/fe-implementation/image-7.png)
+![alt text](image/fe-implementation/image-8.png)
+Figure x: visualization of prediction
 
 ### 3.7.3 Hosting and Deployment
 
+*Authors: [Marta Zrno]*
 <!-- Required: must be hosted and accessible online. -->
 
-[Describe how the React app is built and hosted. Where is it deployed?
-How is the deployment triggered (manual push, CI/CD pipeline)?
-Provide the live URL if applicable.]
+[Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
+
+
+The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers. It is build using Vite- a fast frontend building tool which optimizes React's code.
+
+The Docker build process was divided into 3 stages to separate the build from the runtime environment. In the first stage, Node.js Alpine container installed all dependencies and the product was generated using "npm run build" command. In the second stage, the generated files were copied into an Nginx container.
+
+![alt text](image/fe-implementation/image-17.png)
+Figure x: Dockerfile
+
+In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured.
+
+![alt text](image/fe-implementation/image-18.png)
+Figure x:  .env
+
+Deployment was automated through GitHub Actions workflows. When new changes were pushed to the main branch, the frontend container image is automatically rebuilt and the new frontend is deployed through Coolify.
+
+![alt text](image/fe-implementation/image-19.png)
+Figure x: deployment workflow
+
+The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
+
+
 
 ## 3.8 IoT CI/CD
 
@@ -787,7 +988,7 @@ In our project, we developed two distinct kinds of models to tackle different as
 - **Random Forest Classifier (RFC):** Treats the 1-5 comfort ratings as distinct classes, aiming to accurately predict the exact category.
 - **Gradient Boosting Classifier (GBC):** An advanced ensemble technique evaluated for its ability to sequentially correct prediction errors, offering potentially higher accuracy for the subjective ratings.
 - **Multi-Layer Perceptron (MLP):** A feedforward artificial neural network evaluated to see if deep, non-linear pattern recognition could better map raw sensors to human comfort.
-- **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating. Those "perception" values already existed in original data that was found together with the comfort raiting, so this experiment was supposed to see if this way models can predict more accurately - it turned out that not really.
+- **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating.
 
 ### 3.9.2 Training and Hyperparameter Tuning
 
@@ -839,42 +1040,49 @@ The models were evaluated strictly on the holdout test set to determine how well
 | Two-Stage Pipeline           | Hybrid     | MAE / Acc   | 0.667 / 48.5% |
 
 **Linear Regression**
-![LR Error Plot](../../Documentation/Design/ML/cm_experiements_LR_1.png)
+![LR Error Plot](../../Documentation/Design/ML/cm_LR_updated.png)
 
-In the basic linear regression model the predicted values were all around the most common value (3) which suggested that the problem might need more complex model than linear. 
+In the basic linear regression model the predicted values were all around the most common value (3) which suggested that the problem might need more complex model than linear.
 
 **Random Forest Regressor**
-![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_1.png)
+![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_updated.png)
 
-Random forest regressor did a little better - it preserved more variance and the predicted values where compressed in the middle most common value but not as much as in the linear regression, due to [continue].
+Random forest regressor did a little better - it preserved more variance and the predicted values where compressed in the middle most common value but not as much as in the linear regression, due to its ensemble nature and ability to model non-linear boundaries. However, it still could not effectively address the lack of precision in the labels - the same environmental conditions often resulted in different reported comfort levels.
 
 **Random Forest Classifier**
-![RFC Confusion Matrix](../../Documentation/Design/ML/cm_RFC_1.png)
+![RFC Best Model: CV vs Test](../../Documentation/Design/ML/cm_RFC_best.png)
+![RFC Overfit: Train vs Test](../../Documentation/Design/ML/cm_RFC_overfit.png)
 
-First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. 
+First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. Of course the goal was to achieve this beautiful diagonal line on the test confusion matrix but unfortunatelly this was not possible, because then the model started to overfit a lot on the training set which can be seen on the oferfiting model confusion matrix above.
 
 **Gradient Boosting Classifier**
-![GBC Confusion Matrix 1](../../Documentation/Design/ML/cm_GBC_1.png)
-![GBC Confusion Matrix 2](../../Documentation/Design/ML/cm_GBC_2.png)
-![GBC Confusion Matrix 3](../../Documentation/Design/ML/cm_GBC_3.png)
+![GBC Best Model: CV vs Test](../../Documentation/Design/ML/cm_GBC_best.png)
+![GBC Overfit: Train vs Test](../../Documentation/Design/ML/cm_GBC_overfit.png)
+
+The Gradient Boosting Classifier performed slightly better than the Random Forest, reaching 40.7% accuracy. By focusing on the errors of previous iterations, it managed to sharpen the decision boundaries between the middle classes, though the extreme values (1 and 5) remained difficult to predict due to their rarity in the dataset.
 
 **Multi-Layer Perceptron**
-![MLP Confusion Matrix 1](../../Documentation/Design/ML/cm_MLP_1.png)
-![MLP Confusion Matrix 2](../../Documentation/Design/ML/cm_MLP_2.png)
-![MLP Confusion Matrix 3](../../Documentation/Design/ML/cm_MLP_3.png)
+![MLP Best Model: CV vs Test](../../Documentation/Design/ML/cm_MLP_best.png)
+![MLP Overfit: Train vs Test](../../Documentation/Design/ML/cm_MLP_overfit.png)
+
+The Multi-Layer Perceptron was our best standalone classifier at 46.1%. The neural network's ability to create complex internal representations allowed it to find patterns that the tree-based models missed. However, as seen in the overfitting plots, it was very prone to memorizing the training data, requiring heavy regularization to stay useful on the test set.
 
 **Two-Stage Pipeline**
-![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_pipeline_1.png)
+![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_best.png)
 
-#### Critical Evaluation: The "Subjectivity Paradox"
+The goal of this 2 stage pipeline was to use "perception" values already existing in original data that was found together with the comfort raiting. The idea was to see if this way models can predict more accurately - it turned out that not really. It lead again to overfitting on the train set and squizzing most of predictions around the mode of targets both for regressor and classifier.
+
+#### Final Evaluation
 
 As clearly visible in the confusion matrices, the instant measurement models struggled to capture a robust predictive signal. The models typically exhibited two failure modes: they either heavily overfitted to the training data, or they collapsed into predicting the majority class.
 
-Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding the feasibility of the feature. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding whether the feature could actually be built with data that was found and agreed between teems plan. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
 
 A universal instant-comfort model cannot exist. To solve this, future iterations of the system must rely on personalized, user-specific profiling or hardcoded rules per user rather than attempting to map objective sensor data to a generalized subjective comfort scale.
 
-### 3.9.4 Result ExportThe best performing models were serialized into `.pkl` files (Pickle format). This allows the backend API to dynamically load the model into memory and instantly run predictions when receiving new raw sensor arrays from the physical IoT devices.
+### 3.9.4 Result export
+
+The best performing models were serialized into `.pkl` files as artifacts. To ensure accurate predictions, the input data must be scaled using the same parameters as the training set. Therefore, the scalers are saved as artifacts alongside the models. This allows the deployed API to build the model and expose the prediction endpoints for receiving new raw sensor arrays from the physical IoT devices.
 
 ## 3.10 Frontend CI/CD
 
@@ -1031,8 +1239,9 @@ All buffers are statically allocated at compile time, avoiding heap fragmentatio
 
 ## 4.4 ML Performance
 
-[Summarise the final model performance in context. Are predictions accurate enough
-to be useful for the application? How does the model compare to a naive baseline?]
+Our instant ML models ended up being very not precise. If one of the models managed to achieve accuracy around 50% it was highly overfitting and if we wanted to prevent it than accuracy was dropping down to around 37%. But most importantly that percentage did not mean that the models are correctly learning and accurately predicting on the level of 37% - it was just because the results were often squizzed into same most common class in the dataset. Basically, it was found that environmental sensor values and human subjective raiting of the room are not enough data to use as features to make usable models. It was lacking for example a feature that would suggest what type of person is assesing the raiting, because right now two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+
+All in all compared to a naive baseline, the team built something that actually learns, even if the subjective nature of comfort makes it impossible to get a perfect score.
 
 ## 4.5 Frontend Quality
 
@@ -1052,6 +1261,23 @@ What are the system's remaining weaknesses? What assumptions constrain the findi
 What would need to change for this to be a production-grade system?
 Address limitations per component where the issues differ significantly.]
 
+**MAL Evaluation**
+The biggest hurdle we faced in the ML part was what we call the "Subjectivity Paradox" already explained in paragraphs above. Because our training data came from different sources and different people, the model often got confused when two identical sensor readings had two different comfort ratings attached to them. This essentially caps the maximum possible accuracy for any generalized model.
+
+Also, another thing is that our team did not get enough data from our sensors and real people raitings so the team relied on datasets found on the internet such as the KETI and HomeCoach which means that the models were not trained on "our" sensor data. While we attempted to unify the data using MICE imputation and clustering, it remained difficult to account for the 'data drift' that occurs when integrating external, pre-existing datasets with measurements captured directly from our own IoT devices. If we were to take this to a production level, we would need firstly to gather more data than just environemntal sensors data and also make the system learn the specific preferences of the user sitting in front of it, rather than trying to guess based on a general average. Without this personalization, the suitability rating remains a helpful hint rather than a definitive truth.
+
+**From a frontend perspective**, the final application supports the main user workflows: login and registration, dashboard monitoring, profile management, device connection, calendar planning, and session rating. The dashboard can show live sensor values, historical readings, recommendations, and the predicted study suitability value returned from the backend. The Start Session flow was also improved so the frontend does not create the real IoT session itself, but checks whether the connected device has an active backend session before unlocking the live dashboard view.
+
+There are still limitations in the frontend implementation. The dashboard depends on the backend and IoT device having an active session. If no active session exists, the frontend can show a clear message, but it cannot start real measurement by itself. This is correct for the system design, but it also means the full dashboard flow can only be tested properly when the IoT/backend session flow is running.
+
+The device connection flow is also still prototype-like. The frontend can check whether a device exists in the backend and save the connected device for the user, but the user-device relationship should be stored and enforced more strongly in the backend in a production version. This would make device ownership more reliable across browsers and devices.
+
+Another limitation is that the frontend has to handle missing or incomplete data from several services. For example, if dashboard readings, prediction values, or session data are not available, the interface must show empty states instead of breaking. The current version includes loading and empty states, but a production system would need more detailed error handling and clearer recovery options for the user.
+
+The session rating flow works as a frontend workflow, but it depends on a valid backend session ID. The popup requires the user to choose a rating before submitting, and the rating is sent with the device and session identifiers. More end-to-end testing would be needed to fully verify the complete flow from IoT session creation to frontend rating submission and database storage.
+
+The frontend also includes automated tests for several important flows, such as login, dashboard states, active session handling, stop-session rating popup, profile device connection, language switching, theme switching, and session rating submission. A limitation is that these are still mostly component and flow-level tests. More end-to-end tests against the full deployed system would give stronger confidence that the frontend, backend, database, and IoT session flow work together correctly.
+
 # 5. Conclusions
 
 *Authors: [Name, Name, Name]*
@@ -1065,16 +1291,31 @@ Address limitations per component where the issues differ significantly.]
 
 # 6. Future Work
 
-*Authors: [Name, Name, Name]*
+*Authors: [Cristina Matei]*
 
 [Describe the most important directions for continuing or improving the system.
-Be specific and actionable.
+Be specific and actionable.]
 
 - **IoT**: additional sensors, power optimisation, OTA firmware updates, PCB design...
 - **ML**: more training data, online/incremental learning, alternative models, explainability...
 - **Frontend**: mobile app, push notifications, user authentication, dashboard customisation...
 - **Cloud/DevOps**: full CD with staged environments, infrastructure-as-code (Terraform),
   monitoring and alerting (Grafana, Prometheus), load testing...]
+
+
+
+**Frontend**
+Future work should mainly focus on making the prototype more reliable and easier to use. 
+The frontend could be improved with a mobile app or progressive web app, since many students would probably check the system from a phone. Push notifications could warn the user when the environment becomes poor during a session. The dashboard could also become customisable, so users can choose which cards or charts they want to see. 
+The connected device is currently stored in the backend user profile, which allows it to be restored after logout and login. A future improvement would be to support multiple devices per user and enforce device ownership fully in the backend. This would allow users to manage several devices and would ensure that session and rating data can only be accessed for devices assigned to the logged-in account.
+
+The system also gives recommendations but does not control physical room equipment. The frontend can inform the user about poor conditions, but it does not directly control ventilation, heating, lighting, or other actuators. This keeps the project within scope, but it also means the system supports decision-making rather than automatic environment control.
+
+For the frontend, future work could include better deployment testing before changes are released. The team could test the production build more often, check that the deployed frontend communicates correctly with the API, and add simple checks for login, dashboard loading, and routing. This would reduce the risk of frontend changes working locally but failing after deployment.
+
+The tests should also be expanded beyond the current automated frontend tests. Future tests could include browser-based end-to-end tests, backend integration tests, ML regression tests, and simple deployment smoke tests. This would make it easier to change the system later without breaking the existing functionality.
+
+Some originally discussed features were not included in the final prototype. Noise measurement was considered relevant for study environments, but the final firmware does not include a reliable working noise sensor. Because of this, the frontend only displays the implemented sensor values: temperature, humidity, CO2, and light.
 
 # References
 
