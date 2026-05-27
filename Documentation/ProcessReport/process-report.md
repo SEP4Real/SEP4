@@ -125,7 +125,7 @@ The shift from measuring focus to measuring suitability was the single most impo
 ## 3.3 Time Planning and Scheduling
 
 **Initial Planning**
-We based our project timeline on Agile Scrum. Before writing any code, we used Figma to map out our structure visually, which helped us turn abstract requirements into actual technical tasks. We started out with standard two-week sprints, planning to switch to one-week sprints later on.
+We based our project timeline on Agile Scrum. Before writing any code, we used digital boards to map out our structure visually, which helped us turn abstract requirements into actual technical tasks. We started out with standard two-week sprints, planning to switch to one-week sprints later on.
 
 **Cross-Team Alignment in a Large Group**
 To save time, we tried to keep full-team meetings to a minimum. Instead, the Product Owner and sub-team Scrum Masters just met as needed to handle cross-team scheduling and dependencies, rather than sticking to a rigid calendar. This made it easier to agree on interface contracts, sort out API issues, and manage integration, letting the rest of the developers just focus on their sprint tasks. We did still hold occasional full-group meetings to share feedback and make sure everyone knew what was going on with the system as a whole.
@@ -476,6 +476,14 @@ Identify 2–3 concrete actions. Reference learning theory or professional frame
 if relevant (e.g. Kolb's learning cycle, growth mindset research).]
 
 -->
+## Alexandru Savin
+
+Data vs. Models, what drives better outcomes? Thoughout the project me, being part of MAL team enjoyed analysing this question and I came out to the conclusion that even a relatively simple model can achieve pretty high accuracy, while a more powerful model cannot compensate from a lack of data.
+
+[WIP]
+
+
+
 
 ## Damian Michal Choina
 
