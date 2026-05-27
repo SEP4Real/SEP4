@@ -829,41 +829,49 @@ This function is used when a user connects a device from the profile page. First
 
 The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
 
-![alt text](image/FE/image-9.png)
-Figure x: FullCalendar in CalendarPage.jsx
+<p align="center">
+  <img src="image/FE/image-9.png" alt="FullCalendar in CalendarPage.jsx" width="60%">  
+</p>
 
 The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
 
-![alt text](image/FE/image-10.png)
-Figure x: useEffect in CalendarPage.jsx
+<p align="center">
+  <img src="image/FE/image-10.png" alt="useEffect in CalendarPage.jsx" width="60%">  
+</p>
 
 Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
 
-![alt text](image/FE/image-11.png)
-Figure x: handleSelect() in CalendarPage.jsx
+<p align="center">
+  <img src="image/FE/image-11.png" alt="handleSelect() in CalendarPage.jsx" width="60%">  
+</p>
 
 If the user decides to edit, the handleEventClick() function loads event data into the form.
 
-![alt text](image/FE/image-12.png)
-Figure x: handleEventClick() in CalendarPage.jsx
+<p align="center">
+  <img src="image/FE/image-12.png" alt="handleEventClick() in CalendarPage.jsx" width="60%">  
+</p>
 
 CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
-![alt text](image/FE/image-13.png)
-Figure x: createCalendarEvent() in CalendarService.js
+<p align="center">
+  <img src="image/FE/image-13.png" alt="createCalendarEvent() in CalendarService.js" width="60%">  
+</p>
 
 Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
 
-![alt text](image/FE/image-14.png)
-Figure x: credentials check in CalendarService.js requests
+<p align="center">
+  <img src="image/FE/image-14.png" alt="credentials check in CalendarService.js requests" width="60%">  
+</p>
 
 REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
 
-![alt text](image/FE/image-15.png)
-Figure x: GET endpoint in calendar.py
+<p align="center">
+  <img src="image/FE/image-15.png" alt="GET endpoint in calendar.py" width="60%">  
+</p>
 
-![alt text](image/FE/image-16.png)
-Figure x: request model in calendar.py
+<p align="center">
+  <img src="image/FE/image-16.png" alt="request model in calendar.py" width="60%">  
+</p>
 
 ### 3.7.2 API Integration
 
@@ -879,42 +887,50 @@ Fetch API performs the requests to the backend and is used to load the data in t
 
 For local and deployed environment, an API configuration was created:
 
-![alt text](image/FE/image.png)
-Figure x: apiConfig.js
+<p align="center">
+  <img src="image/FE/image.png" alt="apiConfig.js" width="60%">  
+</p>
 
 To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
 
-![alt text](image/FE/image-1.png)
-Figure x: getDashboardData in DashboardService.js
+<p align="center">
+  <img src="image/FE/image-1.png" alt="getDashboardData in DashboardService.js" width="60%">  
+</p>
 
 Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
 
-![alt text](image/FE/image-2.png)
-Figure x: login() in AuthService.js
+<p align="center">
+  <img src="image/FE/image-2.png" alt="login() in AuthService.js" width="60%">  
+</p>
 
 These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
-![alt text](image/FE/image-3.png)
-Figure x: handleSubmit() in LoginPage.jsx
+<p align="center">
+  <img src="image/FE/image-3.png" alt="handleSubmit() in LoginPage.jsx" width="60%">  
+</p>
 
 In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-![alt text](image/FE/image-4.png)
-Figure x: LoadingSpinner() in LoadinSpinner.jsx
+<p align="center">
+  <img src="image/FE/image-4.png" alt="LoadingSpinner() in LoadingSpinner.jsx" width="60%">  
+</p>
 
-![alt text](image/FE/image-5.png)
-Figure x: EmptyState() in EmptyState.jsx
+<p align="center">
+  <img src="image/FE/image-5.png" alt="EmptyState() in EmptyState.jsx" width="60%">  
+</p>
 
 MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
 
-![alt text](image/FE/image-6.png)
-Figure x: getPrediction() in malService.js
+<p align="center">
+  <img src="image/FE/image-6.png" alt="getPrediction() in malService.js" width="60%">  
+</p>
 
 Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
-![alt text](image/FE/image-7.png)
-![alt text](image/FE/image-8.png)
-Figure x: visualization of prediction
+<p align="center">
+  <img src="image/FE/image-7.png" alt="visualization of prediction" width="45%">  
+  <img src="image/FE/image-8.png" alt="visualization of prediction" width="45%">  
+</p>
 
 ### 3.7.3 Hosting and Deployment
 
@@ -1189,15 +1205,17 @@ To prevent integration issues, it was important to find a way to keep the code m
 
 One of the most important things when sharing code between teammates, is to ensure code is clean and consistent. This was done by using ESLint. ESLint was used for finding errors, unused variables, etc.
 
-![alt text](image/FE/image-20.png)
-Figure x:  scripts config in package.json
+<p align="center">
+  <img src="image/FE/image-20.png" alt="scripts config in package.json" width="60%">  
+</p>
 
 ### 3.10.2 Tools and Pipeline
 
 Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. 
 
-![alt text](image/FE/image-21.png)
-Figure x: Vitest env config
+<p align="center">
+  <img src="image/FE/image-21.png" alt="Vitest env config" width="60%">  
+</p>
 
 Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
 
