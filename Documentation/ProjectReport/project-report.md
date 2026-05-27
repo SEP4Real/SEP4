@@ -547,11 +547,13 @@ Correlation analysis further revealed insights into data quality. Healthy datase
 
 ### 3.3.3 ML Problem Formulation
 
-The ML task is formulated as a supervised learning problem aimed at predicting the Study Suitability Rating. Specifically, this is defined as a **Multi-Class Classification** problem:
+The ML task is formulated as a supervised learning problem aimed at predicting the Study Suitability Rating. To support both continuous monitoring and on-demand environmental checks, the problem is divided into two distinct modeling paradigms:
 
-- **Inputs (X):** The features are derived from continuous, time-series sensor telemetry (Temperature, Humidity, CO2, and Light). These raw readings are dynamically aggregated into structured vectors (capturing current, minimum, maximum, and mean values) to summarize the state and variance of the environment over an active session.
-- **Output (Y):** The target variable is the Study Suitability Rating, consisting of discrete integer classes ranging from 1 (poor suitability) to 5 (excellent suitability).
-- **Objective:** The goal is to learn the complex, non-linear relationships between the physical characteristics of a room and subjective human sustainability raiting. By mapping environmental metrics to historical user ratings, the model enables the system to automatically predict the quality of an environment in real-time.
+- **Inputs (X):** Depending on the prediction context, features are derived from the physical sensor data (Temperature, Humidity, CO₂, and Light) in two distinct ways:
+- *Session-Based:* For ongoing study sessions, raw readings are dynamically aggregated into structured vectors (capturing current, minimum, maximum, and mean values) to summarize the state and variance of the environment over time.
+- *Instantaneous:* For immediate environment checks before a session begins, models rely solely on real-time, point-in-time sensor readings to evaluate the physical environment without historical aggregation.
+- **Output (Y):** The target variable is the Study Suitability Rating, consisting of discrete integer classes ranging from 1 (poor suitability) to 5 (excellent suitability). To minimize false positives and ensure the system only recommends definitively optimal environments, these ratings are evaluated with a conservative threshold across all models: ratings of 4 and 5 denote favorable conditions, while ratings of 1 through 3 are strictly classified as unsuitable.
+- **Objective:** The goal is to learn the complex, non-linear relationships between the physical characteristics of a room and subjective human suitability ratings. By mapping environmental metrics to historical user feedback, the system can automatically predict the quality of a study environment both instantaneously and throughout a prolonged session.
 
 ## 3.4 Frontend Design
 
@@ -977,7 +979,7 @@ Overall, the pipeline added clear value to the development workflow by catching 
 In our project, we developed two distinct kinds of models to tackle different aspects of the Study Suitability problem:
 
 1. **Session-based Models:** These models rely on chronological session data where linearization is in place. They account for the aspect of environment changes over time.
-2. **Instant Measurement Models:** These models rely solely on point-in-time environmental sensor data (temperature, humidity, noise, co2, light) to predict the user's study suitability. We rigorously evaluated multiple approaches for this instant measurement prediction pipeline.
+2. **Instant Measurement Models:** These models rely solely on instantaneous environmental sensor data (temperature, humidity, noise, CO2, light) to predict whether current conditions are favorable to initiating a study session. We rigorously evaluated multiple approaches for this instant measurement prediction pipeline.
 
 ### 3.9.1 Model Selection
 
