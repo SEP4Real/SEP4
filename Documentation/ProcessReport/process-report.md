@@ -49,22 +49,12 @@ Organizationally, the process was managed by following Scrum-like sprints and ut
 
 ## 2.1 Group Composition and Profiles
 
-<!-- [Introduce each group member briefly — background, relevant skills, and prior
-experience. If the group is multicultural or interdisciplinary, highlight this
-and reflect on how it influenced the collaboration.] -->
 
-| Member                         | Main Area                       | Main Contributions                                                                                           |
-| :----------------------------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------- |
-| Karina Rubahova                | Frontend / Scrum                | Localization, dashboard styling, theme system, testing, sprint documentation                                 |
-| Cristina Matei                 | Frontend / Backend Integration  | Authentication integration, responsive improvements, profile functionality, backend/frontend synchronization |
-| Marta Zrno                     | Backend                         | JWT authentication, API endpoints, database-related functionality                                            |
-| Eduard Fekete                  |                                 |                                                                                                              |
-| Damian Michal Choina           | IoT                             | Arduino firmware, arduino - server communication, unit testing, instant-measure feature                      |
-| Piotr Junosz                   | MAL / Scrum Master              | Data search, Data imputation with clustering, Instant models                                                 |
-| Jakub Maciej Baczek            | Scrum Master / Devops / Backend | IOT Testing, IOT-facing API with unit tests, CI/CD for API and IOT                                           |
-| Mara-Ioana Statie              |                                 |                                                                                                              |
-| Alexandru Savin                | MAL                             | Mock data analsis and preprocessing, models training and evaluation, API endpoints                          |
-| Tymoteusz Krzysztof Zydkiewicz | IoT                             | Start/stop button feature, CO2 sensor integration, sound sensor investigation, database design               |
+The group consisted of ten students with different technical strengths, but with a broadly shared regional background. Most members came from Central and Eastern Europe, including Poland, Romania, Moldova, Latvia, Slovakia, and neighbouring cultural contexts. This gave the group a relatively similar communication style and attitude toward practical problem solving, while still leaving enough variation in personality and work habits to make the collaboration interdisciplinary.
+
+The shared cultural background made some potential collaboration issues easier to manage. Direct feedback was generally accepted well, and the group could discuss technical disagreements without needing a very formal hierarchy. At the same time, the project was large enough that some structure was necessary. Scrum Masters and sub-team leads helped coordinate deadlines and dependencies, but most day-to-day decisions were still made inside the relevant technical subteams. This made the hierarchy manageable rather than restrictive.
+
+Time coordination was also helped by the fact that the group lived and studied in the same environment, even if individual schedules differed. Meetings, Discord discussions, and sprint planning made it possible to coordinate across frontend, backend, MAL, and IoT work. Different personalities also shaped the collaboration: some members were more structured and documentation-oriented, others were more experimental and implementation-focused, and others were strongest in debugging and integration. This mix was useful because the project required both planning and fast problem solving.
 
 ## 2.2 Roles and Contributions
 
@@ -73,6 +63,19 @@ The distribution of responsibilities was primarily based on technology areas: fr
 Frontend-related tasks included dashboard development, localization, theming, profile features, responsiveness, calendar support, testing, and deployment preparation. Backend tasks focused on developing the authentication system, API endpoints, JWTs, and database interactions. MAL tasks included model-based predictions, dataset generation, and fitness prediction experiments. Tasks performed by the IoT team focused on sensor integration and connectivity.
 
 Tasks were managed using tools chosen by each subteam. Some subteams used Jira to track sprint-related issues and their progress, while others used their own preferred tools for task management. GitHub branches and pull requests were used across all subteams for implementation-related work.
+
+| Member                         | Main Area                       | Main Contributions                                                                                           |
+| :----------------------------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------- |
+| Karina Rubahova                | Frontend / Scrum                | Localization, dashboard styling, theme system, testing, sprint documentation                                 |
+| Cristina Matei                 | Frontend / Backend Integration  | Authentication integration, responsive improvements, profile functionality, backend/frontend synchronization |
+| Marta Zrno                     | Backend                         | JWT authentication, API endpoints, database-related functionality                                            |
+| Eduard Fekete                  | MAL / DevOps / Documentation    | MAL structure, data pipeline, session linearization, documentation automation, deployment support            |
+| Damian Michal Choina           | IoT                             | Arduino firmware, Arduino-server communication, unit testing, instant-measure feature                        |
+| Piotr Junosz                   | MAL / Scrum Master              | Data search, data imputation with clustering, instant models                                                |
+| Jakub Maciej Baczek            | Scrum Master / DevOps / Backend | IoT testing, IoT-facing API with unit tests, CI/CD for API and IoT                                           |
+| Mara-Ioana Statie              | MAL / Documentation             | Session model experiments, feature alignment, MAL tests, ML report sections                                  |
+| Alexandru Savin                | MAL                             | Mock data analysis and preprocessing, model training and evaluation, API endpoints                           |
+| Tymoteusz Krzysztof Zydkiewicz | IoT                             | Start/stop button feature, CO2 sensor integration, sound sensor investigation, database design               |
 
 ## 2.3 Team Dynamics and Collaboration
 
