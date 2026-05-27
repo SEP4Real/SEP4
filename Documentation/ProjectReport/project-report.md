@@ -952,7 +952,7 @@ The frontend application can be accessed at: https://frontend.sep4.eduardfekete.
 
 ## 3.8 IoT CI/CD
 
-*Authors: Jakub Maciej Baczek*
+*Authors: Jakub Baczek*
 
 <!-- DevOps checklist — address all four points:
      1. General DevOps considerations and planning
