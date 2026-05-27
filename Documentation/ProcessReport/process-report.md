@@ -205,9 +205,8 @@ This section describes the development process, divided into our collective effo
 
 This section describes the development process, divided into our collective efforts and team-specific contributions.
 
-## 4.1 Together Process
-
 As our project plan progressed, our system began to evolve into an integrated system requiring a high degree of interdependence across all components. Initially, at the beginning of the semester, subgroups were able to work more independently, as many components were implemented as mockupsor were in a work-in-progress state. However, as the development process progressed, the need for coordination increased significantly.
+
 First, the frontend depended on several aspects of the backend, including authentication, API design, sessions, and sensor endpoints. Second, both the backend and MAL implementations relied on certain common conventions, such as JSON structures and predictive models. Thus, API contracts and data structures became integral to cross-team collaboration. To avoid collisions and conflicting implementations, the project relied heavily on branches and pull requests on GitHub. We used feature branches to allow teams to implement their solutions in parallel and then merge them into shared branches. However, the synchronization process sometimes became problematic due to changes in the backend and work on the frontend. Communication took place through Discord chats,sprint sessions, Jira tickets, and personal contacts with those responsible. The more complex the integration task, the clearer it became that even minor changes could simultaneously impact multiple aspects of the system.Among other interesting process observations, it's worth noting that the integration proved quite labor-intensive. Although everything worked individually, integrating all components, including the frontend, MAL, and IoT, proved to be a more complex task.
 
 ## 4.2 IOT Team Process
@@ -356,9 +355,20 @@ Additionally, poor coordination with the other subteams presented obstacles. For
 
 ## 4.7 Deviations from the Plan
 
-[Compare what was planned versus what was actually executed.
-What changed and why? Were changes proactive (intentional pivots) or reactive
-(forced by circumstances)? How did the team adapt?]
+Several parts of the project changed compared to the original plan. Some changes were intentional decisions after the team understood the problem better, while others were caused by technical limitations or integration issues.
+
+One important deviation was the scope of the sensor data. At the beginning, noise was discussed as a relevant factor for study environments. Later, the team decided not to include it in the final prototype because ???????????????. The final system therefore focused on temperature, humidity, CO2, and light.
+
+Overall, the project moved from a more simple frontend prototype with mock data toward an integrated system connected to backend, IoT, ML, and deployment. The changes made the project more complex, but they also made the final solution more realistic.
+
+*Frontend*
+The session flow also changed during the project. Earlier frontend ideas assumed that the user could start and stop a study session directly from the web application. During integration, the team clarified that the real session lifecycle should be handled by the IoT device and backend. Because of this, the frontend Start Session button was changed to attach the dashboard to an already active IoT session instead of creating a new session.
+
+The frontend also changed more than expected. At first, many pages used mock data and simple local state. Later, these had to be adapted to real backend responses, authentication cookies, protected requests, device connection, active session checks, and rating submission. This caused extra rework, especially on the dashboard and profile page, but it made the application closer to the final system.
+
+Deployment also required adjustments. The team originally worked mostly with local development, but later the application had to work through Docker, Nginx, and Coolify. This created some issues with API routing between local and deployed environments. The team adapted by using `/api` routes and environment-based configuration so the frontend could work in different environments.
+
+
 
 ## 4.8 Use of Tools and Technologies
 
