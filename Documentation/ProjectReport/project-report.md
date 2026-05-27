@@ -548,6 +548,22 @@ The ML task is formulated as a supervised learning problem aimed at predicting t
 - **Output (Y):** The target variable is the Study Suitability Rating, consisting of discrete integer classes ranging from 1 (poor suitability) to 5 (excellent suitability). To minimize false positives and ensure the system only recommends definitively optimal environments, these ratings are evaluated with a conservative threshold across all models: ratings of 4 and 5 denote favorable conditions, while ratings of 1 through 3 are strictly classified as unsuitable.
 - **Objective:** The goal is to learn the complex, non-linear relationships between the physical characteristics of a room and subjective human suitability ratings. By mapping environmental metrics to historical user feedback, the system can automatically predict the quality of a study environment both instantaneously and throughout a prolonged session.
 
+### 3.3.4 MAL Architecture
+
+The MAL service is implemented as a dedicated FastAPI application in `MAL/backend/app/main.py`. Its architecture separates live API deployment, training logic, serialized artifacts, and data preprocessing into clearly defined folders:
+
+- `MAL/backend/app/main.py`: the FastAPI service exposing prediction and data endpoints.
+- `MAL/ml_pipeline/`:  model loading, training, and data transformations.
+- `MAL/scripts/`: executable training scripts used to produce artifacts.
+- `MAL/data/`: original, intermediate and final data artifacts.
+- `MAL/models/`: serialized model and scaler files consumed by the API.
+- `MAL/tests/`: validation tests for the ML service and prediction logic.
+- `MAL/notebooks/`: exploratory notebooks used during data analysis and model experimentation.
+
+This implementation is not just a model file; it is a live deployment with endpoints for `/predict`, `/instant-predict`, `/collect-data`, `/model-info`, and `/export-data`. The `/collect-data` endpoint exports rows from the database and transforms them with `transform_real_data()` to produce a real focus dataset, enabling live data provenance and eventual retraining from actual device data.
+
+The codebase explicitly separates two prediction pipelines rather than treating them as a single generic ML task. Session predictions use a 16-feature aggregate vector built from historical readings, while instant predictions use a compact 5-feature real-time snapshot.
+
 ## 3.4 Frontend Design
 
 *Authors: [Cristina Matei]*
