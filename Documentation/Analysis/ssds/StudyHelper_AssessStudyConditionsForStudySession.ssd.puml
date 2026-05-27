@@ -5,5 +5,5 @@ actor "Student" as Actor
 participant "system" as System
 
 Actor -> System : requestStudyConditionOverview
-System -> Actor : sendStudyConditionOverview(environmentStatus, temperature, humidity, co2Level, lightLevel, noiseLevel, predictedSuitabilityLevel, predictedTrend)
+System -> Actor : sendStudyConditionOverview(temperature, humidity, co2Level, lightLevel, predictedStudyQuality)
 @enduml

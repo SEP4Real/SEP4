@@ -1,4 +1,5 @@
 @base = https://mal.sep4.eduardfekete.com
+@base2 = http://api.sep4.eduardfekete.com
 
 ### Hello
 GET {{base}}/
@@ -38,4 +39,29 @@ Accept: application/json
   "maxTemp": 19,
   "minTemp": 20,
   "meanTemp": 22
+}
+
+### 
+POST {{base2}}/instant-measurement
+Content-Type: application/json
+Accept: application/json
+
+{
+  "temperature": 21,
+  "humidity": 10000,
+  "co2Level": 1,
+  "lightLevel": 10000
+}
+
+###
+POST {{base}}/instant-predict
+Content-Type: application/json
+Accept: application/json
+
+{
+  "temperature": 21,
+  "humidity": 3000,
+  "co2Level": 500,
+  "lightLevel": 10002,
+  "noise": 29
 }

@@ -92,6 +92,7 @@ def evaluate_model(model, X_train, X_test, y_train, y_test, is_classification=Tr
             cm = confusion_matrix(y_true_labels, y_pred)
             disp_cm = ConfusionMatrixDisplay(confusion_matrix=cm)
             disp_cm.plot(ax=axes_metrics[i], cmap='Blues', colorbar=False)
+            axes_metrics[i].grid(False)
             axes_metrics[i].set_title(f'Confusion Matrix ({name})')
         else:
             mse = mean_squared_error(y_true_labels, y_pred)

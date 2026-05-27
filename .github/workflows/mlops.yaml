@@ -60,6 +60,10 @@ jobs:
           echo "::error::MAL/models/rf_model.pkl is missing. Train locally with 'python scripts/train_model.py' from MAL/ and commit the artifact."
           exit 1
         }
+        test -f MAL/models/instantrfcmodel.pkl || {
+          echo "::error::MAL/models/instantrfcmodel.pkl is missing. Train locally with 'python scripts/train_instant_rfc_model.py' from MAL/ and commit the artifact."
+          exit 1
+        }
 
     - name: Run unit tests with coverage
       working-directory: MAL
@@ -115,7 +119,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./MAL
-        # rf_model.pkl is committed to the repo and copied into the image via
+        # Model artifacts are committed to the repo and copied into the image via
         # the Dockerfile's `COPY models ./models` step. No retraining at build time.
         push: true
         tags: ${{ steps.meta.outputs.tags }}
