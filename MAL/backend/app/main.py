@@ -15,6 +15,9 @@ from ml_pipeline.transform_real_data import transform_real_data
 
 app = FastAPI(title="MAL API")
 
+DEFAULT_NOISE_DB = 29.0
+DEFAULT_NOISE_FEATURE_VALUE = round(DEFAULT_NOISE_DB**0.5, 2)
+
 def _require_export_token(x_export_token: str | None = Header(default=None)) -> None:
     expected_token = os.environ.get("MAL_API_EXPORT_TOKEN")
     if expected_token and x_export_token != expected_token:
@@ -37,6 +40,10 @@ class PredictionRequest(BaseModel):
     maxLight: float = Field(allow_inf_nan=False)
     minLight: float = Field(allow_inf_nan=False)
     meanLight: float = Field(allow_inf_nan=False)
+    currentNoise: float = Field(default=DEFAULT_NOISE_FEATURE_VALUE, allow_inf_nan=False)
+    maxNoise: float = Field(default=DEFAULT_NOISE_FEATURE_VALUE, allow_inf_nan=False)
+    minNoise: float = Field(default=DEFAULT_NOISE_FEATURE_VALUE, allow_inf_nan=False)
+    meanNoise: float = Field(default=DEFAULT_NOISE_FEATURE_VALUE, allow_inf_nan=False)
 
     @model_validator(mode="after")
     def validate_prediction_window(self) -> "PredictionRequest":
@@ -71,6 +78,14 @@ class PredictionRequest(BaseModel):
             raise ValueError("meanLight must be between minLight and maxLight")
         if not self.minLight <= self.currentLight <= self.maxLight:
             raise ValueError("currentLight must be between minLight and maxLight")
+
+        # Validate noise window
+        if self.maxNoise < self.minNoise:
+            raise ValueError("maxNoise must be greater than or equal to minNoise")
+        if not self.minNoise <= self.meanNoise <= self.maxNoise:
+            raise ValueError("meanNoise must be between minNoise and maxNoise")
+        if not self.minNoise <= self.currentNoise <= self.maxNoise:
+            raise ValueError("currentNoise must be between minNoise and maxNoise")
 
         return self
 
@@ -262,6 +277,10 @@ async def get_prediction(data: PredictionRequest) -> PredictionResponse:
         data.maxLight,
         data.minLight,
         data.meanLight,
+        data.currentNoise,
+        data.maxNoise,
+        data.minNoise,
+        data.meanNoise,
     )
     return PredictionResponse(rating=rating)
 
