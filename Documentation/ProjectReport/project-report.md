@@ -406,13 +406,7 @@ The StudyHelper project follows a trunk-based branching model with two long-live
 
 ## 3.2 IoT Design
 
-*Authors: [Name, Name]*
-
-<!-- Design of the embedded C application on ATmega2560 + WiFi. -->
-
-## 3.2 IoT Design
-
-*Authors: [Jakub Maciej Baczek, Tymoteusz Krzysztof Zydkiewicz]*
+*Authors: Jakub Baczek, Tymoteusz Krzysztof Zydkiewicz*
 
 The IoT component is the physical sensing layer of the StudyHelper system. Its main responsibility is to collect indoor environmental data from the study space and transmit it to the backend, where the readings can be stored, displayed in the frontend, and used as input for machine-learning-based study suitability prediction.
 
