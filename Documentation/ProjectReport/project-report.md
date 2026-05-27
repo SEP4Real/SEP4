@@ -333,13 +333,11 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 **IoT–cloud encryption:** The ATmega2560 does not have sufficient resources to perform TLS, so the device communicates with the backend over plain HTTP. This is a known limitation of the prototype. The device authenticates itself by including its device ID in the JSON payload only during registration and session creation. Once the server returns a session ID, all subsequent requests — data submissions and keepalive pulses — use that session ID instead, so the device ID is not transmitted for the duration of an active session. Sensitive build-time credentials are injected via a `secrets.ini` file that is excluded from the repository, so no credentials are committed to source control.
 
-**API authentication:** The MAL API export endpoint (`GET /export-data`) is protected by an `X-Export-Token` HTTP header checked against the `MAL_API_EXPORT_TOKEN` environment variable. This prevents unauthorised access to raw sensor exports. `<!-- [Describe the authentication mechanism for the IoT backend endpoints — the `secrets.ini.example` file in the IoT firmware references a `SECRET_KEY` environment variable on the API container, which suggests token-based authentication is configured. Confirm whether JWT is implemented and which endpoints require it.] -->`
+**API authentication:** The MAL API export endpoint (`GET /export-data`) is protected by an `X-Export-Token` HTTP header checked against the `MAL_API_EXPORT_TOKEN` environment variable. This prevents unauthorised access to raw sensor exports. Frontend-facing Core API endpoints are protected with JWT authentication. After login, the Core API stores the JWT in an `HttpOnly` cookie and protected routes read the logged-in user through the shared authentication dependency. IoT endpoints use the registered device and session identifiers rather than the frontend user JWT flow.
 
 **Secret management:** Sensitive credentials - database password, Wi-Fi SSID and password, server hostname, device ID, and the API secret key - are stored as environment variables, never hard-coded in source files. The firmware secrets are injected at build time via `secrets.ini`, which is excluded from the repository by `.gitignore`. Server-side secrets are passed to Docker containers via the `.env` file, which is similarly excluded. The `docker-compose.yml` uses mandatory variable substitution (`:?` syntax) so that a deployment will fail explicitly if any required secret is missing rather than silently using an empty value.
 
 **Additional considerations:** Because the ATmega2560 has limited cryptographic hardware support, the choice of encryption scheme involves a trade-off between security strength and memory and processing overhead. Plain HTTP was therefore chosen as the most practical option for this prototype, as implementing software encryption on the ATmega2560 would introduce additional complexity and risk of unpredictable issues within the project timeline. The database is not exposed on a public port; access is restricted to the Docker internal network, which limits the attack surface from the public internet.
-
-<!-- [Complete this section with any additional security measures implemented, such as rate limiting on the prediction endpoint, CORS configuration on the backends, or HTTPS enforcement by the Coolify reverse proxy.] -->
 
 For frontend-facing API endpoints, the Core API uses JWT-based authentication. After a successful login, the backend creates a JWT signed with `SECRET_KEY` and stores it in an `HttpOnly` cookie named `access_token`. Protected endpoints read the token from this cookie through the shared `get_current_user` dependency. Bearer-token support is still kept as a fallback, but the frontend no longer stores the JWT in `localStorage`.
 
@@ -373,7 +371,7 @@ The StudyHelper project follows a trunk-based branching model with two long-live
 
 **Container strategy:** All services are containerised. The Core API (`api`) uses a Python 3.12 Dockerfile served by Uvicorn. The MAL API (`mal-api`) uses a Python Dockerfile that installs dependencies from `requirements.txt` and copies the model artifact. The frontend (`frontend`) uses a Node.js build stage and an Nginx serve stage. The database uses the unmodified `postgres:16-alpine` official image.
 
-**Testing overview:** Unit testing is component-specific. The IoT firmware tests cover the `wifi_http` and `server_api` modules using Unity and FFF, running natively on the CI host. The ML pipeline tests cover data transformation logic and the FastAPI prediction endpoint using pytest. [TODO: Describe the frontend test approach — e.g. whether Jest or React Testing Library tests are included in the pipeline.] Integration testing across components is manual, performed by flashing the firmware, running the backend stack locally, and observing end-to-end data flow.
+**Testing overview:** Unit testing is component-specific. The IoT firmware tests cover the `wifi_http` and `server_api` modules using Unity and FFF, running natively on the CI host. The ML pipeline tests cover data transformation logic and the FastAPI prediction endpoint using pytest. The frontend tests use Vitest with React Testing Library to verify component rendering, routing, context state, user interactions, and important dashboard/profile flows. Integration testing across components is manual, performed by flashing the firmware, running the backend stack locally, and observing end-to-end data flow.
 
 ## 3.2 IoT Design
 
@@ -719,6 +717,8 @@ The following subsections describe the most important frontend features in more 
 
 The dashboard is the main part of the frontend. It loads environment data through `DashboardService`, prepares the data for display, and shows the newest values in sensor cards. The cards show temperature, humidity, CO2, light level, and suitability level. They use the reusable `SensorCard` component, so the same structure can be reused for each sensor value.
 
+![Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.](../Design/Frontend/ReactAppRoutingEcosystem.svg){width=90%}
+
 The history graph is built with Recharts in the `SensorChart` component. It shows temperature, humidity, CO2, and light values over time. It also shows the predicted study quality on a separate axis, because the rating uses a different scale than the sensor values. The user can turn sensor lines on and off, which makes the chart easier to read when many lines are visible at the same time.
 
 The recommendation card is based on the latest predicted study quality. Ratings 4 and 5 are shown as good conditions, rating 3 is shown as acceptable, and ratings below 3 are shown as poor. The card uses different status classes and messages for these cases, so the user does not only see a number but also gets a short explanation.
@@ -754,9 +754,9 @@ This service function is used by the dashboard to retrieve the latest sensor rea
 
 The profile page handles both user information and device connection. When the page loads, it reads the logged-in user and then requests the profile from the backend through `ProfileService`. The user can update profile information such as university, study programme, study year, study goal, and profile picture. The page also includes password change fields with basic checks before sending the update request.
 
-The device connection part uses `DeviceService`. The user enters a device ID, and the frontend checks if that device exists in the backend. If the device is not found, the frontend tries to register it. After this, the device ID is stored locally together with the user's email. The dashboard uses this information to decide whether it should show environment data or show the "no device connected" empty state.
+The device connection part uses `DeviceService`. The user enters a device ID, and the frontend checks if that device exists in the backend. If the device is not found, the frontend tries to register it. After this, the connected device ID is saved in the backend user profile and also mirrored locally for frontend state. The dashboard uses this information to decide whether it should show environment data or show the "no device connected" empty state.
 
-This solution works for the prototype, but it is still quite simple. In a more complete version, the connection between user and device should be stored and checked fully in the backend. That would make device ownership more secure and less dependent on local browser storage.
+This solution works for the prototype, but it is still quite simple. In a more complete version, the backend could enforce device ownership more strictly, for example by supporting multiple devices per user and checking that session and rating data only belongs to devices assigned to the logged-in account.
 
 ```c
 // Frontend/src/services/DeviceService.js
@@ -809,7 +809,7 @@ Frontend components communicate with service functions through asynchronous even
 
 In order to improve user experience, `LoadingSpinner` and `EmptyState` components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-MAL predictions are retrieved through `malService`. The device's sensor values are sent as JSON payloads to the `/predict` endpoint. This then returns a study quality prediction. Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
+For the dashboard, prediction values are received through the Core API rather than directly from the MAL service. The IoT device sends sensor readings to the Core API, the Core API communicates with MAL for prediction, and the predicted study quality is stored or returned together with the sensor data. Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
 ```c
 // apiConfig.js
@@ -1178,21 +1178,32 @@ Authentication and persistence tests checked how protected and public routes ren
 
 Although the frontend tests were not full end-to-end browser tests, several behaved like lightweight integration tests. They validated interactions between context providers, localStorage, user events, state updates, and dashboard/session rendering without requiring a full browser automation setup.
 
-### 3.12.8 Challenges During Frontend Testing
+### 3.12.8 Dashboard and Session Flow Tests
+
+Dashboard tests covered loading and empty states, active session handling, and the Start Session flow. They verified that the live dashboard remains locked when no active backend session exists, and that live data is shown when an active session exists for the connected device. A separate Stop Session test verified that pressing Stop Session opens the rating popup with the correct device and session information.
+
+### 3.12.9 Profile and Device Tests
+
+Profile tests covered profile rendering and user interactions. Device connection tests verified that the connected device can be loaded from the backend profile and saved back to the user profile, so the dashboard can use the correct device after login.
+
+### 3.12.10 Challenges During Frontend Testing
 
 Frontend testing was challenging because backend endpoints, API responses, authentication, and session synchronization changed during integration. Some components also depended on asynchronous rendering, React Context, and API-related state transitions, which required extra handling in tests.
 
 The tests still helped reveal issues that were easy to miss manually, especially around state synchronization, context updates, localStorage, conditional rendering, and theme-related UI differences.
 
-### 3.12.9 Test Results
+### 3.12.11 Test Results
 
 | Test Suite                     | Tests | Passed | Failed | Coverage |
 | :----------------------------- | :---- | :----- | :----- | :------- |
 | Dashboard rendering tests      | 2     | 2      | 0      | Partial  |
-| Theme switching tests          | 2     | 2      | 0      | Partial  |
+| Dashboard session flow tests   | 2     | 2      | 0      | Partial  |
+| Dashboard stop-session tests   | 1     | 1      | 0      | Partial  |
+| Theme switching tests          | 3     | 3      | 0      | Partial  |
 | Localization tests             | 2     | 2      | 0      | Partial  |
 | Profile localization tests     | 2     | 2      | 0      | Partial  |
-| Session rating component tests | 3     | 3      | 0      | Partial  |
+| Profile and device tests       | 2     | 2      | 0      | Partial  |
+| Session rating component tests | 4     | 4      | 0      | Partial  |
 | Authentication flow tests      | 2     | 2      | 0      | Partial  |
 | Device persistence tests       | 1     | 1      | 0      | Partial  |
 

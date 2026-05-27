@@ -355,6 +355,18 @@ There was a learning curve early on. PlatformIO, AVR tooling, embedded C, timers
 
 Overall, the methods fit the problem well. Modular design and automated testing made the firmware more maintainable and testable, while requirements analysis helped clarify how the IoT device should interact with the backend and frontend. One area that fell short was API stability: endpoint names, response fields, and session behavior changed during development, causing rework. This showed that API contracts need to be treated as living documentation and kept updated throughout the project, not just agreed upon at the start.
 
+### 4.5.3 Frontend
+
+For the frontend team, the main method was to turn the user stories and UI ideas into working React pages. We used the requirements to decide which pages were needed, such as login, register, dashboard, profile, and calendar. The dashboard was the most important part because it had to show sensor values, study suitability, history, recommendations, and session-related actions in one place.
+
+Using React components worked well for this project. Splitting the interface into pages, reusable components, service files, and context providers made the code easier to manage. Components such as SensorCard, SensorChart, SessionRating, EmptyState, and LoadingSpinner could be reused instead of writing the same UI logic several times. Service files also helped keep API calls separate from the visual parts of the pages.
+
+We also used React Context for language and theme state. This was useful because language and dark mode affect many parts of the application. At first, some text was hardcoded directly in components, so we had to refactor parts of the UI to make translation work properly. This showed that localization is easier if it is considered from the beginning.
+
+Testing with Vitest and React Testing Library was useful for checking important frontend flows. We tested login behavior, routing, dashboard states, active session handling, stop-session rating behavior, profile device connection, language switching, theme switching, and rating submission. These tests did not replace manual testing, but they helped catch mistakes in state handling and user interactions.
+
+The biggest learning curve was integration. Some problems looked like frontend bugs, but were actually caused by backend responses, cookies, Docker setup, missing IoT sessions, or changing API behavior. This made debugging harder, but it also helped us understand the full system better. Overall, React, service layers, context, and component-based design fit the frontend well, but the project would have benefited from clearer API contracts earlier in the process.
+
 ## 4.6 Challenges During Execution
 
 
@@ -370,7 +382,7 @@ The most difficult technical area overall was networking between the Arduino, th
 
 A challenge that the frontend team encountered was with a teammate who was not contributing equally, was missing meetings, did not want to participate in a group presentation and refused to read and reply to messages. Unfortunately, the situation escalated and they left the group.
 
-Additionally, poor coordination with the other subteams presented obstacles. For example, during the creation of the session and preferences functionalities, it was unclear how data travels, and if frontend should trigger the device. Also, we did not plan the development of backend properly, so there were some issues with deciding on which language it would use. These isses were resolved by holding a meeting with the whole group and coming to a decision and mutual understanding.
+Additionally, poor coordination with the other subteams presented obstacles. For example, during the creation of the session and preferences functionalities, it was unclear how data travels, and if frontend should trigger the device. Also, we did not plan the development of backend properly, so there were some issues with deciding on which language it would use. These issues were resolved by holding a meeting with the whole group and coming to a decision and mutual understanding.
 
 ## 4.7 Deviations from the Plan
 
@@ -421,6 +433,14 @@ For testing, we used Unity with FFF fakes to test firmware logic without always 
 The MAL team primarily used Python as the core programming language for both data analysis and backend development. Jupyter Notebooks were extensively used during the experimental phases for data cleaning, MICE imputation, and testing various machine learning algorithms. Libraries such as Pandas and NumPy were essential for data manipulation and clustering, while Scikit-Learn was the primary framework used for training and evaluating both the instant and session-based models (including Random Forest Classifiers and Neural Networks). Matplotlib and Seaborn were utilized to visualize data distributions and generate confusion matrices for evaluating model performance.
 
 For integration and deployment, the team utilized FastAPI to expose the trained models through a robust, asynchronous REST API. The API and data pipeline were containerized using Docker to ensure a consistent environment from development to production. For quality assurance, `pytest` was used to write and execute unit and integration tests covering the machine learning pipeline and API endpoints, which were automatically run through GitHub Actions CI/CD workflows.
+
+### 4.8.3 Frontend
+
+The frontend was built with React and Vite. React was used to create reusable components and pages, while Vite made local development and production builds faster. JavaScript, HTML, and CSS were used for the main interface, with custom CSS for responsive layout, dark mode, and page styling.
+
+Several frontend libraries were used to support the interface. React Router handled page navigation and protected routes. Recharts was used for the dashboard graph, FullCalendar for the calendar page, and Lucide React / React Icons for UI icons. Fetch API was used for communication with the backend services.
+
+For testing, the frontend used Vitest together with React Testing Library. These tools were used to test routing, login behavior, theme and language switching, dashboard states, session rating, and profile device connection. Chrome DevTools was also used a lot during manual testing, especially for checking API requests, cookies, localStorage, responsive layout, and frontend errors.
 
 # 5. Personal Reflections
 
