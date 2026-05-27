@@ -647,16 +647,21 @@ The MAL codebase implements two prediction pipelines. The following describes th
 
 #### Session-Based Prediction
 
-The session pipeline accumulates temporally contiguous device readings into a session window and computes summary statistics per each sensor. Input features (16 total) are current/mean/min/max statistics used by the session model:
+The session pipeline accumulates temporally contiguous device readings into a session window and computes summary statistics for each sensor. The deployed session model uses an explicit production feature contract rather than automatically training on every numeric column in the CSV. This was important because the processed dataset also contains exploratory and helper columns such as duplicate aliases, cluster labels, standard deviations, ranges, and reading counts. These columns can be useful for analysis, but they are not all available through the production `/predict` endpoint and would therefore create a mismatch between offline evaluation and deployed inference.
+
+At the API boundary, the session-level inputs (20 total) are the current/mean/min/max statistics used by the session model:
 
 - `currentTemperature`, `meanTemp`, `minTemp`, `maxTemp`
-- `currentHumidity`, `humidity_mean`, `humidity_min`, `humidity_max`
-- `currentCO2`, `co2_mean`, `co2_min`, `co2_max`
-- `currentLight`, `light_mean`, `light_min`, `light_max`
+- `currentHumidity`, `meanHumidity`, `minHumidity`, `maxHumidity`
+- `currentCO2`, `meanCO2`, `minCO2`, `maxCO2`
+- `currentLight`, `meanLight`, `minLight`, `maxLight`
+- `currentNoise`, `meanNoise`, `minNoise`, `maxNoise`
+
+Noise is handled slightly differently from the other sensors because the final IoT prototype does not provide reliable real background-noise measurements. To keep the session model compatible with a future noise sensor, the model is still trained with noise aggregate features. During inference, the Core API includes noise in the MAL request payload when it is available. If no real noise column exists in the database, the API supplies a conservative default based on `noise=29.0`. This default is transformed into the same feature scale used by the training pipeline, so the deployed model receives a stable value instead of failing or silently dropping the noise features.
+
+Inside MAL, the API-style fields are mapped into the model feature columns as follows: `currentNoise` maps to `noise_latest`, `meanNoise` maps to `noise_mean`, `minNoise` maps to `noise_min`, and `maxNoise` maps to `noise_max`. This keeps the public request format readable while still matching the column names used in the processed training dataset.
 
 These features are produced from the processed dataset `MAL/data/processed/linearized_session_windows.csv`. The session model is trained in `MAL/scripts/train_model.py`. The final session-level artifact deployed by the service is `MAL/models/nn_model.pkl` (with its associated scaler/transform saved alongside the artifact).
-
-TO DO (what about noise?)
 
 #### Instant Prediction
 
@@ -672,16 +677,16 @@ The instant endpoint enforces the `InstantPredictionRequest` schema; when the cl
 
 | Endpoint             | Model Type                   | Input Features                                                                              | Saved Artifact                                                        |
 | :------------------- | :--------------------------- | :------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------- |
-| `/predict`         | Session-level neural network | 16 session-aggregate features (current/mean/min/max for Temperature, Humidity, CO₂, Light) | `MAL/models/nn_model.pkl` (+scaler)                                 |
+| `/predict`         | Session-level neural network | 20 session-aggregate features (current/mean/min/max for Temperature, Humidity, CO₂, Light, Noise) | `MAL/models/nn_model.pkl` (+scaler)                                 |
 | `/instant-predict` | Instant Random Forest        | 5 real-time features (temperature, humidity, CO₂, light, noise)                            | `MAL/models/instantrfcmodel.pkl`, `MAL/models/instant_scaler.pkl` |
 
 #### Data Provenance and Retraining
 
-Export and collection endpoints (`/collect-data`, `/export-data`) run `transform_real_data()` and persist processed CSVs to `MAL/data/processed/` with provenance metadata such as (TO DO). These artifacts are the inputs for offline retraining.
+Export and collection endpoints (`/collect-data`, `/export-data`) run `transform_real_data()` and persist processed CSVs to `MAL/data/processed/`. These artifacts are the inputs for offline retraining. The processed session CSV may contain more columns than the deployed model uses, but retraining is based on the explicit production feature list so the training data remains aligned with the inference payload.
 
 #### Validation & Safety
 
-TO DO
+Input validation is handled at the MAL boundary using Pydantic request models. The session endpoint checks that min, mean, current, and max values form valid windows for each sensor group, including the noise values. For backwards compatibility, the noise fields have deterministic defaults, which means older callers that do not send noise can still receive predictions while the model remains ready for real noise once the sensor and database support it.
 
 ### 3.6.3 Data Split and Validation Strategy
 
@@ -707,7 +712,6 @@ The application uses protected routes to separate public pages from authenticate
 The following subsections describe the most important frontend features in more detail.
 
 ### 3.7.1.1 Dashboard Implementation {#3711-dashboard-implementation}
-
 
 
 The dashboard is the main part of the frontend. It loads environment data through `DashboardService`, prepares the data for display, and shows the newest values in sensor cards. The cards show temperature, humidity, CO2, light level, and suitability level. They use the reusable `SensorCard` component, so the same structure can be reused for each sensor value.
