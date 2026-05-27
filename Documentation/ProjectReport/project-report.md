@@ -1186,31 +1186,20 @@ The best performing models were serialized into `.pkl` files as artifacts. To en
 
 ## 3.10 Frontend CI/CD
 
-*Authors: [Name, Name]*
+*Authors: [Marta Zrno]*
 
-<!-- DevOps checklist — same four points as IoT CI/CD (Section 3.8). -->
+The frontend CI/CD workflow was followed for code consistency, automating builds and simple deployment. This was crucial since the group had to collaborate on the code simultaneously. To avoid issues in this approach, various tools were used -- for code quality, testing and deployment. They were integrated directly into the frontend development workflow.
 
 ### 3.10.1 DevOps Considerations for the Frontend
 
-[What DevOps planning was done specifically for the React codebase?
-How were code ownership and review responsibilities organised?]
+To prevent integration issues, it was important to find a way to keep the code maintainable and clean. A shared GitHub repository was used to allow the members to work on the code simultaneously. When a member wanted to merge code, a pull request would be opened. Another member could then review it and merge if it was up to standards. Otherwise, comments were left, and the code could be optimized before merge.
 
-### 3.10.2 Tools and Pipeline
-
-*Authors: [Marta Zrno]*
-
-[Describe the CI/CD pipeline for the frontend:
-
-- Linting and formatting (ESLint, Prettier)
-- Unit and component tests (Jest, React Testing Library)
-- E2E tests if applicable (Cypress, Playwright)
-- Automated build and deployment to hosting
-- Container usage for frontend (if applicable)]
-
-ESLint was used in the frontend for finding errors, such as variables that were not used, incorrectly used hooks, etc. It provided a way to keep the code clean and consistent, which is crucial when shared between teammates.
+One of the most important things when sharing code between teammates, is to ensure code is clean and consistent. This was done by using ESLint. ESLint was used for finding errors, unused variables, etc.
 
 ![alt text](image/FE/image-20.png)
 Figure x:  scripts config in package.json
+
+### 3.10.2 Tools and Pipeline
 
 Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. 
 
@@ -1222,12 +1211,13 @@ Frontend build was automatically done using GitHub Actions workflows. They were 
 
 ### 3.10.3 Integration into Workflow
 
-[How was the pipeline used day-to-day? Branch protection rules, required checks?]
+When a new feature needed to be implemented, a new feature/{name} branch was created. These branches could then be merged into dev branch, after creating a pull request another member has approved. The conflicts in the pull request were resolved by the branch's contributor. The dev branch was used prior to deployment. This setup helped with integration of frontend components and pages.
+
+The main branch is for deployment, and when it received new code, GitHub Actions workflows automatically started the build and deployment of frontend. This approach simplified the deployment of new code versions.
 
 ### 3.10.4 Outcomes and Evaluation
 
-[What effect did DevOps have on frontend quality and development speed?
-What automated checks ran on every PR? What gaps remained?]
+Since the DevOps workflow was a new way of development for the group, it took a bit of time to get used to. But in the end it made it easier to build and test new features. The issues were found earlier in the process using ESLint, and the shared code was consistent. The big upside is the avoidance of manual deployment. 
 
 ## 3.11 IoT Tests
 
