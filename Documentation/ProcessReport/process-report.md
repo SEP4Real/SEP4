@@ -423,6 +423,15 @@ From a technical perspective, I believe that my knowledge and practical experien
 
 The main lesson I would bring with me to my next project would be to establish clear communication between subgroups as early in the process as possible. I would try harder to integrate into the group, instead of trying to lead a workflow. And I would try to introduce some new technologies, which we could experiment with and broaden our skillsets.
 
+## Jakub Maciej Baczek
+
+This semester was my first experience working in a group of this size, split across three subteams with distinct technical responsibilities. As Scrum Master for the IoT subteam, my role extended well beyond what I had experienced in previous projects. A significant portion of my time went into coordinating work within the team, tracking progress, and making sure the subteam's output aligned with what the other teams expected. While I found this side of the project genuinely enjoyable — understanding how all the pieces of the system fit together and interacted gave me a broader perspective than I usually get from purely technical work — it was also time consuming in a way I did not fully anticipate. Being Scrum Master in a large, distributed group often felt like needing to be available at all times, which made it difficult to separate focused technical work from coordination responsibilities.
+
+The biggest personal challenge throughout the project was motivation. I did not find the subject matter particularly exciting, and that made it harder to stay engaged during slower periods. When the project does not feel compelling on its own terms, the motivation has to come from somewhere else — in my case, mostly from not wanting to let the subteam down.
+
+Communication and shared understanding were also a recurring issue at the full-group level. It often felt like not everyone had a clear picture of how the overall system was supposed to look or function, which led to misalignments that could have been caught earlier with more structured cross-team communication. Looking back, I would put even more emphasis on cross-team coordination from the start, despite there already having been a fair amount of it. Making the system architecture visible and understandable to everyone — not just those who worked closely with it — would have saved time and reduced uncertainty later in the project.
+
+On the technical side, my work covered the CI/CD pipeline for both the IoT firmware and the backend API, the IoT-facing backend endpoints, and the associated test suites. None of this was particularly difficult in isolation, but it required a solid understanding of how all components connected, which I came to appreciate more over time. The most valuable technical outcome for me personally was developing a strong understanding of DevOps and testing practices. I also had no prior experience with FastAPI or Python in a backend context, and getting to work with both gave me a new set of tools I am likely to use again. These are the takeaways I will carry into future projects regardless of how I felt about the project itself.
 
 ### Reflection Forward
 
