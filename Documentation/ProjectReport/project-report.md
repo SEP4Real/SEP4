@@ -355,7 +355,7 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 For frontend-facing API endpoints, the Core API uses JWT-based authentication. After a successful login, the backend creates a JWT signed with `SECRET_KEY` and stores it in an `HttpOnly` cookie named `access_token`. Protected endpoints read the token from this cookie through the shared `get_current_user` dependency. Bearer-token support is still kept as a fallback, but the frontend no longer stores the JWT in `localStorage`.
 
-During registration, user's password is hashed and stored in the database. The hashing is performed using a bcrypt algorithm through Passlib’s CryptContext. When a user logs in, the entered password is compared to the stored password hash. This way, plain text passwords are never used, which reduces risk of exposing user's credentials.
+During registration, user's password is hashed and stored in the database. The hashing is performed using a bcrypt algorithm through Passlib’s CryptContext. When a user logs in, the entered password is compared to the stored password hash using `pwd_context.verify()`. This way, plain text passwords are never used, which reduces risk of exposing user's credentials.
 
 The frontend sends authenticated requests with `credentials: "include"` so the browser includes the authentication cookie automatically. This is used by protected API calls such as dashboard, profile, calendar, session, device, and rating requests. Logout clears the authentication cookie on the backend.
 
@@ -775,25 +775,12 @@ This function is used when a user connects a device from the profile page. First
 
 
 
-The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
+The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in `CalendarPage.jsx`, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
 
-![FullCalendar configuration in CalendarPage.jsx](image/FE/image-9.png){width=60%}
+The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the `useEffect()` hook was used for asynchronous retrieval. Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the `handleSelect()` to open a popup window for inserting title and additional notes. If the user decides to edit, the `handleEventClick()` function loads event data into the form.
 
-The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
+`CalendarService` holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
-![Using useEffect for dynamic event loading in CalendarPage.jsx](image/FE/image-10.png){width=60%}
-
-Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
-
-![Event selection handler handleSelect() in CalendarPage.jsx](image/FE/image-11.png){width=60%}
-
-If the user decides to edit, the handleEventClick() function loads event data into the form.
-
-![Event click and edit handler handleEventClick() in CalendarPage.jsx](image/FE/image-12.png){width=60%}
-
-CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
-
-![Service function createCalendarEvent() in CalendarService.js](image/FE/image-13.png){width=60%}
 ```c
 //FullCalendar in CalendarPage.jsx
       <FullCalendar
@@ -808,35 +795,6 @@ CalendarService.js holds asynchronous service functions which perform event mana
         eventClick={handleEventClick} // edit event
 ```
 
-The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval. Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes. If the user decides to edit, the handleEventClick() function loads event data into the form.
-
-CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
-
-```c
-//createCalendarEvent() in CalendarService.js
-export async function createCalendarEvent(eventData) {
-  const response = await fetch(`${API_URL}/calendar-events`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-
-    body: JSON.stringify(eventData),
-  });
-
-![API request with credentials option in CalendarService.js](image/FE/image-14.png){width=60%}
-  if (!response.ok) {
-    throw new Error("Failed to create event");
-  }
-
-  return response.json();
-}
-```
-
-![Calendar API GET endpoint in calendar.py](image/FE/image-15.png){width=60%}
-
-![Pydantic request validation model in calendar.py](image/FE/image-16.png){width=60%}
 Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar. REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
 
 ### 3.7.2 API Integration
@@ -847,11 +805,11 @@ The frontend communicates with backend services through REST API requests, which
 
 In order to separate API communication from frontend components and pages, a new layer was created for authentication, calendar and profile management, and other system features. This resulted in the code being reusable, modular and easily maintainable. Fetch API performs the requests to the backend and is used to load the data in the webpages. Data is exchanged using JSON format, since it is human-readable and is supported by various environments. For local and deployed environment, an API configuration was created. To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
 
-Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails. These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
+Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, `login()` sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails. These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls `login()`, stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
 In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction. Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
+MAL predictions are retrieved through `malService`. The device's sensor values are sent as JSON payloads to the `/predict` endpoint. This then returns a study quality prediction. Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
 ```c
 // apiConfig.js
@@ -877,7 +835,7 @@ The application's frontend is hosted as part of the StudyHelper cloud infrastruc
 
 The Docker build process was divided into 3 stages to separate the build from the runtime environment. In the first stage, Node.js Alpine container installed all dependencies and the product was generated using "npm run build" command. In the second stage, the generated files were copied into an Nginx container.
 
-In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured. When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify. The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
+In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured. When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify. The frontend application can be accessed at: `https://frontend.sep4.eduardfekete.com/`
 
 ```c
 // .env
