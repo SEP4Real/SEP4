@@ -11,65 +11,79 @@ artifacts
     ssd Analysis/ssds/ [svg]
     state Analysis/states/ [svg]
 
-obj Student
-    studying: bool [state, initial(false)]
-    authorized: bool [initial(false)]
-    
-    method startStudying() [set(studying, true)]
-        pre !studying
-        post studying
-
-    method stopStudying() [set(studying, false)]
-        pre studying
-        post !studying
-
 @puml-head !include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
 
-obj Teacher
+obj User
+    name : string [a, d]
+    lastName : string [a, d]
+    email : string [a, d]
+    passwordHash : string [d]
 
-obj StudyEnvironment
-    environmentStatus : long [a, d]
-    temperature : long [a, d]
-    humidity : long [a, d]
-    co2Level : long [a, d]
-    lightLevel : long [a, d]
-    noiseLevel : long [a, d]
-    suitabilityLevel : decimal [a, d]
-    predictedSuitabilityLevel : decimal [a, d]
-    predictedTrend : int [a, d]
+obj UserProfile
+    university : string [a, d]
+    studyProgram : string [a, d]
+    studyYear : string [a, d]
+    studyGoal : string [a, d]
+    profilePicture : string [d]
 
-obj EnvironmentConditionHistory
-    timestamp : long [a, d]
-    temperature : long [a, d]
-    humidity : long [a, d]
-    co2Level : long [a, d]
-    lightLevel : long [a, d]
-    noiseLevel : long [a, d]
+obj Device
+    id : string [a, d]
 
+obj Session
+    startedAt : long [a, d]
+    isEnded : bool [state, initial(true), a, d]
+    lastPulseAt : long [d]
 
-rel Student "1" -- "1" StudyEnvironment : monitors
-rel Teacher "1" -- "1" StudyEnvironment : monitors
-rel StudyEnvironment "1" -- "*" EnvironmentConditionHistory : stores
+    method startSession() [set(isEnded, false)]
+        pre isEnded
+        post !isEnded
+
+    method endSession() [set(isEnded, true)]
+        pre !isEnded
+        post isEnded
+
+obj DataPoint
+    temperature : float [a, d]
+    humidity : float [a, d]
+    co2Level : float [a, d]
+    lightLevel : float [a, d]
+    sentAt : long [a, d]
+    predictedStudyQuality : int [a, d]
+
+obj Rating
+    ratingValue : int [a, d]
+    createdAt : long [a, d]
+
+obj CalendarEvent
+    title : string [a, d]
+    note : string [a, d]
+    startTime : long [a, d]
+    endTime : long [a, d]
+    allDay : bool [a, d]
+
+rel User "1" -- "0..1" UserProfile : has
+rel User "1" -- "0..*" CalendarEvent : schedules
+rel User "1" -- "0..*" Rating : submits
+rel Device "1" -- "0..*" Session : records
+rel Session "1" -- "0..*" DataPoint : stores
+rel Session "1" -- "0..*" Rating : receives
 
 uc AssessStudyConditionsForStudySession
-    description "As a Student I want an overview of current Status, Conditions, and predictions, so that I can decide whether to start or continue a Study Session in my current environment."
+    description "As a Student I want an overview of current conditions and a suitability prediction, so that I can decide whether to start or continue a study session."
     actor Student
 
     step @start requestStudyConditionOverview :> @sys
     step sendStudyConditionOverview :> @actor
-        - environmentStatus : long
-        - temperature : long
-        - humidity : long
-        - co2Level : long
-        - lightLevel : long
-        - noiseLevel : long
-        - predictedSuitabilityLevel : decimal
-        - predictedTrend : int
+        - temperature : float
+        - humidity : float
+        - co2Level : float
+        - lightLevel : float
+        - predictedStudyQuality : int
 
     post Student.knowsCurrentStudyConditions
 
 uc RateStudySessionSuitability
-    description "As a Student I want to submit a Rating after a Study Session, so that the system can improve suitability predictions for my environment."
+    description "As a Student I want to submit a rating, so that the system can improve suitability predictions over time."
     actor Student
 
     step @start submitStudySessionRating :> @sys
@@ -79,7 +93,7 @@ uc RateStudySessionSuitability
     post @sys.studySessionSuitabilityRated
 
 uc ViewEnvironmentConditionHistory
-    description "As a Student I want to see the history of Conditions in my environment, so that I can understand trends during a Study Session."
+    description "As a Student I want to see the history of environmental conditions, so that I can understand trends affecting my focus."
     actor Student
 
     step @start requestEnvironmentConditionHistory :> @sys
@@ -88,40 +102,91 @@ uc ViewEnvironmentConditionHistory
 
     post Student.knowsEnvironmentHistory
 
-uc ConfigureStudySessionMonitoring
-    description "As a Student I want to configure automatic refresh and alerts, so that the box supports active monitoring during my Study Session."
-    actor Student
-
-    step @start configureStudySessionMonitoring :> @sys
-        - intervalMinutes : int
-        - alertEnabled : bool
-    step confirmStudySessionMonitoringConfiguration :> @actor
-
-    post @sys.studySessionMonitoringConfigured
-
 uc ReceiveStudentEnvironmentAlert
-    description "As a Student I want to receive an alert when current Conditions are not suitable, so that I can take action to improve my study environment."
+    description "As a Student I want to receive an alert when conditions fall below an acceptable threshold, so that I can take action to improve my environment."
     actor Student
 
-    step monitorActiveStudySessionConditions :> @sys
-    alt [Conditions not suitable for studying]
-        step sendConditionAlert :> @actor
+    step monitorActiveSessionConditions :> @sys
+    alt [predictedStudyQuality == 1]
+        step triggerBuzzerAlert :> @actor
 
     post @sys.studentAlertSent
 
+uc StartStudySession
+    description "As a Student I want to start a monitored study session using a physical button on the device, so that I do not need to interact with any software to begin monitoring."
+    actor Student
+    pre Session.isEnded
+
+    step @start pressButtonToStartSession :> @sys
+    step confirmSessionActive :> @actor
+
+    post !Session.isEnded
+
+uc EndStudySession
+    description "As a Student I want to stop a monitored study session using a physical button on the device, so that I can end monitoring."
+    actor Student
+    pre !Session.isEnded
+
+    step @start pressButtonToEndSession :> @sys
+    step confirmSessionEnded :> @actor
+
+    post Session.isEnded
+
 uc AssessConditionsForTeaching
-    description "As a Teacher I want an overview of current and predicted Conditions, so that I can decide if the environment is suitable for teaching."
+    description "As a Teacher I want an overview of current and predicted environmental conditions, so that I can decide if the environment is suitable for teaching."
     actor Teacher
 
     step @start requestTeachingConditionOverview :> @sys
     step sendTeachingConditionOverview :> @actor
-        - environmentStatus : long
-        - temperature : long
-        - humidity : long
-        - co2Level : long
-        - lightLevel : long
-        - noiseLevel : long
-        - predictedSuitabilityLevel : decimal
-        - predictedTrend : int
+        - temperature : float
+        - humidity : float
+        - co2Level : float
+        - lightLevel : float
+        - predictedStudyQuality : int
 
     post Teacher.knowsTeachingConditions
+
+uc AuthenticateUser
+    description "As a User I want to register, log in, and log out securely, so that my personal data and study information are protected."
+    actor User
+
+    step @start submitCredentials :> @sys
+        - email : string
+        - password : string
+    step confirmAuthentication :> @actor
+
+    post @sys.userAuthenticated
+
+uc ConnectDeviceToAccount
+    description "As a Student I want to connect my physical device to my account, so that the dashboard can show data from my own study device."
+    actor Student
+
+    step @start enterDeviceId :> @sys
+        - deviceId : string
+    step confirmDeviceConnected :> @actor
+
+    post @sys.deviceConnected
+
+uc ManageUserProfile
+    description "As a Student I want to manage my profile information, so that the application can be personalized to me."
+    actor Student
+
+    step @start updateProfilePreferences :> @sys
+        - university : string
+        - studyProgram : string
+    step confirmProfileUpdated :> @actor
+
+    post @sys.profileUpdated
+
+uc ManageCalendarEvents
+    description "As a Student I want to manage calendar events, so that I can plan study sessions in the same application."
+    actor Student
+
+    step @start createCalendarEvent :> @sys
+        - title : string
+        - note : string
+        - startTime : long
+        - endTime : long
+    step confirmEventCreated :> @actor
+
+    post @sys.calendarEventSaved

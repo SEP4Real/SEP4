@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import "./Dashboard.css";
 import { useLanguage } from "../context/LanguageContext";
 import { getDashboardData } from "../services/DashboardService";
-import { getDeviceSessions } from "../services/SessionService";
+import { getCurrentSession } from "../services/SessionService";
+import { getProfile } from "../services/ProfileService";
 import SensorChart from "../components/SensorChart";
 import SessionRating from "../components/SessionRating";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -76,6 +77,16 @@ const DEFAULT_DEVICE_ID = "arduino-device-01";
 const getSessionStorageKey = (email) =>
   email ? `dashboard_session_active:${email}` : null;
 
+const getSessionIdStorageKey = (email) =>
+  email ? `dashboard_session_id:${email}` : null;
+
+const getStoredDeviceForUser = (email) => {
+  const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
+  const connectedDevice = userDevices.find((device) => device.email === email);
+
+  return connectedDevice?.deviceId || "";
+};
+
 const normalizeDashboardRecord = (item = {}) => {
   const predictedStudyQuality =
     item.predictedStudyQuality ?? item.predicted_study_quality ?? 0;
@@ -117,20 +128,43 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState([]);
   const [hasDevice, setHasDevice] = useState(false);
+  const [connectedDeviceId, setConnectedDeviceId] = useState("");
   const [loading, setLoading] = useState(true);
 
   const user = JSON.parse(localStorage.getItem("user"));
 
   const sessionStorageKey = getSessionStorageKey(user?.email);
-  const [isSessionActive, setIsSessionActive] = useState(() => {
-    return sessionStorageKey
-      ? localStorage.getItem(sessionStorageKey) === "true"
-      : false;
-  });
+  const sessionIdStorageKey = getSessionIdStorageKey(user?.email);
+  const [isSessionActive, setIsSessionActive] = useState(() =>
+    sessionStorageKey ? localStorage.getItem(sessionStorageKey) === "true" : false
+  );
+  const [sessionMessage, setSessionMessage] = useState("");
   const [showRatingModal, setShowRatingModal] = useState(false);
-  const [ratingSessionId, setRatingSessionId] = useState(null);
+  const [ratingSessionId, setRatingSessionId] = useState(() =>
+    sessionIdStorageKey ? localStorage.getItem(sessionIdStorageKey) : null
+  );
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
+
+  const clearStoredSession = () => {
+    if (sessionStorageKey) {
+      localStorage.removeItem(sessionStorageKey);
+    }
+
+    if (sessionIdStorageKey) {
+      localStorage.removeItem(sessionIdStorageKey);
+    }
+  };
+
+  const storeActiveSession = (sessionId) => {
+    if (sessionStorageKey) {
+      localStorage.setItem(sessionStorageKey, "true");
+    }
+
+    if (sessionIdStorageKey) {
+      localStorage.setItem(sessionIdStorageKey, String(sessionId));
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -152,25 +186,61 @@ useEffect(() => {
     const checkConnection = async () => {
       setLoading(true);
 
-      const userDevices =
-        JSON.parse(localStorage.getItem("user_devices")) || [];
+      let savedDeviceId = getStoredDeviceForUser(user?.email);
 
-      const connectedDevice = userDevices.find(
-        (device) => device.email === user?.email
-      );
+      try {
+        const result = await getProfile();
+        savedDeviceId = result.profile?.connected_device_id || savedDeviceId;
+      } catch (error) {
+        console.error("Error loading profile device:", error);
+      }
 
-      if (!connectedDevice) {
+      if (!savedDeviceId) {
         setHasDevice(false);
+        setConnectedDeviceId("");
         setIsSessionActive(false);
         setRatingSessionId(null);
+        setSessionMessage("");
         setDashboardData([]);
+        clearStoredSession();
         setLoading(false);
         return;
       }
 
       setHasDevice(true);
+      setConnectedDeviceId(savedDeviceId);
+      setSessionMessage("");
 
       await loadDashboardData();
+
+      const shouldRestoreSession =
+        sessionStorageKey && localStorage.getItem(sessionStorageKey) === "true";
+      const storedSessionId = sessionIdStorageKey
+        ? localStorage.getItem(sessionIdStorageKey)
+        : null;
+
+      if (shouldRestoreSession && storedSessionId) {
+        try {
+          const currentSession = await getCurrentSession(savedDeviceId);
+
+          if (currentSession && String(currentSession.id) === storedSessionId) {
+            setRatingSessionId(currentSession.id);
+            setIsSessionActive(true);
+          } else {
+            setIsSessionActive(false);
+            setRatingSessionId(null);
+            clearStoredSession();
+          }
+        } catch (error) {
+          console.error("Error restoring active session:", error);
+          setIsSessionActive(false);
+          setRatingSessionId(null);
+          clearStoredSession();
+        }
+      } else {
+        setIsSessionActive(false);
+        setRatingSessionId(null);
+      }
 
       setLoading(false);
     };
@@ -182,7 +252,7 @@ useEffect(() => {
     return () => {
       window.removeEventListener("storage", checkConnection);
     };
-  }, [user?.email]);
+  }, [user?.email, sessionStorageKey, sessionIdStorageKey]);
   useEffect(() => {
     if (!hasDevice) {
       return undefined;
@@ -209,13 +279,36 @@ useEffect(() => {
     };
   }, [isSessionActive]);
 
-  useEffect(() => {
-    if (!sessionStorageKey) {
+  const handleStartSession = async () => {
+    if (!connectedDeviceId) {
+      setSessionMessage(t.noDeviceMessage);
       return;
     }
 
-    localStorage.setItem(sessionStorageKey, String(isSessionActive));
-  }, [isSessionActive, sessionStorageKey]);
+    try {
+      const currentSession = await getCurrentSession(connectedDeviceId);
+
+      if (!currentSession) {
+        setIsSessionActive(false);
+        setRatingSessionId(null);
+        clearStoredSession();
+        setSessionMessage(t.noActiveSessionFound);
+        return;
+      }
+
+      setRatingSessionId(currentSession.id);
+      setIsSessionActive(true);
+      storeActiveSession(currentSession.id);
+      setSessionMessage("");
+      await loadDashboardData();
+    } catch (error) {
+      console.error("Error loading active session:", error);
+      setIsSessionActive(false);
+      setRatingSessionId(null);
+      clearStoredSession();
+      setSessionMessage(t.noActiveSessionFound);
+    }
+  };
 
   const latestData = dashboardData[dashboardData.length - 1];
   const latestMetrics = normalizeDashboardRecord(latestData);
@@ -250,16 +343,14 @@ useEffect(() => {
 }
 
   const openRatingModal = async () => {
-    try {
-      const sessions = await getDeviceSessions(DEFAULT_DEVICE_ID);
-      const latestSession = [...sessions].sort((a, b) => {
-        return new Date(b.startedAt || b.started_at) - new Date(a.startedAt || a.started_at);
-      })[0];
-
-      setRatingSessionId(latestSession?.id || null);
-    } catch (error) {
-      console.error("Error loading session for rating:", error);
-      setRatingSessionId(null);
+    if (!ratingSessionId && connectedDeviceId) {
+      try {
+        const currentSession = await getCurrentSession(connectedDeviceId);
+        setRatingSessionId(currentSession?.id || null);
+      } catch (error) {
+        console.error("Error loading session for rating:", error);
+        setRatingSessionId(null);
+      }
     }
 
     setShowRatingModal(true);
@@ -332,10 +423,7 @@ return {
           {!isSessionActive ? (
             <button
               className="session-btn start"
-              onClick={() => {
-                setIsSessionActive(true);
-                loadDashboardData();
-              }}
+              onClick={handleStartSession}
             >
               <CirclePlay size={18} /> {t.StartSession}
             </button>
@@ -351,16 +439,23 @@ return {
           {isSessionActive && (
             <span className="live-status-container">
               <span className="live-dot"></span>
-              Live Monitoring Active...
+              {t.liveMonitoringActive}
             </span>
           )}
         </div>
+
+        {!isSessionActive && (
+          <p className="session-help-text">
+            {sessionMessage || t.startSessionToViewLiveData}
+          </p>
+        )}
       </div>
 
       <div className="live-section-header">
         <h2>{t.historyTitle}</h2>
       </div>
 
+      {isSessionActive && (
       <div className="dashboard-overview">
         <div className="dashboard-grid">
           <SensorCard
@@ -389,13 +484,16 @@ return {
           />
         </div>
       </div>
+      )}
 
+      {isSessionActive && (
       <div className="chart-card">
         <div className="chart-card-header">
           <span>Live sensor evolution</span>
         </div>
         <SensorChart data={dashboardData} />
       </div>
+      )}
 
       {showRatingModal && (
         <div className="rating-modal">
@@ -410,19 +508,20 @@ return {
 
             <SessionRating
               submitLabel="Submit rating"
-              allowSuccessOnError
-              deviceId={DEFAULT_DEVICE_ID}
+              deviceId={connectedDeviceId || DEFAULT_DEVICE_ID}
               sessionId={ratingSessionId}
               onSuccess={() => {
                 setShowRatingModal(false);
                 setIsSessionActive(false);
                 setRatingSessionId(null);
+                clearStoredSession();
               }}
             />
           </div>
         </div>
       )}
 
+      {isSessionActive && (
       <div className={`recommendation-card ${recommendation.status}`}>
 
   <div className="recommendation-emoji">
@@ -436,6 +535,7 @@ return {
   <p>{recommendation.message}</p>
 
 </div>
+      )}
       <div className="details-card-container">
         <div className="details-card-header">
           <h2>{t.detailedHistory}</h2>

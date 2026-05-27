@@ -52,6 +52,8 @@ services:
     image: ghcr.io/sep4real/sep4/frontend:main
     build:
       context: ./Frontend
+    environment:
+      API_PROXY_URL: ${API_PROXY_URL:-http://api:8080/}
     expose:
       - "80"
     depends_on:

@@ -27,21 +27,28 @@ partition "Student" {
 }
 split again
 partition "Student" {
-    label ConfigureStudySessionMonitoring_start
-    :configureStudySessionMonitoring;
-    :confirmStudySessionMonitoringConfiguration;
-    label ConfigureStudySessionMonitoring_end
-}
-split again
-partition "Student" {
-    :monitorActiveStudySessionConditions;
+    :monitorActiveSessionConditions;
     label ReceiveStudentEnvironmentAlert_
-    if (Conditions not suitable for studying) then (yes)
+    if (predictedStudyQuality == 1) then (yes)
       :skip;
     else (no)
     endif
-    :sendConditionAlert;
+    :triggerBuzzerAlert;
     label ReceiveStudentEnvironmentAlert_end
+}
+split again
+partition "Student" {
+    label StartStudySession_start
+    :pressButtonToStartSession;
+    :confirmSessionActive;
+    label StartStudySession_end
+}
+split again
+partition "Student" {
+    label EndStudySession_start
+    :pressButtonToEndSession;
+    :confirmSessionEnded;
+    label EndStudySession_end
 }
 split again
 partition "Teacher" {
@@ -49,6 +56,34 @@ partition "Teacher" {
     :requestTeachingConditionOverview;
     :sendTeachingConditionOverview;
     label AssessConditionsForTeaching_end
+}
+split again
+partition "User" {
+    label AuthenticateUser_start
+    :submitCredentials;
+    :confirmAuthentication;
+    label AuthenticateUser_end
+}
+split again
+partition "Student" {
+    label ConnectDeviceToAccount_start
+    :enterDeviceId;
+    :confirmDeviceConnected;
+    label ConnectDeviceToAccount_end
+}
+split again
+partition "Student" {
+    label ManageUserProfile_start
+    :updateProfilePreferences;
+    :confirmProfileUpdated;
+    label ManageUserProfile_end
+}
+split again
+partition "Student" {
+    label ManageCalendarEvents_start
+    :createCalendarEvent;
+    :confirmEventCreated;
+    label ManageCalendarEvents_end
 }
 endsplit
 stop

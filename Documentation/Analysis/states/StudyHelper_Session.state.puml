@@ -1,0 +1,12 @@
+@startuml
+title State Machine: Session
+!include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
+state Not_isEnded
+state isEnded
+
+[*] --> isEnded
+isEnded --> Not_isEnded : StartStudySession
+Not_isEnded --> isEnded : EndStudySession
+isEnded --> Not_isEnded : startSession
+Not_isEnded --> isEnded : endSession
+@enduml
