@@ -992,6 +992,15 @@ In our project, we developed two distinct kinds of models to tackle different as
 - **Multi-Layer Perceptron (MLP):** A feedforward artificial neural network evaluated to see if deep, non-linear pattern recognition could better map raw sensors to human comfort.
 - **Two-Stage Pipeline:** A custom hybrid approach where Stage 1 uses Random Forest Classifiers to map raw sensor data into intermediate human "perception" values (e.g., Temperature -> "Cold", "Perfect", "Hot"), and Stage 2 evaluates both a Random Forest Regressor and a Random Forest Classifier on those intermediate perceptions to predict the final 1-5 comfort rating.
 
+2. For the session-based predictions, we evaluated classification models on linearized study-session windows. Unlike instant measurement prediction, this model does not rely on a single sensor snapshot. Instead, it uses aggregated values from a session, such as maximum, minimum, and mean temperature, humidity, CO2, and light. The goal was to predict the final Study Suitability Rating based on how the environment developed over time.
+
+The models evaluated in the `model_related` notebooks were:
+
+- **Logistic Regression:** Used as a simple baseline classifier to test whether the relationship between environmental features and ratings could be captured linearly.
+- **K-Nearest Neighbours (KNN):** Evaluated because it can classify based on similarity between session windows, which seemed relevant when comparing study environments with similar sensor patterns.
+- **Random Forest Classifier:** Chosen for its ability to capture non-linear relationships and provide feature importance, while being more robust than a single decision tree.
+- **Neural Network (MLP):** A neural network classifier evaluated to determine whether a more flexible model could capture complex interactions between environmental changes over time.
+
 ### 3.9.2 Training and Hyperparameter Tuning
 
 To guarantee rigorous Data Science methodology, all instant models were trained using a strict **80% Training / 20% Test** split. We eliminated redundant validation splits to maximize training data utility.
@@ -1028,9 +1037,40 @@ The complete parameter grids searched during the tuning phase for each instant m
   - `max_depth`: [None, 10, 20]
   - `class_weight`: ['balanced', None]
 
+  
+  For the session-based models, the processed dataset was also split into an 80% training set and a 20% test set. Identifier and leakage columns such as `session_id`, `segment_id`, `source`, and timestamp fields were removed before training. Numerical features were scaled using `StandardScaler`, especially because KNN, Logistic Regression, and the Neural Network are sensitive to feature magnitude.
+
+Hyperparameter tuning was performed with a static validation split using `PredefinedSplit`. This kept the setup consistent across the model notebooks while avoiding unnecessary computation. The final test set was kept separate and only used after tuning.
+
+The best parameters found during tuning were:
+
+- **Logistic Regression:**
+  - `C`: 100
+  - `class_weight`: None
+- **KNN:**
+  - `n_neighbors`: 17
+  - `weights`: distance
+  - `metric`: minkowski
+  - `p`: 1
+  - `leaf_size`: 20
+- **Random Forest Classifier:**
+  - `n_estimators`: 200
+  - `max_depth`: 20
+  - `max_features`: log2
+  - `min_samples_split`: 10
+  - `min_samples_leaf`: 2
+- **Multi-Layer Perceptron:**
+  - `hidden_layer_sizes`: (128, 64)
+  - `alpha`: 0.0001
+  - `learning_rate_init`: 0.001
+  - `learning_rate`: constant
+  - `solver`: adam
+
 ### 3.9.3 Model Evaluation
 
-The models were evaluated strictly on the holdout test set to determine how well point-in-time sensor data correlates to a user's comfort. Regressors were evaluated using Mean Absolute Error (MAE), while classifiers were evaluated on Accuracy.
+The instant models were evaluated strictly on the holdout test set to determine how well point-in-time sensor data correlates to a user's comfort. Regressors were evaluated using Mean Absolute Error (MAE), while classifiers were evaluated on Accuracy.
+
+Instant:
 
 | Model                        | Type       | Test Metric | Result        |
 | :--------------------------- | :--------- | :---------- | :------------ |
@@ -1040,6 +1080,16 @@ The models were evaluated strictly on the holdout test set to determine how well
 | Gradient Boosting Classifier | Classifier | Accuracy    | 40.7%         |
 | Multi-Layer Perceptron       | Classifier | Accuracy    | 46.1%         |
 | Two-Stage Pipeline           | Hybrid     | MAE / Acc   | 0.667 / 48.5% |
+
+Session-based:
+
+| Model                  | Type       | Train Accuracy | Test Accuracy | Test Weighted F1 |
+| :--------------------- | :--------- | :------------- | :------------ | :--------------- |
+| Logistic Regression    | Classifier | 63.6%          | 62.5%         | 0.563            |
+| KNN                    | Classifier | 100.0%         | 67.2%         | 0.656            |
+| Random Forest          | Classifier | 93.2%          | 69.0%         | 0.664            |
+| Multi-Layer Perceptron | Classifier | 69.9%          | 68.3%         | 0.663            |
+
 
 **Linear Regression**
 ![LR Error Plot](../../Documentation/Design/ML/cm_LR_updated.png)
@@ -1076,11 +1126,19 @@ The goal of this 2 stage pipeline was to use "perception" values already existin
 
 #### Final Evaluation
 
+__Instant__:
+
 As clearly visible in the confusion matrices, the instant measurement models struggled to capture a robust predictive signal. The models typically exhibited two failure modes: they either heavily overfitted to the training data, or they collapsed into predicting the majority class.
 
 Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding whether the feature could actually be built with data that was found and agreed between the teams' plan. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
 
 A universal instant-comfort model cannot exist. To solve this, future iterations of the system must rely on personalized, user-specific profiling or hardcoded rules per user rather than attempting to map objective sensor data to a generalized subjective comfort scale.
+
+__Session-based__:
+
+The session-based prediction experiments showed that using aggregated session windows gives the model more context than instant measurements. However, the same core challenge remained: Study Suitability Rating is subjective. The same environmental values can still lead to different user ratings depending on personal preference, activity, tiredness, and expectations.
+
+For that reason, the final model choice was not based only on maximum test accuracy. Random Forest reached the highest accuracy, but the overfitting gap was too large. The Neural Network was selected because it gave a better balance between accuracy, generalization, and prediction distribution.
 
 ### 3.9.4 Result export
 
