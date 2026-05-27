@@ -414,7 +414,7 @@ The StudyHelper project follows a trunk-based branching model with two long-live
 - **Frontend CI/CD** (`frontend.yaml`): [Describe the frontend pipeline — what checks run (lint, tests, build) and whether the frontend image is pushed to GHCR on merge.]
 - **Deployment** (`deploy-coolify.yaml`): triggered on pushes to `main`. Sends a webhook to Coolify to redeploy the production stack.
 
-**Container strategy:** All services are containerised. The IoT backend (`api`) uses a multi-stage .NET Dockerfile. The MAL API (`mal-api`) uses a Python Dockerfile that installs dependencies from `requirements.txt` and copies the model artifact. The frontend (`frontend`) uses a Node.js build stage and an Nginx serve stage. The database uses the unmodified `postgres:16-alpine` official image.
+**Container strategy:** All services are containerised. The Core API (`api`) uses a Python 3.12 Dockerfile served by Uvicorn. The MAL API (`mal-api`) uses a Python Dockerfile that installs dependencies from `requirements.txt` and copies the model artifact. The frontend (`frontend`) uses a Node.js build stage and an Nginx serve stage. The database uses the unmodified `postgres:16-alpine` official image.
 
 **Testing overview:** Unit testing is component-specific. The IoT firmware tests cover the `wifi_http` and `server_api` modules using Unity and FFF, running natively on the CI host. The ML pipeline tests cover data transformation logic and the FastAPI prediction endpoint using pytest. [TODO: Describe the frontend test approach — e.g. whether Jest or React Testing Library tests are included in the pipeline.] Integration testing across components is manual, performed by flashing the firmware, running the backend stack locally, and observing end-to-end data flow.
 
@@ -1047,13 +1047,13 @@ In the basic linear regression model the predicted values were all around the mo
 **Random Forest Regressor**
 ![RFR Error Plot](../../Documentation/Design/ML/cm_RFR_updated.png)
 
-Random forest regressor did a little better - it preserved more variance and the predicted values where compressed in the middle most common value but not as much as in the linear regression, due to its ensemble nature and ability to model non-linear boundaries. However, it still could not effectively address the lack of precision in the labels - the same environmental conditions often resulted in different reported comfort levels.
+Random forest regressor did a little better - it preserved more variance and the predicted values were compressed in the middle most common value but not as much as in the linear regression, due to its ensemble nature and ability to model non-linear boundaries. However, it still could not effectively address the lack of precision in the labels - the same environmental conditions often resulted in different reported comfort levels.
 
 **Random Forest Classifier**
 ![RFC Best Model: CV vs Test](../../Documentation/Design/ML/cm_RFC_best.png)
 ![RFC Overfit: Train vs Test](../../Documentation/Design/ML/cm_RFC_overfit.png)
 
-First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. Of course the goal was to achieve this beautiful diagonal line on the test confusion matrix but unfortunatelly this was not possible, because then the model started to overfit a lot on the training set which can be seen on the oferfiting model confusion matrix above.
+First classification model experiments were done on Random Forest Classifier and showed that classification handles this problem slightly better preserving even more variance of predicted values where also extreme classes were included sometimes. Of course the goal was to achieve this beautiful diagonal line on the test confusion matrix but unfortunately this was not possible, because then the model started to overfit a lot on the training set which can be seen on the overfitting model confusion matrix above.
 
 **Gradient Boosting Classifier**
 ![GBC Best Model: CV vs Test](../../Documentation/Design/ML/cm_GBC_best.png)
@@ -1070,13 +1070,13 @@ The Multi-Layer Perceptron was our best standalone classifier at 46.1%. The neur
 **Two-Stage Pipeline**
 ![Two-Stage Confusion Matrix](../../Documentation/Design/ML/cm_two_stage_best.png)
 
-The goal of this 2 stage pipeline was to use "perception" values already existing in original data that was found together with the comfort raiting. The idea was to see if this way models can predict more accurately - it turned out that not really. It lead again to overfitting on the train set and squizzing most of predictions around the mode of targets both for regressor and classifier.
+The goal of this 2 stage pipeline was to use "perception" values already existing in original data that was found together with the comfort rating. The idea was to see if this way models can predict more accurately - it turned out that not really. It led again to overfitting on the train set and squeezing most of predictions around the mode of targets both for regressor and classifier.
 
 #### Final Evaluation
 
 As clearly visible in the confusion matrices, the instant measurement models struggled to capture a robust predictive signal. The models typically exhibited two failure modes: they either heavily overfitted to the training data, or they collapsed into predicting the majority class.
 
-Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding whether the feature could actually be built with data that was found and agreed between teems plan. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+Initially, this lack of predictive power was viewed as a failure of the machine learning pipeline, leading to frustration regarding whether the feature could actually be built with data that was found and agreed between the teams' plan. However, upon deeper analysis, this outcome is actually one of the most valuable findings of the project. It empirically proves what we term the **"Subjectivity Paradox"**: raw physical sensor parameters (temperature, humidity, noise, etc.) are inherently insufficient to objectively predict human comfort. Two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
 
 A universal instant-comfort model cannot exist. To solve this, future iterations of the system must rely on personalized, user-specific profiling or hardcoded rules per user rather than attempting to map objective sensor data to a generalized subjective comfort scale.
 
@@ -1239,7 +1239,7 @@ All buffers are statically allocated at compile time, avoiding heap fragmentatio
 
 ## 4.4 ML Performance
 
-Our instant ML models ended up being very not precise. If one of the models managed to achieve accuracy around 50% it was highly overfitting and if we wanted to prevent it than accuracy was dropping down to around 37%. But most importantly that percentage did not mean that the models are correctly learning and accurately predicting on the level of 37% - it was just because the results were often squizzed into same most common class in the dataset. Basically, it was found that environmental sensor values and human subjective raiting of the room are not enough data to use as features to make usable models. It was lacking for example a feature that would suggest what type of person is assesing the raiting, because right now two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
+Our instant ML models ended up being highly imprecise. If one of the models managed to achieve accuracy around 50% it was highly overfitting and if we wanted to prevent it than accuracy was dropping down to around 37%. But most importantly that percentage did not mean that the models are correctly learning and accurately predicting on the level of 37% - it was just because the results were often squeezed into the same most common class in the dataset. Basically, it was found that environmental sensor values and human subjective rating of the room are not enough data to use as features to make usable models. It was lacking for example a feature that would suggest what type of person is assessing the rating, because right now two different users in the exact same room with identical environmental readings can give vastly different comfort ratings.
 
 All in all compared to a naive baseline, the team built something that actually learns, even if the subjective nature of comfort makes it impossible to get a perfect score.
 
