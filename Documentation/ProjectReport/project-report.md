@@ -59,7 +59,7 @@ institution: "VIA University College"
      Cover: problem, approach (IoT + ML + Frontend + Cloud), key technical choices, results.
      No citations needed. -->
 
-*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning pipeline evaluated both instant measurement models and session-based models that aggregate sensor readings across a full study session. Session-based experiments reached up to 69.0% test accuracy with Random Forest (macro F1: 0.63), while the selected Neural Network model reached 68.3% with a smaller train-test gap and a more useful prediction distribution; both results were above the 57.9% majority-class baseline. Instant-measurement models were weaker overall, with standalone classifiers ranging from 37.2% to 46.1% accuracy and the best two-stage instant pipeline reaching 48.5%, supporting the project's central finding and the Subjectivity Paradox: raw point-in-time sensor readings alone are insufficient for reliably predicting subjective study quality.
 
@@ -69,7 +69,7 @@ StudyHelper is a distributed study-environment monitoring system developed to ad
      your Project Description. Shared section — one coherent voice for the whole group.
      Consider environmental, social, economic, and technological significance. -->
 
-*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 ## 1.1 Background and Motivation
 
@@ -92,9 +92,6 @@ The primary stakeholders are students, who benefit directly from improved self-a
 
 <!-- Paste or adapt directly from your approved Project Description. -->
 
-[State the specific problem the project addresses. Be precise about what is currently
-missing or suboptimal, and what a successful solution would look like.]
-
 Based on the environmental challenges identified in the problem domain, this project addresses the following core question:
 
 **Main problem:** How can indoor environmental data be monitored and analyzed to better understand how environmental conditions affect the quality of students' study sessions?
@@ -111,9 +108,6 @@ A successful solution would continuously collect real-world sensor data from stu
 
 ## 1.3 Project Objectives
 
-[Enumerate concrete, verifiable goals. These will be evaluated against in Results
-and Discussion. Tie them to the three system components where relevant.
-
 The concrete objectives of the StudyHelper project are as follows:
 
 - **IoT:** The embedded device shall measure temperature, humidity, CO₂ concentration, and light level using the ATmega2560 MCU and transmit structured JSON payloads to the cloud backend via HTTP at a regular interval not exceeding sixty seconds.
@@ -126,9 +120,6 @@ The concrete objectives of the StudyHelper project are as follows:
 [TODO: Review these objectives against the final delivered system before submission and adjust the wording where the implementation diverged from the original plan.]
 
 ## 1.4 Scope and Delimitations
-
-[Define the boundaries. What is explicitly in scope for each component?
-What has been consciously left out, and why? Important given the 60-page limit.]
 
 The system is designed around a physical IoT device that can be connected to a user account and used in different study environments, such as classrooms, libraries, or personal study spaces.
 The following delimitations were agreed at project inception and are reflected in the implemented system:
@@ -164,7 +155,7 @@ Compared with related work, StudyHelper's contribution is not a new sensor techn
      Must include: user stories, domain model, system-level requirements.
      Do NOT branch here — one list of user stories, one domain model, etc. -->
 
-*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 ## 2.1 Domain Model
 
@@ -356,7 +347,7 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 ### 3.1.3 Security Design
 
-*Authors: [Cristina Matei, Damian Michal Choina]*
+*Authors: Cristina Matei, Damian Michal Choina*
 
 <!-- SEP4 requires: encryption for IoT–cloud (symmetric or asymmetric),
      and JWT (or equivalent) protection for frontend-facing API endpoints. -->
@@ -397,7 +388,7 @@ The StudyHelper project follows a trunk-based branching model with two long-live
 
 - **IoT CI** (`iot-ci.yaml`): triggered on pull requests to `main` and `dev` that modify files under `IOT/`. Runs two sequential jobs: native unit tests compiled with GCC and coverage reporting via lcov, followed by firmware compilation for the ATmega2560 using PlatformIO. A flashable `firmware.hex` artifact is published on every passing build.
 - **MLOps** (`mlops.yaml`): triggered on pull requests to `main` and `dev`. Runs the full `pytest` suite for data pipeline and API tests, verifies that both instant and session models artifacts are present and loadable, and on merge to `main` builds and pushes the `mal-api` Docker image to GHCR.
-- **Frontend CI/CD** (`frontend.yaml`): [Describe the frontend pipeline — what checks run (lint, tests, build) and whether the frontend image is pushed to GHCR on merge.]
+- **Frontend CI/CD** (`frontend.yaml`): triggered on pull requests to `main` and `dev` when frontend files are changed. It installs dependencies, runs the Vitest frontend tests, and builds the Vite production app. This helps catch broken components, failing tests, and build errors before the frontend is merged or deployed.
 - **Deployment** (`deploy-coolify.yaml`): triggered on pushes to `main`. Sends a webhook to Coolify to redeploy the production stack.
 
 **Container strategy:** All services are containerised. The Core API (`api`) uses a Python 3.12 Dockerfile served by Uvicorn. The MAL API (`mal-api`) uses a Python Dockerfile that installs dependencies from `requirements.txt` and copies the model artifact. The frontend (`frontend`) uses a Node.js build stage and an Nginx serve stage. The database uses the unmodified `postgres:16-alpine` official image.
@@ -442,7 +433,7 @@ The selected sensors match the environmental factors used by the StudyHelper sys
 
 The CO2 sensor requires a different interaction pattern from the DHT11 and light sensor. The firmware sends a read command to the sensor and receives a nine-byte UART response frame. The frame is validated with a checksum before the measured ppm value is accepted. This design avoids using invalid or corrupted CO2 readings in the transmitted sensor payload.
 
-The device also includes local user interaction and feedback. Button 1 controls the study-session lifecycle. Button 2 is used for instant measurement mode when no session is active. The four-digit display shows status patterns for boot, idle, active-session, and instant-measurement states. The buzzer is used as an alert mechanism when the backend returns predicted study quality below 4.
+The device also includes local user interaction and feedback. Button 1 controls the study-session lifecycle. Button 2 is used for instant measurement mode when no session is active. The four-digit display shows status patterns for boot, idle, active-session, and instant-measurement states. The buzzer is used as an alert mechanism when the backend returns the lowest study quality rating.
 
 Sound measurement was considered during the project, but it is not part of the final active IoT design because the available sound sensor did not provide reliable enough readings. The final hardware design therefore focuses on temperature, humidity, CO2, and light, which are the sensor values actually transmitted by the firmware.
 
@@ -551,7 +542,7 @@ The codebase explicitly separates two prediction pipelines rather than treating 
 
 ## 3.4 Frontend Design
 
-*Authors: [Cristina Matei]*
+*Authors: Cristina Matei*
 
 <!-- Design of the React web application. -->
 
@@ -565,7 +556,7 @@ The application is split into a few main views. The login and register pages are
   <img src="../Design/Frontend/Dashboard.jpeg" alt="Dashboard" width="70%">
 </p>
 
-*Figure 3X: Figure 3X: Dashboard states during an active study session and before. The active session view shows live readings, the chart, recommendations, and session controls after the frontend attaches to an active IoT session; the second view keeps live sensor cards and the chart hidden while history remains available.*
+*Figure 3X: Dashboard states during an active study session and before. The active session view shows live readings, the chart, recommendations, and session controls after the frontend attaches to an active IoT session; the second view keeps live sensor cards and the chart hidden while history remains available.*
 
 <!-- Include wireframes or mockups:
 ![Wireframe: Dashboard](../../Documentation/Design/Frontend/wireframe_dashboard.png) -->
@@ -740,7 +731,7 @@ An ideal final test set would have consisted of real StudyHelper usage data coll
 
 ### 3.7.1 Core Features Implementation
 
-*Authors: [Cristina Matei]*
+*Authors: Cristina Matei*
 
 The frontend implements the main user-facing workflows of the system: authentication, dashboard monitoring, session rating, profile management, device connection, calendar planning, theme switching, and language switching. Each workflow is built as a React page or reusable component, while backend communication is kept in service files under `src/services`.
 
@@ -750,7 +741,7 @@ The following subsections describe the most important frontend features in more 
 
 ### 3.7.1.1 Dashboard Implementation
 
-*Authors: [Cristina Matei]*
+*Authors: Cristina Matei*
 
 The dashboard is the main part of the frontend. It loads environment data through `DashboardService`, prepares the data for display, and shows the newest values in sensor cards. The cards show temperature, humidity, CO2, light level, and suitability level. They use the reusable `SensorCard` component, so the same structure can be reused for each sensor value.
 
@@ -791,7 +782,7 @@ This service function is used by the dashboard to retrieve the latest sensor rea
 
 ### 3.7.1.2 Profile and Device Connection
 
-*Authors: [Cristina Matei]*
+*Authors: Cristina Matei*
 
 The profile page handles both user information and device connection. When the page loads, it reads the logged-in user and then requests the profile from the backend through `ProfileService`. The user can update profile information such as university, study programme, study year, study goal, and profile picture. The page also includes password change fields with basic checks before sending the update request.
 
@@ -1323,7 +1314,7 @@ The coverage report gave a clearer view of test quality than pass/fail results a
      Objective tone only. No personal opinions — those go in the Process Report.
      Cover: full-system integration, objectives met, critical evaluation, limitations. -->
 
-*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek, Cristna Matei*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek, Cristina Matei*
 
 ## 4.1 Integrated System Results
 
