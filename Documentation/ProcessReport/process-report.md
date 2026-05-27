@@ -357,10 +357,6 @@ Overall, the methods fit the problem well. Modular design and automated testing 
 
 ## 4.6 Challenges During Execution
 
-<!-- [Describe the most significant technical or organisational challenges encountered.
-How did the team respond? What was the outcome?
-Examples: "The I2C sensor driver took much longer than expected," or
-"The API contract changes caused significant rework in the frontend."] -->
 
 ### 4.6.1 IoT
 
@@ -450,41 +446,6 @@ I think one of my stronger contributions during the project was helping keep fro
 
 Even though the project was stressful at times, I still think it was a valuable experience. I learned much more about communication, integration, coordination, and realistic software development than in previous semester projects. The project also showed me that large systems are not only about writing code — a lot of the work is connected to communication, synchronization between teams and adapting to changes during development.
 
-<!-- INDIVIDUAL section — each group member writes their own subsection.
-     Focus on YOUR OWN contribution, learning, and growth.
-     Key requirements:
-       - Refer to valid and reliable sources to support your reflections
-       - "Reflect forward": define concrete future actions
-       - Address: What did I learn? How did I learn it? What will I do differently?
-     This section demonstrates your ability to identify and organise your own learning.
-
-
-## 5.1 [Your Name]
-
-### Learning Outcomes
-
-[What new knowledge or skills did you gain during this project?
-Were the learning goals from the course description met?
-Be specific — "I learned X by doing Y, which resulted in Z."]
-
-### Contribution and Role
-
-[Honestly assess your own contribution to the group. Were you satisfied with
-your level of involvement? Were there areas where you could have contributed more?
-Were there areas where you exceeded your own expectations?]
-
-### Challenges and Growth
-
-[What was personally most challenging — technically, socially, or organisationally?
-How did you respond to these challenges? What does this tell you about how you work?]
-
-### Reflection Forward
-
-[Based on this project, what will you deliberately do differently in future projects?
-Identify 2–3 concrete actions. Reference learning theory or professional frameworks
-if relevant (e.g. Kolb's learning cycle, growth mindset research).]
-
--->
 
 ## Alexandru Savin
 
