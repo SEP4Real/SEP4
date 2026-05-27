@@ -661,10 +661,21 @@ As often, the main lesson is to be more proactive about seeking feedback and per
 
 ## 7.1 Group Summary
 
-<!-- [Summarise the group's overall experience. What defined this project's process?
-What are the most important things you collectively learned — about software
-engineering practice, teamwork, or the PBL learning model?
-How has this project prepared you for professional work?] -->
+## 7.1 Group Summary
+
+The StudyHelper project became much bigger and more complicated during the semester than we first expected. In the beginning, the idea looked relatively simple — create a system that helps students understand if their study environment is good for studying. Later, the project slowly developed into a system with frontend, backend, MAL, IoT devices, databases, APIs, deployment, testing, and synchronization between multiple parts of the system.
+
+One of the main things that defined the whole project process was teamwork between subgroups. The frontend depended on backend APIs, backend depended on IoT data, and MAL depended on sensor data and user interaction. Because of this, many tasks could not be completed independently and required constant communication between teams.
+
+During the project, we learned that software engineering is not only about writing code. Communication, integration, version control, sprint planning, testing, debugging, and synchronization between systems became a very important part of the process. Sometimes requirements changed during development, backend structures changed, or integrations stopped working after updates, which created additional work for other teams.
+
+The project also gave us practical experience with technologies and workflows that are used in real software development. We worked with React, APIs, authentication systems, GitHub branches, pull requests, Jira, deployment pipelines, databases, IoT communication, machine learning models, and automated testing.
+
+Another important thing we learned was that planning something and actually implementing it are very different things. Some ideas looked simple in theory, but became much more difficult once all parts of the system needed to work together. This forced the group to constantly adapt the system structure and rethink some earlier decisions.
+
+Working in a large group was also both useful and difficult. Different teams sometimes worked in different ways, used different priorities, or focused on different technical problems. This sometimes caused confusion or integration issues, especially during later sprints. At the same time, it gave us experience similar to real software development environments where many people work on different parts of the same system.
+
+Overall, the project gave us valuable experience not only in programming, but also in communication, teamwork, problem solving, adaptation, and long-term project coordination. The project helped us better understand how large software systems are developed in practice and how important teamwork becomes once project complexity increases.
 
 ## 7.2 Recommendations
 
