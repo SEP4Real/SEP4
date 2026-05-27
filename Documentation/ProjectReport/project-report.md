@@ -810,7 +810,7 @@ In order to separate API communication from frontend components and pages, a new
 
 Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, `login()` sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails. These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls `login()`, stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
-In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
+In order to improve user experience, `LoadingSpinner` and `EmptyState` components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
 MAL predictions are retrieved through `malService`. The device's sensor values are sent as JSON payloads to the `/predict` endpoint. This then returns a study quality prediction. Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
@@ -1108,8 +1108,6 @@ Vitest and React Testing Library were used for testing. The configuration of the
     "test": "vitest"
   },
 ```
-
-
 
 ### 3.10.3 Integration into Workflow
 
