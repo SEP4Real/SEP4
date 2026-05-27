@@ -356,9 +356,9 @@ Additionally, poor coordination with the other subteams presented obstacles. For
 
 ## 4.7 Deviations from the Plan
 
-[Compare what was planned versus what was actually executed.
-What changed and why? Were changes proactive (intentional pivots) or reactive
-(forced by circumstances)? How did the team adapt?]
+### 4.7.1 Machine Learning (MAL) Team
+
+For MAL team, several deviations from the plan took place during the process of work. Initial plan was to mock the data while developing the models pipelines so that we can start experiments before getting real data from the sensors. After the meeting with supervisor and strict feedback we knew that we cannot generate the data in order to mock it, but we have to search for available datasets on the internet. Another deviation from the plan was that we wanted and thought that the only data we are going to use is going to be the real one collected from iot/frontend (the mock one only for experiments before real data coming in). Unfortunatelly, we hadto change the plan again because the amount and variety of data was not sufficient. So plan changed to search for even more available, related datasets on the internet, which was a real challange since the datasets never had all required features. Than we had to glue those sets which also was not existing in the initial plan. The last significant change of plans was regarding the ml model. Initialy we were developing the model which were learning based on sessions but another type of model was needed as well - for instant predictions where the prediction is just based on the current sensor values and user raiting.
 
 ## 4.8 Use of Tools and Technologies
 
