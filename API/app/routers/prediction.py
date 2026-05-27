@@ -12,6 +12,7 @@ import os
 router = APIRouter(prefix="/predict", tags=["predict"])
 
 DEFAULT_NOISE_DB = 29.0
+DEFAULT_NOISE_FEATURE_VALUE = round(DEFAULT_NOISE_DB**0.5, 2)
 
 def _last_non_null(values: list[float | None]) -> float | None:
     for value in reversed(values):
@@ -27,6 +28,18 @@ def _stats(values: list[float | None]) -> tuple[float | None, float | None, floa
     current = _last_non_null(values)
     mean_value = round(sum(clean) / len(clean), 2)
     return current, max(clean), min(clean), mean_value
+
+
+def _to_noise_feature(value: object) -> float | None:
+    if value is None:
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    if numeric < 0:
+        return None
+    return round(numeric**0.5, 2)
 
 
 async def _data_has_noise_column(db: AsyncConnection) -> bool:
@@ -108,10 +121,11 @@ def _linearize_session(
     humidities = [row.get("humidity") for row in rows]
     co2_levels = [row.get("co2_level") for row in rows]
     light_levels = [row.get("light_level") for row in rows]
-    noise_levels = [row.get("noise") for row in rows]
+    raw_noise_levels = [row.get("noise") for row in rows] if has_noise else []
+    noise_levels = [_to_noise_feature(value) for value in raw_noise_levels]
 
-    if not has_noise:
-        noise_levels = [DEFAULT_NOISE_DB for _ in rows]
+    if not any(value is not None for value in noise_levels):
+        noise_levels = [DEFAULT_NOISE_FEATURE_VALUE for _ in rows]
 
     temp_current, temp_max, temp_min, temp_mean = _stats(temperatures)
     hum_current, hum_max, hum_min, hum_mean = _stats(humidities)
@@ -156,7 +170,8 @@ async def predict_study_quality(
         "currentTemperature", "maxTemp", "minTemp", "meanTemp",
         "currentHumidity", "maxHumidity", "minHumidity", "meanHumidity",
         "currentCO2", "maxCO2", "minCO2", "meanCO2",
-        "currentLight", "maxLight", "minLight", "meanLight"
+        "currentLight", "maxLight", "minLight", "meanLight",
+        "currentNoise", "maxNoise", "minNoise", "meanNoise",
     ]
     missing = [name for name in required if payload.get(name) is None]
     if missing:
