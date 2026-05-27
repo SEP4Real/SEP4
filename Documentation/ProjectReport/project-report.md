@@ -553,7 +553,21 @@ Routing is handled with `react-router-dom`. The public routes are `/login`, and 
 
 ![Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.](../Design/Frontend/Component_diagram.png){width=90%}
 
-### 3.4.3 Responsiveness Strategy {#343-responsiveness-strategy}
+
+### 3.4.3 Frontend Design Patterns
+
+The frontend architecture uses several common design patterns in order to improve maintainability, reusability, and separation of concerns.
+
+React Context was used as a shared state management pattern for localization and theme handling. This allowed multiple components to access shared frontend state without excessive prop passing.
+
+A service-layer structure was used for API communication. Backend requests were separated from UI rendering logic through dedicated service files, which simplified debugging and reduced duplication of fetch logic across components.
+
+Reusable UI components were also heavily used throughout the frontend. Components such as cards, navigation elements, loading states, popups, and session-related elements were designed to be reused across multiple pages.
+
+The frontend structure also follows separation of concerns principles by dividing pages, reusable components, services, contexts, and utility logic into separate modules.
+
+
+### 3.4.4 Responsiveness Strategy {#343-responsiveness-strategy}
 
 <!-- Required: must adapt well to 576px, 768px, and 1200px screen widths. -->
 
@@ -561,7 +575,7 @@ The frontend uses custom CSS with Flexbox and CSS Grid. No large UI framework wa
 
 The layout was made to work at the required widths of 576 px, 768 px, and 1200 px. On smaller screens, the dashboard content stacks vertically so that the user can still read the sensor cards, chart, recommendation, and history. On medium screens, the cards and profile fields can use more columns. On larger screens, the dashboard has more space for the chart and the detailed history list. The goal was to keep the same features available on both phones and laptops, without requiring horizontal scrolling.
 
-### 3.4.4 Localization and Theme System
+### 3.4.5 Localization and Theme System
 
 The frontend application supports both English and Danish languages. Localization was implemented using React Context together with centralized translation objects. Instead of storing hardcoded text directly inside components, the application dynamically changes labels and interface text depending on the selected language.
 
