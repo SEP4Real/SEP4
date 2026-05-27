@@ -15,7 +15,10 @@ $for(css)$
   <link rel="stylesheet" href="$css$" />
 $endfor$
   <style>
-    :root { --doc-footer: "$if(institution)$$institution$$else$VIA University College$endif$"; }
+    :root { 
+      --doc-footer: "$if(institution)$$institution$$else$VIA University College$endif$"; 
+      --doc-title: "$title$";
+    }
   </style>
 $if(highlighting-css)$
 <style>
