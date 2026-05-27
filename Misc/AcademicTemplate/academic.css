@@ -196,6 +196,10 @@ table caption::before {
 
 #TOC ul {
   list-style: none;
+  padding-left: 1.5rem;
+}
+
+#TOC > ul {
   padding-left: 0;
 }
 
