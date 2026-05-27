@@ -59,7 +59,7 @@ institution: "VIA University College"
      Cover: problem, approach (IoT + ML + Frontend + Cloud), key technical choices, results.
      No citations needed. -->
 
-*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+
 
 StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning pipeline evaluated both instant measurement models and session-based models that aggregate sensor readings across a full study session. Session-based experiments reached up to 69.0% test accuracy with Random Forest (macro F1: 0.63), while the selected Neural Network model reached 68.3% with a smaller train-test gap and a more useful prediction distribution; both results were above the 57.9% majority-class baseline. Instant-measurement models were weaker overall, with standalone classifiers ranging from 37.2% to 46.1% accuracy and the best two-stage instant pipeline reaching 48.5%, supporting the project's central finding and the Subjectivity Paradox: raw point-in-time sensor readings alone are insufficient for reliably predicting subjective study quality.
 
@@ -69,7 +69,7 @@ StudyHelper is a distributed study-environment monitoring system developed to ad
      your Project Description. Shared section — one coherent voice for the whole group.
      Consider environmental, social, economic, and technological significance. -->
 
-*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+
 
 ## 1.1 Background and Motivation
 
@@ -155,7 +155,7 @@ Compared with related work, StudyHelper's contribution is not a new sensor techn
      Must include: user stories, domain model, system-level requirements.
      Do NOT branch here — one list of user stories, one domain model, etc. -->
 
-*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+
 
 ## 2.1 Domain Model
 
@@ -308,7 +308,7 @@ Modeling the parallel execution of these transactions helped the development tea
 <!-- SHARED section — written as one coherent unit BEFORE branching.
      Present the overall system architecture and cloud design here. -->
 
-*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Cristina Matei*
+
 
 ### 3.1.1 System Architecture
 
@@ -351,7 +351,7 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 ### 3.1.3 Security Design
 
-*Authors: Cristina Matei, Damian Michal Choina*
+
 
 <!-- SEP4 requires: encryption for IoT–cloud (symmetric or asymmetric),
      and JWT (or equivalent) protection for frontend-facing API endpoints. -->
@@ -401,7 +401,7 @@ The StudyHelper project follows a trunk-based branching model with two long-live
 
 ## 3.2 IoT Design
 
-*Authors: [Tymoteusz Krzysztof Zydkiewicz]*
+*Authors: Damian Michal Choina, Jakub Maciej Baczek, Tymoteusz Krzysztof Zydkiewicz*
 
 The IoT component is the physical sensing layer of the StudyHelper system. Its main responsibility is to collect indoor environmental data from the study space and transmit it to the backend, where the readings can be stored, displayed in the frontend, and used as input for machine-learning-based study suitability prediction.
 
@@ -546,7 +546,7 @@ The codebase explicitly separates two prediction pipelines rather than treating 
 
 ## 3.4 Frontend Design
 
-*Authors: Cristina Matei*
+*Authors: Cristina Matei, Karina Rubahova, Marta Zrno*
 
 <!-- Design of the React web application. -->
 
@@ -600,7 +600,7 @@ The layout was made to work at the required widths of 576 px, 768 px, and 1200 p
 
 ## 3.5 IoT Implementation
 
-*Authors: Damian Michal Choina*
+*Authors: Damian Michal Choina, Jakub Maciej Baczek, Tymoteusz Krzysztof Zydkiewicz*
 
 ### 3.5.1 Sensor and Actuator Drivers
 
@@ -733,9 +733,9 @@ An ideal final test set would have consisted of real StudyHelper usage data coll
 
 ## 3.7 Frontend Implementation
 
-### 3.7.1 Core Features Implementation
+*Authors: Cristina Matei, Karina Rubahova, Marta Zrno*
 
-*Authors: Cristina Matei*
+### 3.7.1 Core Features Implementation
 
 The frontend implements the main user-facing workflows of the system: authentication, dashboard monitoring, session rating, profile management, device connection, calendar planning, theme switching, and language switching. Each workflow is built as a React page or reusable component, while backend communication is kept in service files under `src/services`.
 
@@ -745,7 +745,7 @@ The following subsections describe the most important frontend features in more 
 
 ### 3.7.1.1 Dashboard Implementation
 
-*Authors: Cristina Matei*
+
 
 The dashboard is the main part of the frontend. It loads environment data through `DashboardService`, prepares the data for display, and shows the newest values in sensor cards. The cards show temperature, humidity, CO2, light level, and suitability level. They use the reusable `SensorCard` component, so the same structure can be reused for each sensor value.
 
@@ -786,7 +786,7 @@ This service function is used by the dashboard to retrieve the latest sensor rea
 
 ### 3.7.1.2 Profile and Device Connection
 
-*Authors: Cristina Matei*
+
 
 The profile page handles both user information and device connection. When the page loads, it reads the logged-in user and then requests the profile from the backend through `ProfileService`. The user can update profile information such as university, study programme, study year, study goal, and profile picture. The page also includes password change fields with basic checks before sending the update request.
 
@@ -813,7 +813,7 @@ This function is used when a user connects a device from the profile page. First
 
 ### 3.7.1.3 Calendar
 
-*Authors: [Marta Zrno]*
+
 
 The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
 
@@ -863,7 +863,7 @@ REST API endpoints were created for getting, editing and removing events. Pydant
 
 ### 3.7.2 API Integration
 
-*Authors: [Marta Zrno]*
+
 
 [How does the frontend communicate with the backend? Describe error handling, loading states, polling vs websocket decisions, and how ML predictions are retrieved and displayed.]
 
@@ -922,7 +922,7 @@ Sensor data and predictions are visualized using an interactive chart with the R
 
 ### 3.7.3 Hosting and Deployment
 
-*Authors: [Marta Zrno]*
+
 
 <!-- Required: must be hosted and accessible online. -->
 
@@ -949,7 +949,7 @@ The frontend application can be accessed at: https://frontend.sep4.eduardfekete.
 
 ## 3.8 IoT CI/CD
 
-*Authors: Jakub Baczek*
+*Authors: Damian Michal Choina, Jakub Maciej Baczek, Tymoteusz Krzysztof Zydkiewicz*
 
 <!-- DevOps checklist — address all four points:
      1. General DevOps considerations and planning
@@ -1182,7 +1182,7 @@ The best performing models were serialized into `.pkl` files as artifacts. To en
 
 ## 3.10 Frontend CI/CD
 
-*Authors: [Marta Zrno]*
+*Authors: Cristina Matei, Karina Rubahova, Marta Zrno*
 
 The frontend CI/CD workflow was followed for code consistency, automating builds and simple deployment. This was crucial since the group had to collaborate on the code simultaneously. To avoid issues in this approach, various tools were used -- for code quality, testing and deployment. They were integrated directly into the frontend development workflow.
 
@@ -1218,7 +1218,7 @@ Since the DevOps workflow was a new way of development for the group, it took a 
 
 ## 3.11 IoT Tests
 
-*Authors: Jakub Baczek*
+*Authors: Damian Michal Choina, Jakub Maciej Baczek, Tymoteusz Krzysztof Zydkiewicz*
 
 ### 3.11.1 Testing Strategy for Embedded C
 
@@ -1242,7 +1242,7 @@ No automated integration testing was implemented, as the hardware constraints di
 
 ## 3.12 Frontend Tests
 
-*Authors: [Name, Name]*
+*Authors: Cristina Matei, Karina Rubahova, Marta Zrno*
 
 ### 3.12.1 Testing Strategy
 
@@ -1318,7 +1318,7 @@ The coverage report gave a clearer view of test quality than pass/fail results a
      Objective tone only. No personal opinions — those go in the Process Report.
      Cover: full-system integration, objectives met, critical evaluation, limitations. -->
 
-*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek, Cristina Matei*
+
 
 ## 4.1 Integrated System Results
 
@@ -1424,7 +1424,7 @@ The frontend also includes automated tests for several important flows, such as 
 
 # 5. Conclusions
 
-*Authors: Jakub Baczek, Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+
 
 This project addressed the challenge of suboptimal indoor environmental conditions affecting student concentration and academic performance. Despite growing awareness of the relationship between physical environment and cognitive function, most study spaces provide no real-time feedback on whether ambient conditions are conducive to productive work. StudyHelper was developed to close this gap through an integrated three-part approach: an embedded IoT device continuously measuring temperature, humidity, CO₂ concentration, and light level; a machine learning pipeline predicting a Study Suitability Rating from aggregated sensor data; and a React web frontend presenting live readings, historical trends, and ML-generated predictions to the user. All components were deployed as Docker containers on a cloud host managed through Coolify, with a FastAPI Core API acting as the central gateway.
 
@@ -1438,7 +1438,7 @@ The overall answer to the problem statement is that indoor environmental data ca
 
 # 6. Future Work
 
-*Authors: Cristina Matei, Jakub Baczek, Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+
 
 The implemented system demonstrates that the IoT device, backend, MAL service, and frontend can work together as one deployed prototype. Future work should therefore focus less on adding isolated features and more on improving reliability, data quality, security, and maintainability so the system could move closer to a realistic study-environment product.
 
