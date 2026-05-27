@@ -535,7 +535,7 @@ The search for data focused on the relationship between environmental noise and 
 
 During the exploratory phase, several candidate datasets were evaluated. We identified and eliminated datasets that appeared synthetic or "too perfect" to be realistic sensor data. For example, in datasets labeled as "Data 2" and "Data 4," the distributions of humidity, noise, and light were suspiciously uniform or perfectly bell-shaped, lacking the stochastic noise typical of real-world environments.
 
-![Feature Distributions of Suspicious Datasets](../ProcessReport/image/process-report/1778581492077.png)
+![1779870165382](image/project-report/1779870165382.png)
 
 *Figure 3.x: Suspiciously perfect feature distributions in candidate datasets.*
 
