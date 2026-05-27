@@ -59,7 +59,7 @@ institution: "VIA University College"
      Cover: problem, approach (IoT + ML + Frontend + Cloud), key technical choices, results.
      No citations needed. -->
 
-*Authors: [Name, Name, Name]*
+*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 [Concise summary of the entire project. State the problem being solved, the three-part
 technical approach (embedded IoT on ATmega2560, machine learning pipeline, React web
@@ -76,7 +76,7 @@ StudyHelper is a distributed study-environment monitoring system developed to ad
      your Project Description. Shared section — one coherent voice for the whole group.
      Consider environmental, social, economic, and technological significance. -->
 
-*Authors: [Name, Name, Name]*
+*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 ## 1.1 Background and Motivation
 
@@ -178,7 +178,7 @@ StudyHelper differs from prior work in its end-to-end integration: rather than t
      Must include: user stories, domain model, system-level requirements.
      Do NOT branch here — one list of user stories, one domain model, etc. -->
 
-*Authors: [Name, Name, Name]*
+*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 ## 2.1 Domain Model
 
@@ -327,7 +327,7 @@ Modeling the parallel execution of these transactions helped the development tea
 <!-- SHARED section — written as one coherent unit BEFORE branching.
      Present the overall system architecture and cloud design here. -->
 
-*Authors: [Name, Name]*
+*Authors: [Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 ### 3.1.1 System Architecture
 
@@ -523,7 +523,7 @@ The firmware also includes an instant measurement mode controlled by Button 2. T
 
 ## 3.3 Machine Learning — Data Exploration
 
-*Authors: [Name, Name]*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 <!-- Design phase for ML: understanding the data before modelling. -->
 
@@ -673,7 +673,7 @@ User input is handled in the same loop. Button 1 toggles between the idle and ac
 
 ## 3.6 Machine Learning — Preprocessing and Pipeline
 
-*Authors: [Name, Name]*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 ### 3.6.1 Data Cleaning and Imputation
 
@@ -972,7 +972,7 @@ Overall, the pipeline added clear value to the development workflow by catching 
 
 ## 3.9 Machine Learning — Models
 
-*Authors: [Piotr Junosz, Name]*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 In our project, we developed two distinct kinds of models to tackle different aspects of the Study Suitability problem:
 
@@ -1161,7 +1161,7 @@ No automated integration testing was implemented, as the hardware constraints di
 
 ## 3.13 Machine Learning Tests and DevOps (MLOps)
 
-*Authors: [Piotr, Name]*
+*Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 ### 3.13.1 Machine Learning Testing Strategy
 
@@ -1209,7 +1209,7 @@ This integrated Testing and MLOps approach significantly reduced deployment risk
      Objective tone only. No personal opinions — those go in the Process Report.
      Cover: full-system integration, objectives met, critical evaluation, limitations. -->
 
-*Authors: [Name, Name, Name]*
+*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 ## 4.1 Integrated System Results
 
@@ -1280,7 +1280,7 @@ The frontend also includes automated tests for several important flows, such as 
 
 # 5. Conclusions
 
-*Authors: [Name, Name, Name]*
+*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 [Summarise the project in 3–5 paragraphs:
 
