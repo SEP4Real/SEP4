@@ -341,9 +341,13 @@ What changed and why? Were changes proactive (intentional pivots) or reactive
 
 ## 4.8 Use of Tools and Technologies
 
-[Reflect on the tools and technologies used throughout the project (IDEs, version
-control, project management, testing frameworks, etc.). Were they effective?
-Were there tools you wished you had used, or tools you regret choosing?]
+Visual Studio Code was used as the development environment, since it supports various languages, extensions and tools. GitHub was crucial for team collaboration, since it enabled us to share code. It provided us with version control, ability to create pull requests, branch development style and GitHub Actions workflows for automated builds. 
+
+Jira was used to delegate tasks, split them up into sprints, keep track of deadlines, meetings. It helped structure the workflow and manage responsibilities. Discord was used to share messages, hold meetings and exchange feedback.
+
+Figma was used mostly for design. For example, for diagrams and wireframes. But it also served as a note taking site for ideas, goals, group availability, etc. 
+
+Overall, the selected tools and technologies that were used throughout the project were effective and useful. They simplified collaboration, which at times was hard. 
 
 # 5. Personal Reflections
 
@@ -517,6 +521,10 @@ How did you prepare for meetings? What format did sessions typically take?]
 
 Although we found brief moments of asking for advice in the beginning, around the elaboration phase we missed guidance that we could have sought. Towards the end, we set a goal of meeting every 1-2 weeks to never go off the path too much. Overall, we could have started earlier with asking for supervisor feedback and could have easily had less meetings towards the end if we had the correct trajectory from the start.
 
+### 6.1.2 Frontend
+
+During the inception and elaboration phase we had a couple mandatory meetings with the supervisors. They gave us insights into our architecture and design, and asked questions to motivate us to optimize our system. Besides that, the frontend group had another meeting to get some feedback from the teacher regarding UI features and functionalities. All in all, the meetings were valuable, and we couldve benefited from a larger frequency. 
+
 ## 6.2 Impact on the Project
 
 [In what specific ways did supervision change or improve the project?
@@ -526,6 +534,10 @@ Were there times you disagreed with feedback — how did you handle that?]
 ### 6.2.1 MAL
 
 The feedback radically changed and shaped the final approaches in the project. Not only did the advice mostly turn out to be true (predicting IoT data may be insufficient, mentioning which features could hinder or improve accuracy, etc.) but it also made us think about the problem in a more structured way. We had to justify our decisions and approaches to the supervisor, which forced us to be more critical of our own work and assumptions. This was a very valuable process that we could have benefited from even more if we had started it earlier.
+
+### 6.2.2 Frontend
+
+The meetings regarding the whole group greatly influenced some decisions. However, the individual frontend meeting did not carry much relevance, since the teacher would not give much positive or negative feedback. I believe we could have gotten more insight if we came prepared with more concrete questions.
 
 ## 6.3 Lessons for Future Projects
 
