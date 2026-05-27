@@ -615,6 +615,10 @@ Although we found brief moments of asking for advice in the beginning, around th
 
 During the inception and elaboration phase we had a couple mandatory meetings with the supervisors. They gave us insights into our architecture and design, and asked questions to motivate us to optimize our system. Besides that, the frontend group had another meeting to get some feedback from the teacher regarding UI features and functionalities. All in all, the meetings were valuable, and we couldve benefited from a larger frequency.
 
+### 6.1.3 IoT
+
+The IoT subteam had very limited supervisor interaction throughout the project. The only meeting held was to clarify whether Wi-Fi credentials needed a more user-friendly solution than the existing secrets.ini approach, which was confirmed to be acceptable. In hindsight, more regular check-ins could have helped validate technical decisions earlier and kept the subteam better aligned with overall project expectations.
+
 ## 6.2 Impact on the Project
 
 <!-- [In what specific ways did supervision change or improve the project?
@@ -628,6 +632,10 @@ The feedback radically changed and shaped the final approaches in the project. N
 ### 6.2.2 Frontend
 
 The meetings regarding the whole group greatly influenced some decisions. However, the individual frontend meeting did not carry much relevance, since the teacher would not give much positive or negative feedback. I believe we could have gotten more insight if we came prepared with more concrete questions.
+
+### 6.2.3 IoT
+
+The single supervisor interaction the IoT subteam had confirmed that the existing credential configuration was sufficient, which saved time that might otherwise have been spent on a more complex solution. Beyond this, supervision had little direct impact on the subteam's work or technical direction.
 
 ## 6.3 Lessons for Future Projects
 

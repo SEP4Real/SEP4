@@ -351,7 +351,6 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 **Additional considerations:** Because the ATmega2560 has limited cryptographic hardware support, the choice of encryption scheme involves a trade-off between security strength and memory and processing overhead. Plain HTTP was therefore chosen as the most practical option for this prototype, as implementing software encryption on the ATmega2560 would introduce additional complexity and risk of unpredictable issues within the project timeline. The database is not exposed on a public port; access is restricted to the Docker internal network, which limits the attack surface from the public internet.
 
 <!-- [Complete this section with any additional security measures implemented, such as rate limiting on the prediction endpoint, CORS configuration on the backends, or HTTPS enforcement by the Coolify reverse proxy.] -->
--->
 
 For frontend-facing API endpoints, the Core API uses JWT-based authentication. After a successful login, the backend creates a JWT signed with `SECRET_KEY` and stores it in an `HttpOnly` cookie named `access_token`. Protected endpoints read the token from this cookie through the shared `get_current_user` dependency. Bearer-token support is still kept as a fallback, but the frontend no longer stores the JWT in `localStorage`.
 
