@@ -61,7 +61,7 @@ institution: "VIA University College"
 
 *Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
-StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning pipeline evaluated both instant measurement models and session-based models that aggregate sensor readings across a full study session; session-based models reached up to 69.0% test accuracy (Random Forest, macro F1: 0.63 [TODO: verify confusion matrix confirms predictions are distributed across classes and not collapsed to the mode]), well above the 57.9% majority-class baseline, while instant-snapshot models achieved only 37.2% - a gap that constitutes the project's central finding and underpins the Subjectivity Paradox: raw point-in-time sensor readings are an inherently insufficient basis for predicting subjective human comfort.
+StudyHelper is a distributed study-environment monitoring system developed to address the challenge of suboptimal indoor conditions affecting student concentration and academic performance. The system integrates three tightly coupled components: an embedded IoT device based on the ATmega2560 microcontroller that measures temperature, humidity, CO₂ concentration, and light; a machine learning pipeline implemented in Python that predicts a Study Suitability Rating from aggregated sensor data and a React web frontend that presents live readings, historical sensor readings, and ML-generated predictions to the user. All components are deployed as Docker containers on a cloud host managed through Coolify, with the Core API (FastAPI) acting as the central gateway - persisting sensor data in a shared PostgreSQL database and forwarding requests to the MAL FastAPI service for suitability predictions. The IoT firmware communicates with the backend over HTTP using a session-based protocol, transmitting sensor payloads every 30 seconds and keepalive pulses every five seconds. The machine learning pipeline evaluated both instant measurement models and session-based models that aggregate sensor readings across a full study session. Session-based experiments reached up to 69.0% test accuracy with Random Forest (macro F1: 0.63), while the selected Neural Network model reached 68.3% with a smaller train-test gap and a more useful prediction distribution; both results were above the 57.9% majority-class baseline. Instant-measurement models were weaker overall, with standalone classifiers ranging from 37.2% to 46.1% accuracy and the best two-stage instant pipeline reaching 48.5%, supporting the project's central finding and the Subjectivity Paradox: raw point-in-time sensor readings alone are insufficient for reliably predicting subjective study quality.
 
 # 1. Introduction
 
@@ -698,16 +698,46 @@ Rather than using simple means or linear regression, we adopted a cluster-based 
 
 If a cluster suffered from extreme sparsity (e.g., completely missing a feature like noise), a global median was used as a fallback to prevent model bias.
 
-### 3.6.2 Feature Selection TODO: instant and session based
+### 3.6.2 Feature Selection: Session and Instant Pipelines
 
-Our feature extraction pipeline aggregates ("linearize") time-series sensor data into session-level metrics that are calculated dynamically for the active session. This generates a comprehensive 16-feature vector encompassing current (last non-null), maximum, minimum, and mean values for all four sensor types evaluated over the entire active session up to the prediction request:
+The MAL codebase implements two prediction pipelines. The following describes the exact inputs, datasets, saved artifacts.
 
-- **Temperature**: `currentTemperature`, `maxTemp`, `minTemp`, `meanTemp`
-- **Humidity**: `currentHumidity`, `maxHumidity`, `minHumidity`, `meanHumidity`
-- **CO2**: `currentCO2`, `maxCO2`, `minCO2`, `meanCO2`
-- **Light**: `currentLight`, `maxLight`, `minLight`, `meanLight`
+#### Session-Based Prediction
 
-This complete set of linearized features is passed to the `/predict` API endpoint to evaluate the user's current focus `rating`, providing the ML service with the full spectrum of environmental data.
+The session pipeline accumulates temporally contiguous device readings into a session window and computes summary statistics per each sensor. Input features (16 total) are current/mean/min/max statistics used by the session model:
+
+- `currentTemperature`, `meanTemp`, `minTemp`, `maxTemp`
+- `currentHumidity`, `humidity_mean`, `humidity_min`, `humidity_max`
+- `currentCO2`, `co2_mean`, `co2_min`, `co2_max`
+- `currentLight`, `light_mean`, `light_min`, `light_max`
+
+These features are produced from the processed dataset `MAL/data/processed/linearized_session_windows.csv`. The session model is trained in `MAL/scripts/train_model.py`. The final session-level artifact deployed by the service is `MAL/models/nn_model.pkl` (with its associated scaler/transform saved alongside the artifact).
+
+TO DO (what about noise?)
+
+#### Instant Prediction
+
+The instant pipeline makes point-in-time predictions from a compact set of immediate sensor readings. The input features are:
+- `temperature`, `humidity`, `co2`, `light`, `noise`
+
+Training data for the instant model is `MAL/data/processed/instant_mock_clean.csv`. The pipeline relies entirely on this fixed five-feature set. The `GridSearchCV` process in `MAL/ml_pipeline/instant_model.py` is utilized for hyperparameter tuning to configure the best-performing Random Forest model. The chosen production artifacts are `MAL/models/instantrfcmodel.pkl` and `MAL/models/instant_scaler.pkl`.
+
+The instant endpoint enforces the `InstantPredictionRequest` schema; when the client omits `noise` the backend substitutes the conservative default `noise=29.0` to maintain deterministic behaviour and avoid runtime failures.
+
+#### Endpoint and Artifact Mapping
+
+| Endpoint | Model Type | Input Features | Saved Artifact |
+| :------- | :--------- | :------------- | :------------- |
+| `/predict` | Session-level neural network | 16 session-aggregate features (current/mean/min/max for Temperature, Humidity, CO₂, Light) | `MAL/models/nn_model.pkl` (+scaler) |
+| `/instant-predict` | Instant Random Forest | 5 real-time features (temperature, humidity, CO₂, light, noise) | `MAL/models/instantrfcmodel.pkl`, `MAL/models/instant_scaler.pkl` |
+
+#### Data Provenance and Retraining
+
+Export and collection endpoints (`/collect-data`, `/export-data`) run `transform_real_data()` and persist processed CSVs to `MAL/data/processed/` with provenance metadata such as (TO DO). These artifacts are the inputs for offline retraining.
+
+#### Validation & Safety
+
+TO DO
 
 ### 3.6.3 Data Split and Validation Strategy
 
@@ -806,40 +836,40 @@ This function is used when a user connects a device from the profile page. First
 
 The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
 
-![alt text](image/fe-implementation/image-9.png)
+![alt text](image/FE/image-9.png)
 Figure x: FullCalendar in CalendarPage.jsx
 
 The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
 
-![alt text](image/fe-implementation/image-10.png)
+![alt text](image/FE/image-10.png)
 Figure x: useEffect in CalendarPage.jsx
 
 Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
 
-![alt text](image/fe-implementation/image-11.png)
+![alt text](image/FE/image-11.png)
 Figure x: handleSelect() in CalendarPage.jsx
 
 If the user decides to edit, the handleEventClick() function loads event data into the form.
 
-![alt text](image/fe-implementation/image-12.png)
+![alt text](image/FE/image-12.png)
 Figure x: handleEventClick() in CalendarPage.jsx
 
 CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
-![alt text](image/fe-implementation/image-13.png)
+![alt text](image/FE/image-13.png)
 Figure x: createCalendarEvent() in CalendarService.js
 
 Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
 
-![alt text](image/fe-implementation/image-14.png)
+![alt text](image/FE/image-14.png)
 Figure x: credentials check in CalendarService.js requests
 
 REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
 
-![alt text](image/fe-implementation/image-15.png)
+![alt text](image/FE/image-15.png)
 Figure x: GET endpoint in calendar.py
 
-![alt text](image/fe-implementation/image-16.png)
+![alt text](image/FE/image-16.png)
 Figure x: request model in calendar.py
 
 ### 3.7.2 API Integration
@@ -856,41 +886,41 @@ Fetch API performs the requests to the backend and is used to load the data in t
 
 For local and deployed environment, an API configuration was created:
 
-![alt text](image/fe-implementation/image.png)
+![alt text](image/FE/image.png)
 Figure x: apiConfig.js
 
 To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
 
-![alt text](image/fe-implementation/image-1.png)
+![alt text](image/FE/image-1.png)
 Figure x: getDashboardData in DashboardService.js
 
 Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
 
-![alt text](image/fe-implementation/image-2.png)
+![alt text](image/FE/image-2.png)
 Figure x: login() in AuthService.js
 
 These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
-![alt text](image/fe-implementation/image-3.png)
+![alt text](image/FE/image-3.png)
 Figure x: handleSubmit() in LoginPage.jsx
 
 In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-![alt text](image/fe-implementation/image-4.png)
+![alt text](image/FE/image-4.png)
 Figure x: LoadingSpinner() in LoadinSpinner.jsx
 
-![alt text](image/fe-implementation/image-5.png)
+![alt text](image/FE/image-5.png)
 Figure x: EmptyState() in EmptyState.jsx
 
 MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
 
-![alt text](image/fe-implementation/image-6.png)
+![alt text](image/FE/image-6.png)
 Figure x: getPrediction() in malService.js
 
 Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
-![alt text](image/fe-implementation/image-7.png)
-![alt text](image/fe-implementation/image-8.png)
+![alt text](image/FE/image-7.png)
+![alt text](image/FE/image-8.png)
 Figure x: visualization of prediction
 
 ### 3.7.3 Hosting and Deployment
@@ -901,28 +931,28 @@ Figure x: visualization of prediction
 
 [Describe how the React app is built and hosted. Where is it deployed? How is the deployment triggered (manual push, CI/CD pipeline)? Provide the live URL if applicable.]
 
-The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers. It is build using Vite- a fast frontend building tool which optimizes React's code.
+The application's frontend is hosted as part of the StudyHelper cloud infrastructure, as well as deployed using Docker containers.
 
 The Docker build process was divided into 3 stages to separate the build from the runtime environment. In the first stage, Node.js Alpine container installed all dependencies and the product was generated using "npm run build" command. In the second stage, the generated files were copied into an Nginx container.
 
-![alt text](image/fe-implementation/image-17.png)
+![alt text](image/FE/image-17.png)
 Figure x: Dockerfile
 
 In the third stage, the frontend container with backend API, MAL API and database containers using Coolify. To make sure that the code that runs locally can run the same way in another environment, environment variables were configured.
 
-![alt text](image/fe-implementation/image-18.png)
+![alt text](image/FE/image-18.png)
 Figure x:  .env
 
-Deployment was automated through GitHub Actions workflows. When new changes were pushed to the main branch, the frontend container image is automatically rebuilt and the new frontend is deployed through Coolify.
+When new changes are merged to the main branch, the frontend container is automatically rebuilt and the new frontend is deployed through Coolify.
 
-![alt text](image/fe-implementation/image-19.png)
+![alt text](image/FE/image-19.png)
 Figure x: deployment workflow
 
 The frontend application can be accessed at: https://frontend.sep4.eduardfekete.com/
 
 ## 3.8 IoT CI/CD
 
-*Authors: [Jakub Maciej Baczek, Name]*
+*Authors: Jakub Maciej Baczek*
 
 <!-- DevOps checklist — address all four points:
      1. General DevOps considerations and planning
@@ -1012,9 +1042,12 @@ The models evaluated in the `model_related` notebooks were:
 
 ### 3.9.2 Training and Hyperparameter Tuning
 
-To guarantee rigorous Data Science methodology, all instant models were trained using a strict **80% Training / 20% Test** split. We eliminated redundant validation splits to maximize training data utility.
+The code distinguishes training procedures for the two model families:
 
-Instead of manual tuning, we leveraged `GridSearchCV` with 5-fold cross-validation exclusively on the 80% training set to find optimal hyperparameters. To prevent data leakage, the 20% test set was locked away during the Grid Search and only evaluated once at the very end of the experiment.
+- The session model uses `MAL/scripts/train_model.py`. It performs `train_validation_test_split()` on `MAL/data/processed/linearized_session_windows.csv` to create an 80% development set and a 20% holdout test set, then further separates the development set for validation. Once the model is validated, the final MLP is retrained on the full dataset and saved as `MAL/models/nn_model.pkl`.
+- The instant model uses `MAL/ml_pipeline/instant_model.py`. It applies `GridSearchCV` with 5-fold cross-validation directly to the full instant dataset from `MAL/data/processed/instant_mock_clean.csv`, then saves the best Random Forest model and scaler to `MAL/models/instantrfcmodel.pkl` and `MAL/models/instant_scaler.pkl`.
+
+The 80/20 split applies to the session model training workflow, while the instant model training is better described as a full-data grid-search tuning procedure followed by artifact serialization.
 
 The complete parameter grids searched during the tuning phase for each instant model were:
 
@@ -1166,6 +1199,8 @@ How were code ownership and review responsibilities organised?]
 
 ### 3.10.2 Tools and Pipeline
 
+*Authors: [Marta Zrno]*
+
 [Describe the CI/CD pipeline for the frontend:
 
 - Linting and formatting (ESLint, Prettier)
@@ -1173,6 +1208,19 @@ How were code ownership and review responsibilities organised?]
 - E2E tests if applicable (Cypress, Playwright)
 - Automated build and deployment to hosting
 - Container usage for frontend (if applicable)]
+
+ESLint was used in the frontend for finding errors, such as variables that were not used, incorrectly used hooks, etc. It provided a way to keep the code clean and consistent, which is crucial when shared between teammates.
+
+![alt text](image/FE/image-20.png)
+Figure x:  scripts config in package.json
+
+Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. 
+
+![alt text](image/FE/image-21.png)
+Figure x: Vitest env config
+
+Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
+
 
 ### 3.10.3 Integration into Workflow
 
@@ -1185,7 +1233,7 @@ What automated checks ran on every PR? What gaps remained?]
 
 ## 3.11 IoT Tests
 
-*Authors: [Jakub Maciej Baczek, Name]*
+*Authors: Jakub Baczek*
 
 ### 3.11.1 Testing Strategy for Embedded C
 
@@ -1251,6 +1299,10 @@ To verify the serving layer, we use `pytest` (e.g., `test_prediction_api.py`) to
 - **Input Validation**: Test the API's resilience to malformed or out-of-range sensor data.
 - **Inference Correctness**: Validate that the prediction output matches the expected schema and logical bounds of the Study Suitability Rating.
 
+**Coverage Measurement**
+
+Python test coverage for the MAL component was measured using `pytest-cov`. The coverage run focuses on the MAL application code in `ml_pipeline/` and `backend/`, while test files and generated artifacts are excluded from the measurement. The CI pipeline runs the tests with `--cov=ml_pipeline`, `--cov=backend`, `--cov-report=term-missing`, and `--cov-report=html`, producing both terminal output and an HTML report. The HTML report is uploaded as the GitHub Actions artifact `mal-coverage-report`, making it possible to inspect which files and lines are not covered by the automated tests.
+
 ### 3.13.2 MLOps Considerations
 
 The MAL component requires a specialized DevOps approach to manage the lifecycle of both code and serialized model weights. The primary challenge is ensuring that changes to the data processing logic in `ml_pipeline/` are always compatible with the model artifact committed in `models/`. Unlike traditional software, the "build" artifact in MLOps includes both the code and the serialized model weights (`rf_model.pkl`).
@@ -1268,9 +1320,12 @@ The pipeline automates several critical verification steps:
 3. **Model Artifact Integrity**: The workflow explicitly fails if the `rf_model.pkl` is missing or corrupted, preventing "empty" deployments.
 4. **Containerized Continuous Delivery**: On successful validation and merge to `main`, the pipeline builds a Docker image (`mal-api`) and pushes it to the GitHub Container Registry (GHCR).
 
+Coverage is also collected as part of the automated MAL test job. The workflow runs `pytest` with `pytest-cov` enabled using `--cov=ml_pipeline`, `--cov=backend`, `--cov-report=term-missing`, and `--cov-report=html`. This measures coverage for both the model/data pipeline code and the MAL FastAPI backend. The terminal report shows uncovered lines directly in the CI log, while the HTML report is uploaded as the GitHub Actions artifact `mal-coverage-report` for later inspection.
+
 ### 3.13.4 Outcomes and Evaluation
 
 This integrated Testing and MLOps approach significantly reduced deployment risks. By coupling data transformation tests with live API integration checks, we ensured that the entire pipeline—from raw data to study suitability prediction—is verifiable and reproducible. The use of Docker images for deployment ensures that the exact environment used during CI is replicated in production.
+The coverage report gave a clearer view of test quality than pass/fail results alone. It showed that the core model logic is well covered, while some backend API paths and real-data transformation code still contain uncovered lines. Therefore, the current test suite is useful for regression testing model loading, prediction behaviour, and key API responses, but it does not fully remove the need for additional tests around edge cases and less frequently used data-processing paths.
 
 # 4. Results and Discussion
 
@@ -1278,7 +1333,7 @@ This integrated Testing and MLOps approach significantly reduced deployment risk
      Objective tone only. No personal opinions — those go in the Process Report.
      Cover: full-system integration, objectives met, critical evaluation, limitations. -->
 
-*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
+*Authors: [Name, Name, Name], Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie, Jakub Baczek*
 
 ## 4.1 Integrated System Results
 
@@ -1294,11 +1349,11 @@ partially met, or not met, and support the assessment with evidence.]
 | Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                   |
 | :----------------------------------------------------------------------------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                  |
-| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#system-requirements) FR02–FR03; [§4.6](#cloud-and-devops-evaluation) stack stable throughout project period                                                                                   |
-| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified |
-| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#system-requirements) FR05                        |
-| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#cloud-and-devops-evaluation) zero manual deployment effort                                           |
-| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; [§2.3](#system-requirements) NFR01 not fully satisfied; secret management via environment variables enforced in `docker-compose.yml`                                                                                  |
+| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period                                                                                   |
+| **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector [TODO fill in when section done]; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified |
+| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05                        |
+| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort                                           |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; secret management via environment variables enforced in `docker-compose.yml`                                                                                  |
 
 ## 4.3 IoT Performance
 
