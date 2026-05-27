@@ -356,7 +356,7 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 ### 3.1.3 Security Design
 
-*Authors: [Cristina Matei, Damian Michal Choina]*
+*Authors: Cristina Matei, Damian Michal Choina*
 
 <!-- SEP4 requires: encryption for IoT–cloud (symmetric or asymmetric),
      and JWT (or equivalent) protection for frontend-facing API endpoints. -->
@@ -367,7 +367,7 @@ The StudyHelper backend is hosted on **Coolify**, an open-source self-hosted Paa
 
 **Secret management:** Sensitive credentials - database password, Wi-Fi SSID and password, server hostname, device ID, and the API secret key - are stored as environment variables, never hard-coded in source files. The firmware secrets are injected at build time via `secrets.ini`, which is excluded from the repository by `.gitignore`. Server-side secrets are passed to Docker containers via the `.env` file, which is similarly excluded. The `docker-compose.yml` uses mandatory variable substitution (`:?` syntax) so that a deployment will fail explicitly if any required secret is missing rather than silently using an empty value.
 
-**Additional considerations:** Because the ATmega2560 has limited cryptographic hardware support, the choice of encryption scheme involves a trade-off between security strength and memory and processing overhead. [Justify the chosen approach in light of these constraints.] The database is not exposed on a public port; access is restricted to the Docker internal network, which limits the attack surface from the public internet.
+**Additional considerations:** Because the ATmega2560 has limited cryptographic hardware support, the choice of encryption scheme involves a trade-off between security strength and memory and processing overhead. Plain HTTP was therefore chosen as the most practical option for this prototype, as implementing software encryption on the ATmega2560 would introduce additional complexity and risk of unpredictable issues within the project timeline. The database is not exposed on a public port; access is restricted to the Docker internal network, which limits the attack surface from the public internet.
 
 [Complete this section with any additional security measures implemented, such as rate limiting on the prediction endpoint, CORS configuration on the backends, or HTTPS enforcement by the Coolify reverse proxy.]
 -->
@@ -605,7 +605,7 @@ The layout was made to work at the required widths of 576 px, 768 px, and 1200 p
 
 ## 3.5 IoT Implementation
 
-*Authors: [Damian Michal Choina]*
+*Authors: Damian Michal Choina*
 
 ### 3.5.1 Sensor and Actuator Drivers
 
