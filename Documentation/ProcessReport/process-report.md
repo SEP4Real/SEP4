@@ -61,7 +61,7 @@ and reflect on how it influenced the collaboration.]
 | Eduard Fekete                  |                                |                                                                                                              |
 | Damian Michal Choina           |                                |                                                                                                              |
 | Piotr Junosz                   |                                |                                                                                                              |
-| Jakub Maciej Baczek            |                                |                                                                                                              |
+| Jakub Maciej Baczek | Scrum Master / Devops / Backend | IOT Testing, IOT-facing API with unit tests, CI/CD for API and IOT |
 | Mara-Ioana Statie              |                                |                                                                                                              |
 | Alexandru Savin                |                                |                                                                                                              |
 | Tymoteusz Krzysztof Zydkiewicz |                                |                                                                                                              |
