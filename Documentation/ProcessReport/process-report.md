@@ -124,9 +124,22 @@ The shift from measuring focus to measuring suitability was the single most impo
 
 ## 3.3 Time Planning and Scheduling
 
-[How did you plan the project timeline? Did you use sprints, Gantt charts, or a
-looser milestone structure? How realistic was the initial plan?
-Reflect on deviations: what caused delays, and how were they managed?]
+**Initial Planning**
+We based our project timeline on Agile Scrum. Before writing any code, we used Figma to map out our structure visually, which helped us turn abstract requirements into actual technical tasks. We started out with standard two-week sprints, planning to switch to one-week sprints later on.
+
+**Cross-Team Alignment in a Large Group**
+To save time, we tried to keep full-team meetings to a minimum. Instead, the Product Owner and sub-team Scrum Masters just met as needed to handle cross-team scheduling and dependencies, rather than sticking to a rigid calendar. This made it easier to agree on interface contracts, sort out API issues, and manage integration, letting the rest of the developers just focus on their sprint tasks. We did still hold occasional full-group meetings to share feedback and make sure everyone knew what was going on with the system as a whole.
+
+**Adapting the Schedule: Tighter Sprints and Standups**
+During the project, we switched from two-week to one-week sprints. This shorter timeframe forced us to break tasks down into much smaller pieces right from the start. To keep up with this faster pace, we started doing daily morning standups. These quick syncs were great for keeping everyone accountable, maintaining momentum, and catching integration blockers before they could mess up the sprint.
+
+**Monitoring Progress: Burndown Charts**
+We used custom Burndown charts to track our progress during sprints. They gave us a clear visual of how much work was left versus the time remaining. By watching the trend line, we could easily spot if we were at risk of missing our sprint goals. If the line flattened out, it was a cue for the Scrum Masters to step in and reprioritize things so we wouldn't drag too much technical debt into the next sprint.
+
+**Reflecting on Realism and Deviations**
+Since our project involved three completely different tech stacks that needed to communicate flawlessly, we hit some bumps along the way. Because we cut down on cross-team meetings, some tasks that we initially marked as "done" actually failed during cross-group reviews. We also ran into delays because we had to keep tweaking and reorganizing our CI/CD pipelines.
+
+Furthermore, we originally required at least four people to approve merge requests for common cross-team branches. We eventually had to drop that down to two just to speed things up and avoid bottlenecks.
 
 ## 3.4 Ethical Perspectives
 
