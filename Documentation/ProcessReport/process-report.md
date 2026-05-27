@@ -134,6 +134,48 @@ Reflect on deviations: what caused delays, and how were they managed?]
 Consider: data privacy, environmental impact, fairness, accessibility, or societal effects.
 Were these considerations built into the project from the start, or addressed reactively?]
 
+### Data Privacy and User Consent
+
+The StudyHelper system collects sensitive data about when, and for how long students study, along with their perceived study quality ratings. This information could reveal personal habits, academic struggles, or vulnerable times. Ethical considerations included:
+
+**Data Minimization**: The device transmitted only the environmental sensors necessary for the ML task (temperature, humidity, CO₂, light) — not geo-location, audio recordings, or biometric data.
+
+**User Consent and Transparency**: No user concent is needed currently and the data is retained indefinitely, in production, a retention policy would be needed. 
+
+**Database Security**: TO DO
+
+**Future Consideration**: If StudyHelper was deployed in a real school or university, GDPR compliance would be necessary and formal data processing agreements. The current system does not meet production-level privacy standards but demonstrates the team's awareness of these concerns.
+
+### Accessibility and Inclusivity
+
+The team considered whether the system would serve all students equitably:
+
+**Physical Accessibility**: The IoT device has a physical button for session start/stop and an onboard buzzer for alerts. Alternative input methods (e.g., voice commands, touch-less activation) were not implemented but could be added. The frontend is responsive and works on (phones, tablets TOBECHECKED), and laptops, addressing screen-size diversity.
+
+**Cognitive and Language Accessibility**: The frontend supports English and Danish language selection. The rating scale (1–5) is simple and culturally neutral. However, no accessibility audit (e.g., screen reader testing, color contrast, keyboard navigation) was conducted. Future versions should undergo formal accessibility review.
+
+**Implicit Bias in Data**: The ML models are trained on a mock dataset that may not represent all student populations. When real data becomes available, the team must audit the dataset for demographic imbalances (e.g., does the model work equally well for students with disabilities, students from different climate backgrounds?). Deploying a model without this analysis risks amplifying existing inequities.
+
+### Environmental and Societal Impact
+
+**Energy Consumption**: The IoT device and cloud backend consume electricity. While StudyHelper is not intended for climate monitoring at scale, the team acknowledges that any deployed system should measure and minimize its carbon footprint — e.g., using renewable-powered hosting, efficient firmware that reduces network traffic, and device sleep states.
+
+**Societal Impact of ML-Driven Feedback**: The system predicts study suitability and provides ratings to students. There is a risk that students might over-rely on automated predictions ("The app says I can't study now, so I'll procrastinate"). The team's ideas is that the system is a *decision support tool*, not an automated decision-maker — ultimately, users decide whether to study, move, or search for a new room.
+
+**Equity in Access**: If StudyHelper were deployed at a university, access should be universal (not gated behind a subsription based service or limited to certain departments). The current prototype is to be kept open-source and freely deployable on any VPS, supporting this principle.
+
+### Recommendations for Future Deployment
+
+If StudyHelper were to transition from a university project to a production system deployed at a real school or workplace:
+
+- Conduct formal data protection assessments.
+- Establish a data retention and deletion policy.
+- Engage students and lecturers in ethical review before rollout.
+- Retrain the ML model taking into consideration demographic differences.
+- Provide transparency reports on data access and retention.
+- Allow users to opt out of data collection while still using core features.
+- Define clear governance for model updates to prevent silent changes to prediction behavior.
+
 # 4. Project Execution
 
 <!-- Reflect on the MIDDLE of the project — how you actually worked through it.

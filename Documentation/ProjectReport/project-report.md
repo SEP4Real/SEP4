@@ -77,7 +77,7 @@ StudyHelper is a distributed study-environment monitoring system developed to ad
 Why is an IoT-based solution with machine learning relevant here?
 Who are the stakeholders and what do they need?]
 
-The physical environment in which learning takes place has a measurable impact on cognitive performance. Research has shown that environmental conditions such as temperature, humidity, CO₂ concentration, and lighting directly influence students' ability to concentrate and retain information (Bustamante-Mora et al., 2025) [TODO: add reference in references]. Despite growing awareness of this relationship, most study spaces - libraries, classrooms, dormitories - provide no real-time feedback on whether the ambient conditions are conducive to productive work. Students are left to rely on subjective perception, often noticing that conditions are poor only after their focus has already deteriorated.
+The physical environment in which learning takes place has a measurable impact on cognitive performance. Research has shown that indoor environmental conditions such as air quality, temperature, humidity, CO₂ concentration, and lighting can influence students' ability to concentrate and learn effectively (Bustamante-Mora et al., 2025; Satish et al., 2012; Allen et al., 2016). Despite growing awareness of this relationship, most study spaces - libraries, classrooms, dormitories - provide no real-time feedback on whether the ambient conditions are conducive to productive work. Students are left to rely on subjective perception, often noticing that conditions are poor only after their focus has already deteriorated.
 This makes the problem difficult to handle manually, because students may feel tired or distracted without knowing whether the cause is related to the environment. Objective measurements can help make these conditions visible before they noticeably affect the study session.
 
 The problem is particularly acute in shared environments where individual control over heating, ventilation, or lighting is limited or absent. A student in a crowded library has no practical way of knowing whether the rising CO₂ level in the room is contributing to their fatigue, or whether the ambient temperature is outside the range associated with optimal cognitive function. Existing commercial solutions either focus on a single sensor parameter or require expensive infrastructure that is not feasible in a typical university context.
@@ -149,20 +149,13 @@ The following delimitations were agreed at project inception and are reflected i
 
 ## 1.5 Related Work
 
-[Survey existing IoT, ML, and web solutions relevant to your domain. Cite with APA.
-How does your system differ from or build on existing approaches?]
+A growing body of work connects indoor environmental quality (IEQ) with human concentration, comfort, and performance. Bustamante-Mora et al. (2025) specifically review environmental conditions in university learning environments and identify air quality, temperature, humidity, CO₂, particulate matter, and luminosity as relevant factors for concentration and learning. Controlled exposure studies have also shown that CO₂ concentration and ventilation conditions can affect cognitive function and decision-making performance (Satish et al., 2012; Allen et al., 2016). This literature supports the basic premise of StudyHelper: temperature, humidity, CO₂, and light are reasonable environmental variables to monitor when evaluating whether a space is suitable for studying.
 
-A growing body of research has examined the relationship between indoor environmental quality (IEQ) and cognitive performance. Bustamante-Mora et al. (2025)[TODO: add reference] conducted a case study in university environments demonstrating that temperature and CO₂ levels correlate with measurable changes in student concentration and learning outcomes. Their findings motivate the sensor selection in this project, specifically the inclusion of CO₂ as a key environmental indicator alongside temperature and humidity.
+Existing IoT-based indoor air quality systems show that low-cost sensor nodes can collect environmental readings and transmit them to a server for storage, visualization, and later analysis. For example, Marques et al. (2019) present an IoT-based CO₂ monitoring system for indoor air quality assessment, while Saini et al. (2020) provide a systematic review of IoT-based indoor air quality monitoring systems and identify common concerns such as sensor selection, calibration, connectivity, and real-time data presentation. StudyHelper follows this general pattern by using a microcontroller-based sensing device, Wi-Fi communication, a backend API, a database, and a web dashboard. However, the implemented system is intentionally smaller in scope than a production indoor air quality platform: it measures temperature, humidity, CO₂, and light, but does not include calibrated particulate matter, VOC, or sound-level sensing.
 
-IoT-based classroom monitoring systems have been explored in several contexts. [Cite one or two relevant prior IoT classroom studies here, e.g. systems based on Raspberry Pi or Arduino platforms.] These systems typically focus on data logging and threshold-based alerting rather than predictive modelling, which is the distinguishing contribution of the StudyHelper approach.
+Machine-learning research on comfort prediction also shows why StudyHelper's prediction problem is difficult. Personal comfort models move away from one-size-fits-all thermal comfort assumptions and instead use IoT data, machine learning, and individual feedback to predict a specific occupant's comfort response (Kim et al., 2018). This is directly relevant to the StudyHelper results. The project originally attempted to predict study suitability from environmental readings alone, but the experiments showed that instant sensor snapshots were not enough to predict subjective ratings reliably. The final session-based model therefore uses aggregated readings from a study session and treats the user's 1-5 post-session rating as the supervised target. This is a practical approximation of personal comfort modelling, but it remains limited because the project did not collect enough real user-specific data to train genuinely personalized models.
 
-In the domain of machine learning for indoor environment prediction, [cite relevant ML papers on predicting thermal comfort or cognitive performance from environmental data]. The use of ensemble methods such as Random Forest[TODO: update after final model choice] for environmental classification has been validated in comparable contexts and supports the model choice made in this project.
-
-On the frontend side, React-based dashboards for IoT data visualisation are a well-established pattern. [Reference any relevant existing open-source dashboards or comparable student-facing tools.]
-
-StudyHelper differs from prior work in its end-to-end integration: rather than treating sensing, prediction, and presentation as separate research artefacts, the project combines all three within a single deployable system. The use of a user-provided post-session rating as the supervised learning target - rather than a physiologically measured focus indicator - is a pragmatic design choice that makes the system trainable without invasive data collection, and represents a novel framing of the suitability prediction problem.
-
-[This section should be expanded with full APA citations before submission. The references listed here are indicative placeholders.]
+Compared with related work, StudyHelper's contribution is not a new sensor technology or a state-of-the-art ML model. Its contribution is the integration of the full educational prototype: an IoT device starts and ends study sessions, the backend stores session-based telemetry, the MAL service predicts a Study Suitability Rating, and the React frontend displays live readings, history, predictions, and post-session feedback. The system therefore sits between simple environmental dashboards and more advanced occupant-centric comfort systems. It demonstrates the feasibility of connecting these parts in one deployable student project, while also exposing the main limitation of the approach: subjective study quality cannot be predicted robustly from general environmental data alone without more participant data and stronger personalization.
 
 # 2. Analysis
 
@@ -836,41 +829,49 @@ This function is used when a user connects a device from the profile page. First
 
 The implementation of the calendar was done using the FullCalendar library, which provides a fully interactive and customizable interface. The component was implemented in CalendarPage.jsx, where the it was configured with multiple plug-ins to support monthly, weekly and daily views. Additionally, it supports interactive event selection and modification.
 
-![alt text](image/FE/image-9.png)
-Figure x: FullCalendar in CalendarPage.jsx
+<p align="center">
+  <img src="image/FE/image-9.png" alt="FullCalendar in CalendarPage.jsx" width="60%">  
+</p>
 
 The events are loaded dynamically from the database when the calender is initialized. To be able to format them for visualization for the user, the useEffect() hook was used for asynchronous retrieval.
 
-![alt text](image/FE/image-10.png)
-Figure x: useEffect in CalendarPage.jsx
+<p align="center">
+  <img src="image/FE/image-10.png" alt="useEffect in CalendarPage.jsx" width="60%">  
+</p>
 
 Event listeners were implemented for user interaction with the calendar. The user is able to select a time range, which prompts the handleSelect() function to open a popup window for inserting title and additional notes.
 
-![alt text](image/FE/image-11.png)
-Figure x: handleSelect() in CalendarPage.jsx
+<p align="center">
+  <img src="image/FE/image-11.png" alt="handleSelect() in CalendarPage.jsx" width="60%">  
+</p>
 
 If the user decides to edit, the handleEventClick() function loads event data into the form.
 
-![alt text](image/FE/image-12.png)
-Figure x: handleEventClick() in CalendarPage.jsx
+<p align="center">
+  <img src="image/FE/image-12.png" alt="handleEventClick() in CalendarPage.jsx" width="60%">  
+</p>
 
 CalendarService.js holds asynchronous service functions which perform event management operations. These functions are for retrieving, creating, editing and removing calendar events using API requests.
 
-![alt text](image/FE/image-13.png)
-Figure x: createCalendarEvent() in CalendarService.js
+<p align="center">
+  <img src="image/FE/image-13.png" alt="createCalendarEvent() in CalendarService.js" width="60%">  
+</p>
 
 Each request includes auth credentials so that only users who have been properly authenticated can access their own calendar.
 
-![alt text](image/FE/image-14.png)
-Figure x: credentials check in CalendarService.js requests
+<p align="center">
+  <img src="image/FE/image-14.png" alt="credentials check in CalendarService.js requests" width="60%">  
+</p>
 
 REST API endpoints were created for getting, editing and removing events. Pydantic request models were used to handle validation of events. Database operations were done using parameterized SQL queries.
 
-![alt text](image/FE/image-15.png)
-Figure x: GET endpoint in calendar.py
+<p align="center">
+  <img src="image/FE/image-15.png" alt="GET endpoint in calendar.py" width="60%">  
+</p>
 
-![alt text](image/FE/image-16.png)
-Figure x: request model in calendar.py
+<p align="center">
+  <img src="image/FE/image-16.png" alt="request model in calendar.py" width="60%">  
+</p>
 
 ### 3.7.2 API Integration
 
@@ -886,42 +887,50 @@ Fetch API performs the requests to the backend and is used to load the data in t
 
 For local and deployed environment, an API configuration was created:
 
-![alt text](image/FE/image.png)
-Figure x: apiConfig.js
+<p align="center">
+  <img src="image/FE/image.png" alt="apiConfig.js" width="60%">  
+</p>
 
 To ensure the user stays logged in during the session, their authentication credentials are included in the requests.
 
-![alt text](image/FE/image-1.png)
-Figure x: getDashboardData in DashboardService.js
+<p align="center">
+  <img src="image/FE/image-1.png" alt="getDashboardData in DashboardService.js" width="60%">  
+</p>
 
 Frontend components communicate with service functions through asynchronous event handlers and React hooks. These allow fast retrieval and synchronization of the data from the backend. For example, the login() function sends the user’s credentials to the backend, processes the response and handles errors if the login attempt fails.
 
-![alt text](image/FE/image-2.png)
-Figure x: login() in AuthService.js
+<p align="center">
+  <img src="image/FE/image-2.png" alt="login() in AuthService.js" width="60%">  
+</p>
 
 These service functions are then used by pages asynchronously. When the backend responds successfully, the webapp states automatically updates. For example, the login page calls login(), stores the returned user data in local storage, and then redirects the user to the dashboard if the authentication was successful.
 
-![alt text](image/FE/image-3.png)
-Figure x: handleSubmit() in LoginPage.jsx
+<p align="center">
+  <img src="image/FE/image-3.png" alt="handleSubmit() in LoginPage.jsx" width="60%">  
+</p>
 
 In order to improve user experience, loading and empty-state components were created. These components provide visual feedback while data is being retrieved, or when no data is available.
 
-![alt text](image/FE/image-4.png)
-Figure x: LoadingSpinner() in LoadinSpinner.jsx
+<p align="center">
+  <img src="image/FE/image-4.png" alt="LoadingSpinner() in LoadingSpinner.jsx" width="60%">  
+</p>
 
-![alt text](image/FE/image-5.png)
-Figure x: EmptyState() in EmptyState.jsx
+<p align="center">
+  <img src="image/FE/image-5.png" alt="EmptyState() in EmptyState.jsx" width="60%">  
+</p>
 
 MAL predictions are retrieved through malService.js. The device's sensor values are sent as JSON payloads to the /predict endpoint. This then returns a study quality prediction.
 
-![alt text](image/FE/image-6.png)
-Figure x: getPrediction() in malService.js
+<p align="center">
+  <img src="image/FE/image-6.png" alt="getPrediction() in malService.js" width="60%">  
+</p>
 
 Sensor data and predictions are visualized using an interactive chart with the Recharts library. The chart displays temperature, humidity, CO₂ concentration, light level and predicted study quality values. The page contains checkboxes for each sensor, and a custom tooltip which activates a showing of data depending on the timestamp it is hovering over.
 
-![alt text](image/FE/image-7.png)
-![alt text](image/FE/image-8.png)
-Figure x: visualization of prediction
+<p align="center">
+  <img src="image/FE/image-7.png" alt="visualization of prediction" width="45%">  
+  <img src="image/FE/image-8.png" alt="visualization of prediction" width="45%">  
+</p>
 
 ### 3.7.3 Hosting and Deployment
 
@@ -1196,15 +1205,17 @@ To prevent integration issues, it was important to find a way to keep the code m
 
 One of the most important things when sharing code between teammates, is to ensure code is clean and consistent. This was done by using ESLint. ESLint was used for finding errors, unused variables, etc.
 
-![alt text](image/FE/image-20.png)
-Figure x:  scripts config in package.json
+<p align="center">
+  <img src="image/FE/image-20.png" alt="scripts config in package.json" width="60%">  
+</p>
 
 ### 3.10.2 Tools and Pipeline
 
 Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. 
 
-![alt text](image/FE/image-21.png)
-Figure x: Vitest env config
+<p align="center">
+  <img src="image/FE/image-21.png" alt="Vitest env config" width="60%">  
+</p>
 
 Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
 
@@ -1463,16 +1474,17 @@ Finally, the current process for configuring Wi-Fi credentials requires the user
 
 # References
 
-<!-- APA 7th edition. Every in-text citation must appear here, and vice versa.
-     Typical sources: ATmega datasheets, RFC/standards, ML papers,
-     React/framework documentation, cloud provider docs, DevOps tool docs.
+Allen, J. G., MacNaughton, P., Satish, U., Santanam, S., Vallarino, J., & Spengler, J. D. (2016). Associations of cognitive function scores with carbon dioxide, ventilation, and volatile organic compound exposures in office workers: A controlled exposure study of green and conventional office environments. *Environmental Health Perspectives, 124*(6), 805-812. https://doi.org/10.1289/ehp.1510037
 
-     APA examples:
-     Author, A. A. (Year). Title of article. Journal, vol(issue), pp. https://doi.org/...
-     Organisation. (Year). Title of documentation. Retrieved from https://... -->
+Bustamante-Mora, A., Diéguez-Rebolledo, M., Zegarra, M., Escobar, F., & Epuyao, G. (2025). Environmental conditions and their impact on student concentration and learning in university environments: A case study of education for sustainability. *Sustainability, 17*(3), 1071. https://doi.org/10.3390/su17031071
 
-::: {#refs}
-:::
+Kim, J., Schiavon, S., & Brager, G. (2018). Personal comfort models - A new paradigm in thermal comfort for occupant-centric environmental control. *Building and Environment, 132*, 114-124. https://doi.org/10.1016/j.buildenv.2018.01.023
+
+Marques, G., Ferreira, C. R., & Pitarma, R. (2019). Indoor air quality assessment using a CO₂ monitoring system based on internet of things. *Journal of Medical Systems, 43*(3), Article 67. https://doi.org/10.1007/s10916-019-1184-x
+
+Saini, J., Dutta, M., & Marques, G. (2020). Indoor air quality monitoring systems based on internet of things: A systematic review. *International Journal of Environmental Research and Public Health, 17*(14), 4942. https://doi.org/10.3390/ijerph17144942
+
+Satish, U., Mendell, M. J., Shekhar, K., Hotchi, T., Sullivan, D., Streufert, S., & Fisk, W. J. (2012). Is CO₂ an indoor pollutant? Direct effects of low-to-moderate CO₂ concentrations on human decision-making performance. *Environmental Health Perspectives, 120*(12), 1671-1677. https://doi.org/10.1289/ehp.1104789
 
 # Appendices
 
