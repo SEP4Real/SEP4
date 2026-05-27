@@ -59,7 +59,7 @@ and reflect on how it influenced the collaboration.]
 | Cristina Matei                 | Frontend / Backend Integration  | Authentication integration, responsive improvements, profile functionality, backend/frontend synchronization |
 | Marta Zrno                     | Backend                         | JWT authentication, API endpoints, database-related functionality                                            |
 | Eduard Fekete                  |                                 |                                                                                                              |
-| Damian Michal Choina           |                                 |                                                                                                              |
+| Damian Michal Choina           | IoT                             | Arduino firmware, arduino - server communication, unit testing, instant-measure feature                      |
 | Piotr Junosz                   | MAL / Scrum Master              | Data search, Data imputation with clustering, Instant models                                                 |
 | Jakub Maciej Baczek            | Scrum Master / Devops / Backend | IOT Testing, IOT-facing API with unit tests, CI/CD for API and IOT                                           |
 | Mara-Ioana Statie              |                                 |                                                                                                              |
