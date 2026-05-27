@@ -333,6 +333,12 @@ How did the team respond? What was the outcome?
 Examples: "The I2C sensor driver took much longer than expected," or
 "The API contract changes caused significant rework in the frontend."]
 
+### 4.6.1 Frontend
+
+A challenge that the frontend team encountered was with a teammate who was not contributing equally, was missing meetings, did not want to participate in a group presentation and refused to read and reply to messages. Unfortunately, the situation escalated and they left the group. 
+
+Additionally, poor coordination with the other subteams presented obstacles. For example, during the creation of the session and preferences functionalities, it was unclear how data travels, and if frontend should trigger the device. Also, we did not plan the development of backend properly, so there were some issues with deciding on which language it would use. These isses were resolved by holding a meeting with the whole group and coming to a decision and mutual understanding.
+
 ## 4.7 Deviations from the Plan
 
 [Compare what was planned versus what was actually executed.
