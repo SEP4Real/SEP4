@@ -13,7 +13,7 @@ sequenceDiagram
         Device->>API: PATCH /session/{id}/pulse
         Device->>API: POST /data with sensor values
         API-->>Device: Predicted study quality
-        alt Study quality is 1
+        alt Study quality below 4
             Device->>Device: Activate buzzer
         end
     end

@@ -406,7 +406,7 @@ The StudyHelper project follows a trunk-based branching model with two long-live
 
 ## 3.2 IoT Design
 
-*Authors: Jakub Baczek, Tymoteusz Krzysztof Zydkiewicz*
+*Authors: [Tymoteusz Krzysztof Zydkiewicz]*
 
 The IoT component is the physical sensing layer of the StudyHelper system. Its main responsibility is to collect indoor environmental data from the study space and transmit it to the backend, where the readings can be stored, displayed in the frontend, and used as input for machine-learning-based study suitability prediction.
 
@@ -420,7 +420,7 @@ The IoT design therefore combines sensors, user input, local status feedback, an
   <img src="image/iot-design/iot-hardware-block-diagram.svg" alt="IoT Hardware Block Diagram" width="50%">
 </p>
 
-*Figure 3.x: Hardware block diagram of the IoT device.*
+*Figure 3.1: Hardware block diagram of the IoT device.*
 
 The hardware architecture is centred around an ATmega2560-based microcontroller board. The ATmega2560 was chosen because it provides sufficient GPIO pins, ADC channels, timers, and UART interfaces for a multi-sensor embedded prototype, while remaining compatible with the Arduino and PlatformIO development environment used in the project.
 
@@ -442,7 +442,7 @@ The selected sensors match the environmental factors used by the StudyHelper sys
 
 The CO2 sensor requires a different interaction pattern from the DHT11 and light sensor. The firmware sends a read command to the sensor and receives a nine-byte UART response frame. The frame is validated with a checksum before the measured ppm value is accepted. This design avoids using invalid or corrupted CO2 readings in the transmitted sensor payload.
 
-The device also includes local user interaction and feedback. Button 1 controls the study-session lifecycle. Button 2 is used for instant measurement mode when no session is active. The four-digit display shows status patterns for boot, idle, active-session, and instant-measurement states. The buzzer is used as an alert mechanism when the backend returns the lowest study quality rating.
+The device also includes local user interaction and feedback. Button 1 controls the study-session lifecycle. Button 2 is used for instant measurement mode when no session is active. The four-digit display shows status patterns for boot, idle, active-session, and instant-measurement states. The buzzer is used as an alert mechanism when the backend returns predicted study quality below 4.
 
 Sound measurement was considered during the project, but it is not part of the final active IoT design because the available sound sensor did not provide reliable enough readings. The final hardware design therefore focuses on temperature, humidity, CO2, and light, which are the sensor values actually transmitted by the firmware.
 
@@ -452,7 +452,7 @@ Sound measurement was considered during the project, but it is not part of the f
   <img src="image/iot-design/iot-firmware-module-diagram.svg" alt="IoT Firmware Module Diagram" width="80%">
 </p>
 
-*Figure 3.x: Firmware module structure for the IoT component.*
+*Figure 3.2: Firmware module structure for the IoT component.*
 
 The embedded software is implemented in C for the ATmega2560 and follows a modular architecture. The `main.c` file coordinates the application flow, while individual modules handle backend communication, HTTP request construction, display status patterns, sensors, buttons, timers, and local alerts.
 
@@ -487,7 +487,7 @@ The device communicates with the backend using HTTP over TCP through the Wi-Fi m
   <img src="image/iot-design/iot-session-flow-diagram.svg" alt="IoT Session Flow Diagram" width="30%">
 </p>
 
-*Figure 3.x: Session flow between the user, IoT device, and backend API.*
+*Figure 3.3: Session flow between the user, IoT device, and backend API.*
 
 The session flow begins during boot. The firmware initialises the display, UART, sensors, Wi-Fi module, and backend host resolution. It then registers the physical device ID with the backend. After this setup, the device enters idle mode and waits for user input.
 
@@ -495,7 +495,7 @@ When Button 1 is pressed, the firmware sends a `POST /session` request containin
 
 The firmware stores request and response data in statically allocated buffers. This design avoids dynamic memory allocation and reduces the risk of heap fragmentation on the ATmega2560. Watchdog resets are performed during network waiting periods so that normal communication delays do not incorrectly reset the device, while still protecting the firmware from longer hangs.
 
-If the backend reports that a session is no longer alive, the firmware clears the local session ID and attempts to start a new session. If a sensor data response contains a study quality rating of `1`, the buzzer is activated to warn the user that the current conditions are poor. This creates a local feedback loop where the IoT device does not only collect data, but also reacts to the study suitability prediction returned by the system.
+If the backend reports that a session is no longer alive, the firmware clears the local session ID and attempts to start a new session. If a sensor data response contains a study quality rating below `4`, the buzzer is activated to warn the user that the current conditions are poor. This creates a local feedback loop where the IoT device does not only collect data, but also reacts to the study suitability prediction returned by the system.
 
 The firmware also includes an instant measurement mode controlled by Button 2. This mode allows the device to take a one-time measurement and request a prediction without entering the normal periodic session loop. It was designed as a quick check of the current environment and reuses the same sensor-reading and backend-communication modules as the session workflow.
 
