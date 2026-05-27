@@ -544,7 +544,7 @@ One thing I think worked well was that we stayed consistent with Scrum meetings 
 
 For future projects, I would like to be more active in asking for cross-team updates earlier, not only when it becomes urgent. Overall, this project made me more confident in applying machine learning theory in practice, and it also showed me that technical progress depends heavily on communication, especially in large teams.
 
-## Marta:
+## Marta Zrno:
 
 I thoroughly enjoyed working on this project, specifically the division into subgroups. These subgroups allowed us to have clear roles and responsibilities during the development process. It helped emulate a semi-professional working environment, which I consider to be valuable preparation for future projects in the software industry. On the other hand, organization was chaotic at times, and it was hard to get on the same page, especially among the subgroups. I personally didn't have an easy time adjusting to the amount of people in the group, because I usually prefer working individually, or as a leader, which was not possible in this setup. But I managed to take a step back and allow the group to make some decisions, even when I didn't agree.
 
