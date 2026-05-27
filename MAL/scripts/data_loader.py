@@ -3,10 +3,13 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
+from ml_pipeline.model import FEATURE_COLUMNS, TARGET_COLUMN
+
+
 def load_and_preprocess_data(test_size=0.2, random_state=42):
     """
     Loads linearized_session_windows.csv, drops rows with missing ratings,
-    extracts all numeric features, splits into train and test sets,
+    extracts the production model features, splits into train and test sets,
     and scales the features using StandardScaler.
     
     Returns:
@@ -24,21 +27,21 @@ def load_and_preprocess_data(test_size=0.2, random_state=42):
         raise FileNotFoundError(f"Dataset not found at {dataset_path}")
         
     df = pd.read_csv(dataset_path)
-    df = df.dropna(subset=["rating"])
+
+    feature_cols = list(FEATURE_COLUMNS)
+    target_col = TARGET_COLUMN
+
+    missing_columns = [
+        column
+        for column in [*feature_cols, target_col]
+        if column not in df.columns
+    ]
+    if missing_columns:
+        raise ValueError(f"Dataset is missing required columns: {', '.join(missing_columns)}")
+
+    df = df.dropna(subset=[target_col])
     
-    target_col = "rating"
     y = df[target_col]
-    
-    exclude_cols = [
-        "rating", "focus_score", "segment_id", "session_id", "source", 
-        "location_id", "segment_start", "segment_end"
-    ]
-    
-    feature_cols = [
-        col for col in df.columns 
-        if col not in exclude_cols and pd.api.types.is_numeric_dtype(df[col])
-    ]
-    
     X = df[feature_cols]
     
     X_train, X_test, y_train, y_test = train_test_split(

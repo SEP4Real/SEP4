@@ -3,6 +3,8 @@ from tests.conftest import make_cursor, make_db
 from datetime import datetime, timezone
 
 from passlib.context import CryptContext
+from app.routers.prediction import _linearize_session
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def _override(app, db):
@@ -193,6 +195,15 @@ DATA_ROWS = [
         "sent_at": NOW,
     },
 ]
+
+
+def test_linearize_session_fakes_transformed_noise_when_missing():
+    payload = _linearize_session(DATA_ROWS, has_noise=False)
+
+    assert payload["currentNoise"] == 5.39
+    assert payload["maxNoise"] == 5.39
+    assert payload["minNoise"] == 5.39
+    assert payload["meanNoise"] == 5.39
 
 def _mock_httpx(rating=3):
     mock_response = MagicMock()
