@@ -35,15 +35,46 @@ $include-before$
 $endfor$
 
 <div class="front-page">
+  <div class="logo-container">
+    <img src="via_logo.png" alt="VIA University College Logo" class="logo" />
+  </div>
   <h1>$title$</h1>
   $if(subtitle)$<p class="subtitle">$subtitle$</p>$endif$
   <div class="meta">
-    <div><strong>Authors:</strong> $for(author)$$author$$sep$, $endfor$</div>
-    <div><strong>Date:</strong> $date$</div>
-    $if(supervisor)$<div><strong>Supervisor:</strong> $supervisor$</div>$endif$
-    $if(course)$<div><strong>Course:</strong> $course$</div>$endif$
-    $if(institution)$<div><strong>Institution:</strong> $institution$</div>$endif$
-    $if(semester)$<div><strong>Semester:</strong> $semester$</div>$endif$
+    <div class="meta-item">
+      <strong>Institution:</strong><br/>
+      $if(institution)$$institution$$else$VIA University College$endif$
+    </div>
+    <div class="meta-item">
+      <strong>Course & Semester:</strong><br/>
+      $course$, $semester$
+    </div>
+    <div class="meta-item col-span-2">
+      <strong>Authors (Student Numbers):</strong>
+      <ul>
+        $for(author)$
+        <li>$author$</li>
+        $endfor$
+      </ul>
+    </div>
+    <div class="meta-item col-span-2">
+      <strong>Supervisors:</strong>
+      <ul>
+        $for(supervisor)$
+        <li>$supervisor$</li>
+        $endfor$
+      </ul>
+    </div>
+    <div class="meta-item">
+      <strong>Date:</strong><br/>
+      $date$
+    </div>
+    $if(charcount)$
+    <div class="meta-item">
+      <strong>Character Count:</strong><br/>
+      $charcount$
+    </div>
+    $endif$
   </div>
 </div>
 

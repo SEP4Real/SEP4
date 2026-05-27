@@ -6,27 +6,24 @@
 ## Use Cases
 
 ### AssessStudyConditionsForStudySession
-**Description:** "As a Student I want an overview of current Status, Conditions, and predictions, so that I can decide whether to start or continue a Study Session in my current environment."
+**Description:** "As a Student I want an overview of current conditions and a suitability prediction, so that I can decide whether to start or continue a study session."
 
 **Actor:** Student
 
 **Flow of Events:**
 1. @start requestStudyConditionOverview 
 2. sendStudyConditionOverview (Target: actor)
-    - environmentStatus: long
-    - temperature: long
-    - humidity: long
-    - co2Level: long
-    - lightLevel: long
-    - noiseLevel: long
-    - predictedSuitabilityLevel: decimal
-    - predictedTrend: int
+    - temperature: float
+    - humidity: float
+    - co2Level: float
+    - lightLevel: float
+    - predictedStudyQuality: int
 
 **Postconditions:**
 - `Student.knowsCurrentStudyConditions`
 
 ### RateStudySessionSuitability
-**Description:** "As a Student I want to submit a Rating after a Study Session, so that the system can improve suitability predictions for my environment."
+**Description:** "As a Student I want to submit a rating, so that the system can improve suitability predictions over time."
 
 **Actor:** Student
 
@@ -39,7 +36,7 @@
 - `@sys.studySessionSuitabilityRated`
 
 ### ViewEnvironmentConditionHistory
-**Description:** "As a Student I want to see the history of Conditions in my environment, so that I can understand trends during a Study Session."
+**Description:** "As a Student I want to see the history of environmental conditions, so that I can understand trends affecting my focus."
 
 **Actor:** Student
 
@@ -51,103 +48,208 @@
 **Postconditions:**
 - `Student.knowsEnvironmentHistory`
 
-### ConfigureStudySessionMonitoring
-**Description:** "As a Student I want to configure automatic refresh and alerts, so that the box supports active monitoring during my Study Session."
-
-**Actor:** Student
-
-**Flow of Events:**
-1. @start configureStudySessionMonitoring 
-    - intervalMinutes: int
-    - alertEnabled: bool
-2. confirmStudySessionMonitoringConfiguration (Target: actor)
-
-**Postconditions:**
-- `@sys.studySessionMonitoringConfigured`
-
 ### ReceiveStudentEnvironmentAlert
-**Description:** "As a Student I want to receive an alert when current Conditions are not suitable, so that I can take action to improve my study environment."
+**Description:** "As a Student I want to receive an alert when conditions fall below an acceptable threshold, so that I can take action to improve my environment."
 
 **Actor:** Student
 
 **Flow of Events:**
-1. monitorActiveStudySessionConditions 
-2. Alt: Conditions not suitable for studying  
-3. sendConditionAlert (Target: actor)
+1. monitorActiveSessionConditions 
+2. Alt: predictedStudyQuality == 1  
+3. triggerBuzzerAlert (Target: actor)
 
 **Postconditions:**
 - `@sys.studentAlertSent`
 
+### StartStudySession
+**Description:** "As a Student I want to start a monitored study session using a physical button on the device, so that I do not need to interact with any software to begin monitoring."
+
+**Actor:** Student
+
+**Preconditions:**
+- `Session.isEnded`
+
+**Flow of Events:**
+1. @start pressButtonToStartSession 
+2. confirmSessionActive (Target: actor)
+
+**Postconditions:**
+- `!Session.isEnded`
+
+### EndStudySession
+**Description:** "As a Student I want to stop a monitored study session using a physical button on the device, so that I can end monitoring."
+
+**Actor:** Student
+
+**Preconditions:**
+- `!Session.isEnded`
+
+**Flow of Events:**
+1. @start pressButtonToEndSession 
+2. confirmSessionEnded (Target: actor)
+
+**Postconditions:**
+- `Session.isEnded`
+
 ### AssessConditionsForTeaching
-**Description:** "As a Teacher I want an overview of current and predicted Conditions, so that I can decide if the environment is suitable for teaching."
+**Description:** "As a Teacher I want an overview of current and predicted environmental conditions, so that I can decide if the environment is suitable for teaching."
 
 **Actor:** Teacher
 
 **Flow of Events:**
 1. @start requestTeachingConditionOverview 
 2. sendTeachingConditionOverview (Target: actor)
-    - environmentStatus: long
-    - temperature: long
-    - humidity: long
-    - co2Level: long
-    - lightLevel: long
-    - noiseLevel: long
-    - predictedSuitabilityLevel: decimal
-    - predictedTrend: int
+    - temperature: float
+    - humidity: float
+    - co2Level: float
+    - lightLevel: float
+    - predictedStudyQuality: int
 
 **Postconditions:**
 - `Teacher.knowsTeachingConditions`
 
+### AuthenticateUser
+**Description:** "As a User I want to register, log in, and log out securely, so that my personal data and study information are protected."
+
+**Actor:** User
+
+**Flow of Events:**
+1. @start submitCredentials 
+    - email: string
+    - password: string
+2. confirmAuthentication (Target: actor)
+
+**Postconditions:**
+- `@sys.userAuthenticated`
+
+### ConnectDeviceToAccount
+**Description:** "As a Student I want to connect my physical device to my account, so that the dashboard can show data from my own study device."
+
+**Actor:** Student
+
+**Flow of Events:**
+1. @start enterDeviceId 
+    - deviceId: string
+2. confirmDeviceConnected (Target: actor)
+
+**Postconditions:**
+- `@sys.deviceConnected`
+
+### ManageUserProfile
+**Description:** "As a Student I want to manage my profile information, so that the application can be personalized to me."
+
+**Actor:** Student
+
+**Flow of Events:**
+1. @start updateProfilePreferences 
+    - university: string
+    - studyProgram: string
+2. confirmProfileUpdated (Target: actor)
+
+**Postconditions:**
+- `@sys.profileUpdated`
+
+### ManageCalendarEvents
+**Description:** "As a Student I want to manage calendar events, so that I can plan study sessions in the same application."
+
+**Actor:** Student
+
+**Flow of Events:**
+1. @start createCalendarEvent 
+    - title: string
+    - note: string
+    - startTime: long
+    - endTime: long
+2. confirmEventCreated (Target: actor)
+
+**Postconditions:**
+- `@sys.calendarEventSaved`
+
 ## Domain Model
 
-### Class: Student
+### Class: User
 #### Attributes
 
 | Attribute | Type | Visibility | Metadata |
 | --- | --- | --- | --- |
-| studying | bool | unspecified | `initial(false)`, `state` |
-| authorized | bool | unspecified | `initial(false)` |
+| name | string | unspecified | - |
+| lastName | string | unspecified | - |
+| email | string | unspecified | - |
+| passwordHash | string | unspecified | - |
+
+### Class: UserProfile
+#### Attributes
+
+| Attribute | Type | Visibility | Metadata |
+| --- | --- | --- | --- |
+| university | string | unspecified | - |
+| studyProgram | string | unspecified | - |
+| studyYear | string | unspecified | - |
+| studyGoal | string | unspecified | - |
+| profilePicture | string | unspecified | - |
+
+### Class: Device
+#### Attributes
+
+| Attribute | Type | Visibility | Metadata |
+| --- | --- | --- | --- |
+| id | string | unspecified | - |
+
+### Class: Session
+#### Attributes
+
+| Attribute | Type | Visibility | Metadata |
+| --- | --- | --- | --- |
+| startedAt | long | unspecified | - |
+| isEnded | bool | unspecified | `initial(true)`, `state` |
+| lastPulseAt | long | unspecified | - |
 
 #### Methods
 
 | Method | Visibility | Effects | Metadata | Pre/Post Conditions |
 | --- | --- | --- | --- | --- |
-| startStudying() | unspecified | `Always`: studying -> true | - | **pre** !studying<br>**post** studying<br> |
-| stopStudying() | unspecified | `Always`: studying -> false | - | **pre** studying<br>**post** !studying<br> |
+| startSession() | unspecified | `Always`: isEnded -> false | - | **pre** isEnded<br>**post** !isEnded<br> |
+| endSession() | unspecified | `Always`: isEnded -> true | - | **pre** !isEnded<br>**post** isEnded<br> |
 
-### Class: Teacher
-### Class: StudyEnvironment
+### Class: DataPoint
 #### Attributes
 
 | Attribute | Type | Visibility | Metadata |
 | --- | --- | --- | --- |
-| environmentStatus | long | unspecified | - |
-| temperature | long | unspecified | - |
-| humidity | long | unspecified | - |
-| co2Level | long | unspecified | - |
-| lightLevel | long | unspecified | - |
-| noiseLevel | long | unspecified | - |
-| suitabilityLevel | decimal | unspecified | - |
-| predictedSuitabilityLevel | decimal | unspecified | - |
-| predictedTrend | int | unspecified | - |
+| temperature | float | unspecified | - |
+| humidity | float | unspecified | - |
+| co2Level | float | unspecified | - |
+| lightLevel | float | unspecified | - |
+| sentAt | long | unspecified | - |
+| predictedStudyQuality | int | unspecified | - |
 
-### Class: EnvironmentConditionHistory
+### Class: Rating
 #### Attributes
 
 | Attribute | Type | Visibility | Metadata |
 | --- | --- | --- | --- |
-| timestamp | long | unspecified | - |
-| temperature | long | unspecified | - |
-| humidity | long | unspecified | - |
-| co2Level | long | unspecified | - |
-| lightLevel | long | unspecified | - |
-| noiseLevel | long | unspecified | - |
+| ratingValue | int | unspecified | - |
+| createdAt | long | unspecified | - |
+
+### Class: CalendarEvent
+#### Attributes
+
+| Attribute | Type | Visibility | Metadata |
+| --- | --- | --- | --- |
+| title | string | unspecified | - |
+| note | string | unspecified | - |
+| startTime | long | unspecified | - |
+| endTime | long | unspecified | - |
+| allDay | bool | unspecified | - |
 
 ## Relationships
 
 | From | Type | To | Label |
 | --- | --- | --- | --- |
-| Student "1" | -- | StudyEnvironment "1" | monitors |
-| Teacher "1" | -- | StudyEnvironment "1" | monitors |
-| StudyEnvironment "1" | -- | EnvironmentConditionHistory "*" | stores |
+| User "1" | -- | UserProfile "0..1" | has |
+| User "1" | -- | CalendarEvent "0..*" | schedules |
+| User "1" | -- | Rating "0..*" | submits |
+| Device "1" | -- | Session "0..*" | records |
+| Session "1" | -- | DataPoint "0..*" | stores |
+| Session "1" | -- | Rating "0..*" | receives |
 

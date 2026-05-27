@@ -3,7 +3,8 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 
@@ -16,9 +17,14 @@ MODELS_DIR = MAL_DIR / "models"
 DATASET_PATH = PROCESSED_DATA_DIR / "linearized_session_windows.csv"
 REAL_SENSOR_HISTORY_PATH = RAW_DATA_DIR / "environment_history_realdata.csv"
 REAL_FOCUS_DATASET_PATH = PROCESSED_DATA_DIR / "focus_dataset_realdata.csv"
-MODEL_PATH = MODELS_DIR / "rf_model.pkl"
+MODEL_PATH = MODELS_DIR / "nn_model.pkl"
 
-FEATURE_COLUMNS = ["currentTemperature", "maxTemp", "minTemp", "meanTemp"]
+FEATURE_COLUMNS = [
+    "currentTemperature", "maxTemp", "minTemp", "meanTemp",
+    "humidity_latest", "humidity_mean", "humidity_min", "humidity_max",
+    "co2_latest", "co2_mean", "co2_min", "co2_max",
+    "light_latest", "light_mean", "light_min", "light_max"
+]
 TARGET_COLUMN = "rating"
 RANDOM_STATE = 42
 
@@ -49,16 +55,30 @@ def split_features_target(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     return df[FEATURE_COLUMNS], df[TARGET_COLUMN]
 
 
-def build_model() -> RandomForestClassifier:
-    return RandomForestClassifier(random_state=RANDOM_STATE, n_estimators=100)
+def build_model() -> MLPClassifier:
+    return MLPClassifier(
+        hidden_layer_sizes=(128, 64),
+        alpha=0.0001,
+        learning_rate_init=0.001,
+        learning_rate='constant',
+        solver='adam',
+        max_iter=200,
+        random_state=RANDOM_STATE,
+        early_stopping=True,
+        validation_fraction=0.1
+    )
 
 
-def train_model(df: pd.DataFrame | None = None) -> RandomForestClassifier:
+def train_model(df: pd.DataFrame | None = None) -> tuple[MLPClassifier, StandardScaler]:
     training_df = load_dataset() if df is None else df
     x, y = split_features_target(training_df)
+    scaler = StandardScaler()
+    x_scaled = scaler.fit_transform(x)
     model = build_model()
-    model.fit(x, y)
-    return model
+    if len(x_scaled) < 20:
+        model.early_stopping = False
+    model.fit(x_scaled, y)
+    return model, scaler
 
 
 def train_validation_test_split(
@@ -100,15 +120,15 @@ def evaluate_model(model, x: pd.DataFrame, y: pd.Series) -> dict[str, float]:
     }
 
 
-def save_model(model: RandomForestClassifier, path: Path = MODEL_PATH) -> Path:
+def save_model(model: MLPClassifier, scaler: StandardScaler, path: Path = MODEL_PATH) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, path)
+    joblib.dump({"model": model, "scaler": scaler}, path)
     load_model.cache_clear()
     return path
 
 
 @lru_cache(maxsize=1)
-def load_model() -> RandomForestClassifier:
+def load_model() -> dict:
     if not MODEL_PATH.exists():
         raise FileNotFoundError(
             f"Model artifact not found at {MODEL_PATH}. "
@@ -122,10 +142,32 @@ def predict(
     max_temperature: float,
     min_temperature: float,
     mean_temperature: float,
+    current_humidity: float,
+    max_humidity: float,
+    min_humidity: float,
+    mean_humidity: float,
+    current_co2: float,
+    max_co2: float,
+    min_co2: float,
+    mean_co2: float,
+    current_light: float,
+    max_light: float,
+    min_light: float,
+    mean_light: float,
 ) -> int:
     input_df = pd.DataFrame(
-        [[current_temperature, max_temperature, min_temperature, mean_temperature]],
+        [[
+            current_temperature, max_temperature, min_temperature, mean_temperature,
+            current_humidity, mean_humidity, min_humidity, max_humidity,
+            current_co2, mean_co2, min_co2, max_co2,
+            current_light, mean_light, min_light, max_light
+        ]],
         columns=FEATURE_COLUMNS,
     )
-    prediction = load_model().predict(input_df)
+    model_dict = load_model()
+    model = model_dict["model"]
+    scaler = model_dict["scaler"]
+    
+    scaled_input = scaler.transform(input_df)
+    prediction = model.predict(scaled_input)
     return int(prediction[0])

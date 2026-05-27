@@ -4,8 +4,8 @@ title System Sequence Diagram: ReceiveStudentEnvironmentAlert
 actor "Student" as Actor
 participant "system" as System
 
-Actor -> System : monitorActiveStudySessionConditions
-alt Conditions not suitable for studying
-System -> Actor : sendConditionAlert
+Actor -> System : monitorActiveSessionConditions
+alt predictedStudyQuality == 1
+System -> Actor : triggerBuzzerAlert
 end
 @enduml

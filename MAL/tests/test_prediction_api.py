@@ -19,10 +19,30 @@ import pytest
 BASE_URL = os.environ.get("MAL_BASE_URL", "http://localhost:8000")
 
 VALID_PAYLOAD = {
-    "currentTemperature": 22,
-    "maxTemp": 24,
-    "minTemp": 20,
-    "meanTemp": 22,
+    "currentTemperature": 22.0,
+    "maxTemp": 24.0,
+    "minTemp": 20.0,
+    "meanTemp": 22.0,
+    "currentHumidity": 50.0,
+    "maxHumidity": 55.0,
+    "minHumidity": 45.0,
+    "meanHumidity": 50.0,
+    "currentCO2": 850.0,
+    "maxCO2": 900.0,
+    "minCO2": 800.0,
+    "meanCO2": 850.0,
+    "currentLight": 320.0,
+    "maxLight": 350.0,
+    "minLight": 300.0,
+    "meanLight": 320.0,
+}
+
+INSTANT_VALID_PAYLOAD = {
+    "temperature": 22,
+    "humidity": 45,
+    "co2Level": 650,
+    "lightLevel": 300,
+    "noise": 29,
 }
 
 
@@ -45,7 +65,7 @@ def test_model_is_loaded_and_available(client):
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "available"
-    assert body["model"] == "RandomForestClassifier"
+    assert body["model"] == "MLPClassifier"
 
 
 def test_predict_returns_valid_rating(client):
@@ -65,7 +85,12 @@ def test_predict_is_deterministic(client):
 
 
 def test_predict_accepts_negative_temperatures(client):
-    payload = {"currentTemperature": -2, "maxTemp": 1, "minTemp": -5, "meanTemp": -1}
+    payload = VALID_PAYLOAD | {
+        "currentTemperature": -2.0,
+        "maxTemp": 1.0,
+        "minTemp": -5.0,
+        "meanTemp": -1.0,
+    }
 
     response = client.post("/predict", json=payload)
 
@@ -83,7 +108,7 @@ def test_predict_rejects_missing_field(client):
 
 
 def test_predict_rejects_invalid_temperature_window(client):
-    payload = VALID_PAYLOAD | {"maxTemp": 19, "minTemp": 20}
+    payload = VALID_PAYLOAD | {"maxTemp": 19.0, "minTemp": 20.0}
 
     response = client.post("/predict", json=payload)
 
@@ -91,7 +116,7 @@ def test_predict_rejects_invalid_temperature_window(client):
 
 
 def test_predict_rejects_mean_outside_window(client):
-    payload = VALID_PAYLOAD | {"meanTemp": 25}
+    payload = VALID_PAYLOAD | {"meanTemp": 25.0}
 
     response = client.post("/predict", json=payload)
 
@@ -99,8 +124,42 @@ def test_predict_rejects_mean_outside_window(client):
 
 
 def test_predict_rejects_current_outside_window(client):
-    payload = VALID_PAYLOAD | {"currentTemperature": 25}
+    payload = VALID_PAYLOAD | {"currentTemperature": 25.0}
 
     response = client.post("/predict", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_predict_rejects_invalid_humidity_window(client):
+    payload = VALID_PAYLOAD | {"maxHumidity": 40.0, "minHumidity": 45.0}
+
+    response = client.post("/predict", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_predict_rejects_invalid_co2_window(client):
+    payload = VALID_PAYLOAD | {"meanCO2": 1200.0}
+
+    response = client.post("/predict", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_instant_predict_returns_valid_rating(client):
+    response = client.post("/instant-predict", json=INSTANT_VALID_PAYLOAD)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body.get("rating"), int)
+    assert 1 <= body["rating"] <= 5
+
+
+def test_instant_predict_rejects_missing_field(client):
+    payload = INSTANT_VALID_PAYLOAD.copy()
+    payload.pop("humidity")
+
+    response = client.post("/instant-predict", json=payload)
 
     assert response.status_code == 422

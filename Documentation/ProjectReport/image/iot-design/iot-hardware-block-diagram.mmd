@@ -1,0 +1,11 @@
+flowchart LR
+    DHT[DHT11<br/>Temperature and humidity] --> MCU[ATmega2560]
+    CO2[CO2 sensor] --> MCU
+    LIGHT[Light sensor<br/>ADC] --> MCU
+    BTN1[Button 1<br/>Start/Stop session] --> MCU
+    BTN2[Button 2<br/>Instant measurement] --> MCU
+
+    MCU --> DISPLAY[Four-digit display]
+    MCU --> BUZZER[Buzzer]
+    MCU --> WIFI[Wi-Fi module]
+    WIFI --> API[Backend API]
