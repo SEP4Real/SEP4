@@ -77,6 +77,9 @@ const DEFAULT_DEVICE_ID = "arduino-device-01";
 const getSessionStorageKey = (email) =>
   email ? `dashboard_session_active:${email}` : null;
 
+const getSessionIdStorageKey = (email) =>
+  email ? `dashboard_session_id:${email}` : null;
+
 const getStoredDeviceForUser = (email) => {
   const userDevices = JSON.parse(localStorage.getItem("user_devices")) || [];
   const connectedDevice = userDevices.find((device) => device.email === email);
@@ -131,12 +134,37 @@ export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const sessionStorageKey = getSessionStorageKey(user?.email);
-  const [isSessionActive, setIsSessionActive] = useState(false);
+  const sessionIdStorageKey = getSessionIdStorageKey(user?.email);
+  const [isSessionActive, setIsSessionActive] = useState(() =>
+    sessionStorageKey ? localStorage.getItem(sessionStorageKey) === "true" : false
+  );
   const [sessionMessage, setSessionMessage] = useState("");
   const [showRatingModal, setShowRatingModal] = useState(false);
-  const [ratingSessionId, setRatingSessionId] = useState(null);
+  const [ratingSessionId, setRatingSessionId] = useState(() =>
+    sessionIdStorageKey ? localStorage.getItem(sessionIdStorageKey) : null
+  );
   const [expandedId, setExpandedId] = useState(null);
   const [filterDate, setFilterDate] = useState("");
+
+  const clearStoredSession = () => {
+    if (sessionStorageKey) {
+      localStorage.removeItem(sessionStorageKey);
+    }
+
+    if (sessionIdStorageKey) {
+      localStorage.removeItem(sessionIdStorageKey);
+    }
+  };
+
+  const storeActiveSession = (sessionId) => {
+    if (sessionStorageKey) {
+      localStorage.setItem(sessionStorageKey, "true");
+    }
+
+    if (sessionIdStorageKey) {
+      localStorage.setItem(sessionIdStorageKey, String(sessionId));
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -174,17 +202,45 @@ useEffect(() => {
         setRatingSessionId(null);
         setSessionMessage("");
         setDashboardData([]);
+        clearStoredSession();
         setLoading(false);
         return;
       }
 
       setHasDevice(true);
       setConnectedDeviceId(savedDeviceId);
-      setIsSessionActive(false);
-      setRatingSessionId(null);
       setSessionMessage("");
 
       await loadDashboardData();
+
+      const shouldRestoreSession =
+        sessionStorageKey && localStorage.getItem(sessionStorageKey) === "true";
+      const storedSessionId = sessionIdStorageKey
+        ? localStorage.getItem(sessionIdStorageKey)
+        : null;
+
+      if (shouldRestoreSession && storedSessionId) {
+        try {
+          const currentSession = await getCurrentSession(savedDeviceId);
+
+          if (currentSession && String(currentSession.id) === storedSessionId) {
+            setRatingSessionId(currentSession.id);
+            setIsSessionActive(true);
+          } else {
+            setIsSessionActive(false);
+            setRatingSessionId(null);
+            clearStoredSession();
+          }
+        } catch (error) {
+          console.error("Error restoring active session:", error);
+          setIsSessionActive(false);
+          setRatingSessionId(null);
+          clearStoredSession();
+        }
+      } else {
+        setIsSessionActive(false);
+        setRatingSessionId(null);
+      }
 
       setLoading(false);
     };
@@ -196,7 +252,7 @@ useEffect(() => {
     return () => {
       window.removeEventListener("storage", checkConnection);
     };
-  }, [user?.email]);
+  }, [user?.email, sessionStorageKey, sessionIdStorageKey]);
   useEffect(() => {
     if (!hasDevice) {
       return undefined;
@@ -223,14 +279,6 @@ useEffect(() => {
     };
   }, [isSessionActive]);
 
-  useEffect(() => {
-    if (!sessionStorageKey) {
-      return;
-    }
-
-    localStorage.setItem(sessionStorageKey, String(isSessionActive));
-  }, [isSessionActive, sessionStorageKey]);
-
   const handleStartSession = async () => {
     if (!connectedDeviceId) {
       setSessionMessage(t.noDeviceMessage);
@@ -243,18 +291,21 @@ useEffect(() => {
       if (!currentSession) {
         setIsSessionActive(false);
         setRatingSessionId(null);
+        clearStoredSession();
         setSessionMessage(t.noActiveSessionFound);
         return;
       }
 
       setRatingSessionId(currentSession.id);
       setIsSessionActive(true);
+      storeActiveSession(currentSession.id);
       setSessionMessage("");
       await loadDashboardData();
     } catch (error) {
       console.error("Error loading active session:", error);
       setIsSessionActive(false);
       setRatingSessionId(null);
+      clearStoredSession();
       setSessionMessage(t.noActiveSessionFound);
     }
   };
@@ -463,6 +514,7 @@ return {
                 setShowRatingModal(false);
                 setIsSessionActive(false);
                 setRatingSessionId(null);
+                clearStoredSession();
               }}
             />
           </div>
