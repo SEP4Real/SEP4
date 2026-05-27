@@ -1,0 +1,39 @@
+name: Extract Database Data
+
+on:
+  workflow_dispatch: # Allows you to click "Run workflow" manually
+
+jobs:
+  extract-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install psycopg[binary]
+
+      - name: Run Data Extraction Script
+        env:
+          MAL_API_BASE_URL: ${{ secrets.MAL_API_BASE_URL }}
+          MAL_API_EXPORT_TOKEN: ${{ secrets.MAL_API_EXPORT_TOKEN }}
+          MAL_API_EXPORT_LIMIT: ${{ secrets.MAL_API_EXPORT_LIMIT }}
+        working-directory: MAL
+        run: python scripts/extract_data.py
+
+      - name: Upload Data as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-sensor-data
+          path: |
+            MAL/data/sensor_history.csv
+            MAL/data/sessions.csv
+          retention-days: 5
