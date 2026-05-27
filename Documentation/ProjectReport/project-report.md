@@ -389,22 +389,20 @@ Calendar events are also protected by the logged-in user identity. The calendar 
      set up automated regression testing via GitHub/GitLab CI, and use containers.
      Pair-programming commits must list both names in the commit message. -->
 
-Reference the repository: [GitHub/GitLab URL]]
+Reference the repository: https://github.com/SEP4Real/SEP4.git
 
 The StudyHelper project follows a trunk-based branching model with two long-lived protected branches: `main` (production) and `dev` (integration). Feature and bugfix work is developed on short-lived branches cut from `dev` and merged via pull requests. Direct pushes to `main` are blocked; all changes reach `main` through a PR that has passed the required CI checks for its component area. Pair-programming sessions are documented in commit messages by listing both contributors in the format `Co-authored-by: Name <email>`, consistent with GitHub's co-authorship convention.
 
 **CI/CD overview:** Three separate GitHub Actions workflows cover the three main codebases:
 
 - **IoT CI** (`iot-ci.yaml`): triggered on pull requests to `main` and `dev` that modify files under `IOT/`. Runs two sequential jobs: native unit tests compiled with GCC and coverage reporting via lcov, followed by firmware compilation for the ATmega2560 using PlatformIO. A flashable `firmware.hex` artifact is published on every passing build.
-- **MLOps** (`mlops.yaml`): triggered on pull requests to `main` and `dev`. Runs the full `pytest` suite for data pipeline and API tests, verifies that `rf_model.pkl` [TODO:update]is present and loadable, and on merge to `main` builds and pushes the `mal-api` Docker image to GHCR.
+- **MLOps** (`mlops.yaml`): triggered on pull requests to `main` and `dev`. Runs the full `pytest` suite for data pipeline and API tests, verifies that both instant and session models artifacts are present and loadable, and on merge to `main` builds and pushes the `mal-api` Docker image to GHCR.
 - **Frontend CI/CD** (`frontend.yaml`): [Describe the frontend pipeline — what checks run (lint, tests, build) and whether the frontend image is pushed to GHCR on merge.]
 - **Deployment** (`deploy-coolify.yaml`): triggered on pushes to `main`. Sends a webhook to Coolify to redeploy the production stack.
 
 **Container strategy:** All services are containerised. The Core API (`api`) uses a Python 3.12 Dockerfile served by Uvicorn. The MAL API (`mal-api`) uses a Python Dockerfile that installs dependencies from `requirements.txt` and copies the model artifact. The frontend (`frontend`) uses a Node.js build stage and an Nginx serve stage. The database uses the unmodified `postgres:16-alpine` official image.
 
 **Testing overview:** Unit testing is component-specific. The IoT firmware tests cover the `wifi_http` and `server_api` modules using Unity and FFF, running natively on the CI host. The ML pipeline tests cover data transformation logic and the FastAPI prediction endpoint using pytest. [TODO: Describe the frontend test approach — e.g. whether Jest or React Testing Library tests are included in the pipeline.] Integration testing across components is manual, performed by flashing the firmware, running the backend stack locally, and observing end-to-end data flow.
-
-The repository is hosted at [insert GitHub URL]. [Add any tag naming conventions used for releases, e.g. `v1.0.0` semantic versioning tags on `main`.]
 
 ## 3.2 IoT Design
 
@@ -711,6 +709,7 @@ TO DO (what about noise?)
 #### Instant Prediction
 
 The instant pipeline makes point-in-time predictions from a compact set of immediate sensor readings. The input features are:
+
 - `temperature`, `humidity`, `co2`, `light`, `noise`
 
 Training data for the instant model is `MAL/data/processed/instant_mock_clean.csv`. The pipeline relies entirely on this fixed five-feature set. The `GridSearchCV` process in `MAL/ml_pipeline/instant_model.py` is utilized for hyperparameter tuning to configure the best-performing Random Forest model. The chosen production artifacts are `MAL/models/instantrfcmodel.pkl` and `MAL/models/instant_scaler.pkl`.
@@ -719,10 +718,10 @@ The instant endpoint enforces the `InstantPredictionRequest` schema; when the cl
 
 #### Endpoint and Artifact Mapping
 
-| Endpoint | Model Type | Input Features | Saved Artifact |
-| :------- | :--------- | :------------- | :------------- |
-| `/predict` | Session-level neural network | 16 session-aggregate features (current/mean/min/max for Temperature, Humidity, CO₂, Light) | `MAL/models/nn_model.pkl` (+scaler) |
-| `/instant-predict` | Instant Random Forest | 5 real-time features (temperature, humidity, CO₂, light, noise) | `MAL/models/instantrfcmodel.pkl`, `MAL/models/instant_scaler.pkl` |
+| Endpoint             | Model Type                   | Input Features                                                                              | Saved Artifact                                                        |
+| :------------------- | :--------------------------- | :------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------- |
+| `/predict`         | Session-level neural network | 16 session-aggregate features (current/mean/min/max for Temperature, Humidity, CO₂, Light) | `MAL/models/nn_model.pkl` (+scaler)                                 |
+| `/instant-predict` | Instant Random Forest        | 5 real-time features (temperature, humidity, CO₂, light, noise)                            | `MAL/models/instantrfcmodel.pkl`, `MAL/models/instant_scaler.pkl` |
 
 #### Data Provenance and Retraining
 
@@ -1139,7 +1138,6 @@ Session-based:
 | Random Forest          | Classifier | 93.2%          | 69.0%         | 0.664            |
 | Multi-Layer Perceptron | Classifier | 69.9%          | 68.3%         | 0.663            |
 
-
 **Linear Regression**
 ![LR Error Plot](../../Documentation/Design/ML/cm_LR_updated.png)
 
@@ -1211,14 +1209,13 @@ One of the most important things when sharing code between teammates, is to ensu
 
 ### 3.10.2 Tools and Pipeline
 
-Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js. 
+Vitest and React Testing Library were used for testing. The configuration of the testing environment was done using jsdom and setup.js.
 
 <p align="center">
   <img src="image/FE/image-21.png" alt="Vitest env config" width="60%">  
 </p>
 
 Frontend build was automatically done using GitHub Actions workflows. They were started when new changes were merged into the main branch.
-
 
 ### 3.10.3 Integration into Workflow
 
@@ -1228,7 +1225,7 @@ The main branch is for deployment, and when it received new code, GitHub Actions
 
 ### 3.10.4 Outcomes and Evaluation
 
-Since the DevOps workflow was a new way of development for the group, it took a bit of time to get used to. But in the end it made it easier to build and test new features. The issues were found earlier in the process using ESLint, and the shared code was consistent. The big upside is the avoidance of manual deployment. 
+Since the DevOps workflow was a new way of development for the group, it took a bit of time to get used to. But in the end it made it easier to build and test new features. The issues were found earlier in the process using ESLint, and the shared code was consistent. The big upside is the avoidance of manual deployment.
 
 ## 3.11 IoT Tests
 
@@ -1355,14 +1352,14 @@ The session itself is ended by pressing Button 1 again on the physical device, w
 [Revisit each objective from Section 1.3. For each, state whether it was met,
 partially met, or not met, and support the assessment with evidence.]
 
-| Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                   |
-| :----------------------------------------------------------------------------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                  |
-| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period                                                                                   |
+| Objective                                                                            | Status     | Evidence                                                                                                                                                                                                                                                                                                                                                    |
+| :----------------------------------------------------------------------------------- | :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IoT** — measure and transmit sensor readings every ≤60 s                   | ✔ Met     | [§3.2.1](#321-hardware-architecture) sensor hardware; [§3.2.2](#322-embedded-software-architecture) 30 s data / 5 s pulse timers; [§3.5.1](#351-sensor-and-actuator-drivers) driver implementation and CO₂ fallback caching; [§3.5.2](#352-cloud-communication-implementation) HTTP transmission                                                                   |
+| **Cloud Backend** — persist sensor data and expose a RESTful API              | ✔ Met     | [§3.1.1](#311-system-architecture) Core API architecture; [§3.1.2](#312-cloud-architecture) Docker Compose and schema init; [§2.3](#23-system-requirements) FR02–FR03; [§4.6](#46-cloud-and-devops-evaluation) stack stable throughout project period                                                                                                              |
 | **Machine Learning** — train a 1–5 suitability classifier and expose via API | ✔ Met     | [§3.3.3](#333-ml-problem-formulation) multi-class classification formulation; [§3.6.2](#362-feature-selection) 16-feature session vector [TODO fill in when section done]; [§3.9.1](#391-model-selection)–[§3.9.3](#393-model-evaluation) model selection, tuning, and evaluation; [§3.13.1](#3131-machine-learning-testing-strategy) `/predict` endpoint verified |
-| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05                        |
-| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort                                           |
-| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; secret management via environment variables enforced in `docker-compose.yml`                                                                                  |
+| **Frontend** — display live readings and ML rating responsively               | ✔ Met     | [§3.4.1](#341-uiux-design) UI/UX design; [§3.4.3](#343-responsiveness-strategy) breakpoints at 576 px, 768 px, 1200 px; [§3.7.1](#371-core-features-implementation) data fetching and chart implementation; [§3.12.3](#3123-responsiveness-testing) responsiveness testing; [§2.3](#23-system-requirements) FR05                                                      |
+| **DevOps** — containerise all components and enforce CI/CD pipelines          | ✔ Met     | [§3.1.2](#312-cloud-architecture) all services in `docker-compose.yml`; [§3.8.2](#382-tools-and-pipeline) `iot-test` and `iot-build` jobs; [§3.13.3](#3133-tools-and-pipeline) MLOps pipeline and GHCR publish; [§4.6](#46-cloud-and-devops-evaluation) zero manual deployment effort                                                                         |
+| **Security** — encrypt IoT-to-backend; protect frontend API endpoints         | ⟳ Partial | [§3.1.3](#313-security-design) JWT + bcrypt for frontend endpoints; IoT-to-backend remains plain HTTP; secret management via environment variables enforced in `docker-compose.yml`                                                                                                                                                                         |
 
 ## 4.3 IoT Performance
 
