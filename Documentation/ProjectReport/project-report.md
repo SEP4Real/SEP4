@@ -434,7 +434,7 @@ The directory structure is organized by functional responsibility:
 
 ![Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.](../Design/Frontend/Component_diagram.png){width=90%}
 
-### 3.4.3 Frontend Design Patterns {#343-responsiveness-strategy}
+### 3.4.3 Frontend Design Patterns {#343-frontend-design-patterns}
 
 The frontend design adheres to the following software patterns:
 - **State Sharing (React Context):** Implemented for cross-component state management, specifically for localization and theme variables.
@@ -1087,9 +1087,13 @@ Furthermore, the lack of a large-scale, in-house dataset necessitated the use of
 
 **Frontend Evaluation**
 
-While the React interface successfully implements the core authentication, dashboard, calendar, and rating paths, several operational limitations remain. The dashboard view is dependent on active session states from the backend; the client cannot initiate telemetry sampling independently.
+While the React interface successfully implements the core authentication, dashboard, calendar, and rating paths, several operational limitations remain. The dashboard view is dependent on active session states from the backend; the frontend cannot start real sensor measurements by itself.
 
-The device connection workflow lacks strict security, as device registration does not verify hardware ownership at the API boundary. Additionally, the application requires more robust handling of network failures and database disconnects. A production system would necessitate comprehensive error recovery layouts and browser-based end-to-end integration tests to validate session rating submissions under varying latency conditions.
+The dashboard displays predicted suitability values received through the Core API, which are produced through the MAL integration and stored together with sensor readings. However, the frontend still contains fallback mock data for cases where no dashboard readings are returned. This was useful during development because the UI and chart could be tested before stable IoT data was always available, but it should be removed in a future version so example values cannot be confused with real measurements or real predictions.
+
+The dashboard chart also depends on the general dashboard data returned by the backend. Since the final prototype mainly used one physical device, this was acceptable for demonstration, but a more complete version should filter the chart by recent data, for example the last six hours, and by the connected device or active session. This would avoid showing old or unrelated readings together in the same chart.
+
+The device connection is still simple. The backend checks that the device exists, but it does not fully prove that the user owns that device. A future version should also handle network errors better and include end-to-end tests for flows such as device connection and rating submission.
 
 # 5. Conclusions
 
