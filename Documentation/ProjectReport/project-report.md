@@ -99,7 +99,7 @@ Project scope is constrained by several key delimitations:
 
 - **Geographical Scope**: Testing is limited to portable campus study spaces (classrooms, libraries, dormitories). Multi-building deployment tracking is out of scope.
 - **Sensor Coverage**: Telemetry is restricted to temperature, humidity, CO₂ concentration, and light. Ambient sound level measurement was excluded due to sensor malfunction and inaccuracies during testing.
-- **Actuation and Automation**: Actuation is confined to an onboard device buzzer warning for critically poor environments (Rating 1). HVAC and automated building controls are excluded.
+- **Actuation and Automation**: Actuation is confined to an onboard device buzzer warning for poor environments (Ratings 1-3). HVAC and automated building controls are excluded.
 - **User Roles**: The user model is limited to students (initiating sessions and submitting ratings) and teachers (monitoring environmental suitability). Administrative interfaces are excluded.
 - **Privacy and Data Security**: Data collection comprises environmental telemetry, session metadata, hashed user credentials, and academic profile details. No audio or video recording is performed. Personal data is isolated behind JWT authentication and password hashing.
 - **Clinical Assessment**: The suitability rating acts as an environmental proxy and does not measure cognitive load, stress, or physiological states.
