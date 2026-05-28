@@ -699,5 +699,7 @@ project. These should be grounded in your actual experience — not generic advi
 - Darley, J. M., & Latane, B. (1968). Bystander intervention in emergencies: Diffusion of responsibility.  *Journal of Personality and Social Psychology* ,  *8* (4, Pt.1), 377–383. **https://doi.org/10.1037/h0025589**
 - Schwaber, K., & Sutherland, J. (2020). *The Scrum Guide: The definitive guide to Scrum: The rules of the game*. Scrum.org.
 
+- Atlassian. (n.d.). *Sprint planning meeting template*. Jira/Confluence.**https://www.atlassian.com/software/confluence/templates/sprint-planning-meeting**
+
 ::: {#refs}
 :::
