@@ -1,3 +1,0 @@
-MAL/data/processed/final_mock_dataset.csv filter=lfs diff=lfs merge=lfs -text
-MAL/data/processed/*_filled.csv filter=lfs diff=lfs merge=lfs -text
-MAL/data/processed/linearized*.csv filter=lfs diff=lfs merge=lfs -text
