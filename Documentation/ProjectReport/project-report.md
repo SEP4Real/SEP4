@@ -409,7 +409,7 @@ This implementation is a live service exposing endpoints for `/predict`, `/insta
 
 The frontend interface was developed from wireframes into implemented React views. The wireframe stage defined the main user paths: authentication, device registration, real-time sensor monitoring, historical telemetry visualization, and post-session ratings. These layouts were then translated into the final dashboard, profile, calendar, and rating views. The dashboard became the central screen because it gives immediate access to live environment conditions, recommendation cards, and session controls, while profile settings, device association, and study scheduling were kept in dedicated views to reduce clutter.
 
-![Low-fidelity dashboard wireframe showing the intended information hierarchy: navigation, active session controls, sensor cards, chart, recommendation area, and rating popup.](../Design/Frontend/dashboard-wireframe.svg){width=70%}
+![Low-fidelity dashboard wireframe showing the intended information hierarchy: navigation, active session controls, sensor cards, chart, recommendation area, and rating popup.](../Design/Frontend/dashboard-wireframe.png){width=70%}
 
 ![Final dashboard interface. The implemented dashboard preserves the intended monitoring flow while adding final styling, charting, recommendations, and active-session states.](../Design/Frontend/Dashboard.jpeg){width=70%}
 
