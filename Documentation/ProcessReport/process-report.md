@@ -160,7 +160,7 @@ The StudyHelper system collects sensitive data about when, and for how long stud
 
 **User Consent and Transparency**: No user concent is needed currently and the data is retained indefinitely, in production, a retention policy would be needed.
 
-**Database Security**: TO DO
+**Database Security**: The database was secured by isolating it inside the private virtual Docker network created by Docker Compose. The `postgres` container does not publish any ports to the host machine, making it inaccessible from the host environment or the public internet. Communication is restricted to local containers (the core `api` and the machine learning `mal-api` services) on the virtual network. Database credentials and the JWT signature key are managed through external environment variables validated at startup.
 
 **Future Consideration**: If StudyHelper was deployed in a real school or university, GDPR compliance would be necessary and formal data processing agreements. The current system does not meet production-level privacy standards but demonstrates the team's awareness of these concerns.
 
@@ -168,7 +168,7 @@ The StudyHelper system collects sensitive data about when, and for how long stud
 
 The team considered whether the system would serve all students equitably:
 
-**Physical Accessibility**: The IoT device has a physical button for session start/stop and an onboard buzzer for alerts. Alternative input methods (e.g., voice commands, touch-less activation) were not implemented but could be added. The frontend is responsive and works on (phones, tablets TOBECHECKED), and laptops, addressing screen-size diversity.
+**Physical Accessibility**: The IoT device has a physical button for session start/stop and an onboard buzzer for alerts. Alternative input methods (e.g., voice commands, touch-less activation) were not implemented but could be added. The frontend is responsive and works on phones, tablets, and laptops, addressing screen-size diversity.
 
 **Cognitive and Language Accessibility**: The frontend supports English and Danish language selection. The rating scale (1–5) is simple and culturally neutral. However, no accessibility audit (e.g., screen reader testing, color contrast, keyboard navigation) was conducted. Future versions should undergo formal accessibility review.
 

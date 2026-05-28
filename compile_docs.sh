@@ -23,6 +23,9 @@ echo "Compiling Process Report..."
 make -f "${REPO_DIR}/Misc/AcademicTemplate/Makefile" SRC="${REPO_DIR}/Documentation/ProcessReport/process-report.md" pdf
 rm -f "${REPO_DIR}/Documentation/ProcessReport/process-report.html"
 
+echo "Running Appendices Generator..."
+python3 "${REPO_DIR}/Misc/AcademicTemplate/generate_appendices_list.py"
+
 echo "Compiling Project Report..."
 make -f "${REPO_DIR}/Misc/AcademicTemplate/Makefile" SRC="${REPO_DIR}/Documentation/ProjectReport/project-report.md" pdf
 rm -f "${REPO_DIR}/Documentation/ProjectReport/project-report.html"
