@@ -268,17 +268,17 @@ The rating sequence maps the transition of user feedback into training labels:
 
 ## 2.5 Use Case Control Flow and State Transitions
 
-To ensure consistency in state handling across the IoT device firmware, web frontend, and cloud backend, we mapped the system's operational control flow.
+To ensure consistency in state handling across the user interface and backend, we mapped the system's operational control flow.
 
 ![Activity Control Flow Diagram of the StudyHelper Use Cases.](../Analysis/StudyHelper.activity.svg)
 
 ### System-Wide State Synchronization and Validation
 
-Modeling the parallel execution of these transactions helped the development team resolve synchronization bottlenecks across different execution environments:
+Modeling the sequential and concurrent workflows in the activity diagram helped the development team design the synchronization logic between actors and the system:
 
-1. **Firmware State Transition and Lockouts**: When a student triggers `StartStudySession` or `EndStudySession` via the physical button, the device transitions its internal state. The activity flow visualizes how this triggers a backend transaction, updating the PostgreSQL database. The web application synchronizes with this state via SSE/polling, displaying active monitoring statuses. By tracking the control flow, we realized that starting a session should lock out certain options (like taking one-time measurements via button 2), protecting the UART sensor serial bus from overlapping requests.
-2. **Dynamic Alerting Flow**: The alert flow (modeled under `ReceiveStudentEnvironmentAlert`) shows that during a session, the system continuously reads sensor telemetry. The alert sequence validates the ML-predicted comfort index and decides whether to skip or trigger the buzzer alarm. Mapping this flow clarified that alert validation should happen synchronously on the backend during telemetry ingestion, avoiding client-side alert calculation.
-3. **Session Ratings during Active Sessions**: Originally, comfort ratings were conceptualized as occurring only after a session had terminated. By mapping the parallel execution branches in the activity diagram, we realized comfort ratings could be submitted during an active session as comfort levels fluctuate. This motivated us to allow comfort ratings during a session, which allows multiple rating inputs to be associated with different telemetry intervals.
+1. **Session State Transitions and Constraints**: When a user triggers `startStudySession` or `endStudySession`, the system transitions its internal session state. The activity flow visualizes how these events trigger updates to the active session lifecycle. By tracking this control flow, we realized that starting a session should lock out or restrict certain configuration options, preventing state conflicts and ensuring that environment data is strictly grouped under a single active session.
+2. **Environment Monitoring and Alerting**: The telemetry loop shows that during a session, the system continuously monitors environmental conditions. The system evaluates the predicted study quality and decides whether to alert the user if conditions deteriorate below acceptable comfort thresholds. Mapping this flow clarified that alert validation should happen synchronously within the system's telemetry processing loop, keeping alert triggers consistent across all user clients.
+3. **Concurrent Session Interactions and Feedback**: Originally, comfort ratings were conceptualized as occurring only after a session had terminated. By mapping the concurrent execution branches in the activity diagram, we realized that users should be able to view their study condition history and submit ratings during an active session as comfort levels fluctuate. This motivated us to support real-time feedback submissions during a session, allowing multiple ratings to be associated with different telemetry intervals.
 
 # 3. Design
 
