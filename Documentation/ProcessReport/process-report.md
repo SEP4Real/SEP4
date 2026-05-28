@@ -49,7 +49,6 @@ Organizationally, the process was managed by following Scrum-like sprints and ut
 
 ## 2.1 Group Composition and Profiles
 
-
 The group consisted of ten students with different technical strengths, but with a broadly shared regional background. Most members came from Central and Eastern Europe, including Poland, Romania, Moldova, Latvia, Croatia, Slovakia, and neighbouring cultural contexts. This gave the group a relatively similar communication style and attitude toward practical problem solving, while still leaving enough variation in personality and work habits to make the collaboration interdisciplinary.
 
 The shared cultural background made some potential collaboration issues easier to manage. Direct feedback was generally accepted well, and the group could discuss technical disagreements without needing a very formal hierarchy. At the same time, the project was large enough that some structure was necessary. Scrum Masters and sub-team leads helped coordinate deadlines and dependencies, but most day-to-day decisions were still made inside the relevant technical subteams. This made the hierarchy manageable rather than restrictive.
@@ -71,7 +70,7 @@ Tasks were managed using tools chosen by each subteam. Some subteams used Jira t
 | Marta Zrno                     | Backend                         | JWT authentication, API endpoints, database-related functionality                                            |
 | Eduard Fekete                  | MAL / DevOps / Documentation    | MAL structure, data pipeline, session linearization, documentation automation, deployment support            |
 | Damian Michal Choina           | IoT                             | Arduino firmware, Arduino-server communication, unit testing, instant-measure feature                        |
-| Piotr Junosz                   | MAL / Scrum Master              | Data search, data imputation with clustering, instant models                                                |
+| Piotr Junosz                   | MAL / Scrum Master              | Data search, data imputation with clustering, instant models                                                 |
 | Jakub Maciej Baczek            | Scrum Master / DevOps / Backend | IoT testing, IoT-facing API with unit tests, CI/CD for API and IoT                                           |
 | Mara-Ioana Statie              | MAL / Documentation             | Session model experiments, feature alignment, MAL tests, ML report sections                                  |
 | Alexandru Savin                | MAL                             | Mock data analysis and preprocessing, model training and evaluation, API endpoints                           |
@@ -355,6 +354,12 @@ There was a learning curve early on. PlatformIO, AVR tooling, embedded C, timers
 
 Overall, the methods fit the problem well. Modular design and automated testing made the firmware more maintainable and testable, while requirements analysis helped clarify how the IoT device should interact with the backend and frontend. One area that fell short was API stability: endpoint names, response fields, and session behavior changed during development, causing rework. This showed that API contracts need to be treated as living documentation and kept updated throughout the project, not just agreed upon at the start.
 
+### 4.5.2 MAL
+
+For the MAL team, the primary method involved following a complete data science lifecycle rather than traditional software engineering. This meant starting with data acquisition, moving through exploratory data analysis, data cleaning, feature engineering, and finally model training and evaluation.
+
+A critical theoretical method we applied was Multivariate Imputation by Chained Equations (MICE) combined with KMeans clustering. Because we had to merge some datasets (KETI and HomeCoach) that were missing full column of either noise or light, applying clustering before imputation was essential to accurately synthesize missing columns without destroying the natural variance of the environmental data.
+
 ### 4.5.3 Frontend
 
 For the frontend team, the main method was to turn the user stories and UI ideas into working React pages. We used the requirements to decide which pages were needed, such as login, register, dashboard, profile, and calendar. The dashboard was the most important part because it had to show sensor values, study suitability, history, recommendations, and session-related actions in one place.
@@ -368,7 +373,6 @@ Testing with Vitest and React Testing Library was useful for checking important 
 The biggest learning curve was integration. Some problems looked like frontend bugs, but were actually caused by backend responses, cookies, Docker setup, missing IoT sessions, or changing API behavior. This made debugging harder, but it also helped us understand the full system better. Overall, React, service layers, context, and component-based design fit the frontend well, but the project would have benefited from clearer API contracts earlier in the process.
 
 ## 4.6 Challenges During Execution
-
 
 ### 4.6.1 IoT
 
