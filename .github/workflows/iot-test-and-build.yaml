@@ -50,6 +50,7 @@ jobs:
     steps:
       - name: Skip when IoT is unchanged
         if: needs.detect-changes.outputs.iot != 'true'
+        working-directory: ${{ github.workspace }}
         run: echo "No IoT changes detected. Marking iot-test as passed."
 
       - uses: actions/checkout@v4
@@ -91,6 +92,7 @@ jobs:
     steps:
       - name: Skip when IoT is unchanged
         if: needs.detect-changes.outputs.iot != 'true'
+        working-directory: ${{ github.workspace }}
         run: echo "No IoT changes detected. Marking iot-build as passed."
 
       - uses: actions/checkout@v4
