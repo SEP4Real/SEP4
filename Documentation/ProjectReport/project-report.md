@@ -242,6 +242,8 @@ Modeling the sequential and concurrent workflows in the activity diagram guided 
 
 The StudyHelper platform utilizes a layered, distributed architecture consisting of four runtime components: embedded IoT firmware, a Core API, a Machine Learning (MAL) API, and a React frontend. All server-side services are containerize-deployed via Docker Compose and share a single PostgreSQL database.
 
+![SEP4 architecture overview.](image/project-report/sep4-architecture-overview.svg){width=90%}
+
 The IoT device collects environmental measurements at the edge and transmits them over HTTP to the Core API. This unidirectional push pattern was selected because the device does not require incoming control commands, and HTTP over TCP is straightforward to implement via the ESP8266 Wi-Fi module on the ATmega2560.
 
 The Core API (FastAPI) acts as the central gateway, managing device registration, session lifecycles, database persistence, user authentication, and ratings. It has exclusive write access to the PostgreSQL database. Upon receiving sensor telemetry, the Core API requests a Study Suitability Rating from the MAL API and persists the resulting prediction alongside the raw sensor data.
@@ -1192,7 +1194,7 @@ Contains the continuous integration and delivery (CI/CD) configuration files for
 
 ## Appendix 6.2 — Cloud Architecture and Deployment
 
-Contains Docker Compose files, Dockerfiles, and deployment blueprints for cloud hosting.
+Contains Docker Compose files, Dockerfiles, exported architecture diagrams, and deployment blueprints for cloud hosting.
 
 *Folder location in submission:* `Appendices/6.2 Cloud Architecture and Deployment/`
 

@@ -1,0 +1,65 @@
+@startuml
+title SEP4 Architecture Overview
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+left to right direction
+
+actor Student
+actor Teacher
+node "IoT device\nArduino / PlatformIO" as IoTDevice
+
+cloud "Public Internet" {
+  component "Browser" as Browser
+}
+
+rectangle "VPS managed by Coolify" {
+  component "Coolify\nDocker Compose deployment\n+ reverse proxy routing" as Coolify
+
+  rectangle "frontend container\nnginx:alpine, port 80" as FrontendContainer {
+    component "Nginx" as Nginx
+    artifact "React + Vite build\n/usr/share/nginx/html" as ReactBuild
+  }
+
+  rectangle "api container\nFastAPI + Uvicorn, port 8080" as ApiContainer {
+    component "Core API" as CoreApi
+  }
+
+  rectangle "mal-api container\nFastAPI + Uvicorn, port 8000" as MalContainer {
+    component "MAL API\nML predictor" as MalApi
+  }
+
+  database "postgres container\nPostgreSQL 16\npostgres_data volume" as Postgres
+}
+
+component "GitHub Actions\nCoolify webhook" as Actions
+
+Student --> Browser
+Teacher --> Browser
+
+Browser --> Coolify : HTTPS\nGET / and /api/*
+Coolify --> Nginx : route frontend domain\ncontainer port 80
+Nginx --> ReactBuild : serve static SPA\nGET /
+Nginx --> CoreApi : proxy_pass\nAPI_PROXY_URL=http://api:8080/
+
+IoTDevice --> Coolify : HTTP REST\n/device /session /data
+Coolify --> CoreApi : route API traffic\ncontainer port 8080
+
+CoreApi --> MalApi : HTTP\nMAL_API_HOST_PORT -> mal-api:8000\n/predict, /instant-predict
+CoreApi --> Postgres : SQL\nDB_HOST=postgres:5432
+MalApi --> Postgres : SQL exports\nDB_HOST=postgres:5432
+
+Actions ..> Coolify : deploy trigger\nmain branch
+
+note right of Coolify
+Coolify supplies the public routing layer
+and starts the four Compose services:
+frontend, api, mal-api, postgres.
+end note
+
+note bottom of FrontendContainer
+The React app is compiled during the Docker
+build and copied into the Nginx image.
+end note
+
+@enduml

@@ -53,7 +53,7 @@ def generate_appendices():
         "4.3 ML Test Results and MLOps": "Contains automated test logs, MLOps requirements, and testing configurations for the prediction service.",
         "5.1 Frontend Wireframes and UI Design": "Contains user interface wireframes, component architecture diagrams, and layout screenshots.",
         "6.1 DevOps and CICD Pipelines": "Contains the continuous integration and delivery (CI/CD) configuration files for GitHub Actions workflows.",
-        "6.2 Cloud Architecture and Deployment": "Contains Docker Compose files, Dockerfiles, and deployment blueprints for cloud hosting.",
+        "6.2 Cloud Architecture and Deployment": "Contains Docker Compose files, Dockerfiles, exported architecture diagrams, and deployment blueprints for cloud hosting.",
         "9.1 Source Code": "Contains the complete buildable source code repository of the StudyHelper platform."
     }
     
