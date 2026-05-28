@@ -340,7 +340,7 @@ User interaction is handled via Button 1 (session control) and Button 2 (instant
 
 ### 3.2.2 Embedded Software Architecture {#322-embedded-software-architecture}
 
-![Firmware module structure for the IoT component.](image/iot-design/iot-firmware-module-diagram.png){width=80%}
+![Firmware module structure for the IoT component.](image/iot-design/iot-firmware-module-diagram.png)
 
 The firmware is written in C and follows a modular architecture where driver concerns are separated from application logic:
 
@@ -367,7 +367,7 @@ Three software timers govern the execution schedule:
 
 Communication uses JSON over HTTP/1.0. The Wi-Fi driver resolves the server IP address once at boot, caching it to avoid repeated DNS delays. Each request opens a TCP socket, transmits the HTTP frame, waits up to 3 seconds for a response, and closes the connection.
 
-![Session flow between the user, IoT device, and backend API.](image/iot-design/iot-session-flow-diagram.png){width=30%}
+![Session flow between the user, IoT device, and backend API.](image/iot-design/iot-session-flow-diagram.png)
 
 At boot, the device registers via `POST /device` and enters an idle state. Pressing Button 1 triggers a `POST /session` request. On success, the returned session ID is stored and used in subsequent `POST /data` and `PATCH /session/{id}/pulse` requests. Telemetry payloads include temperature, humidity, light, and CO₂ values.
 
