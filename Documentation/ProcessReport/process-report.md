@@ -358,6 +358,8 @@ Overall, the methods fit the problem well. Modular design and automated testing 
 
 For the MAL team, the primary method involved following a complete data science lifecycle rather than traditional software engineering. This meant starting with data acquisition, moving through exploratory data analysis, data cleaning, feature engineering, and finally model training and evaluation.
 
+This included using tools and concepts from the `Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow` such as consistent feature scaling (StandardScaler), careful train/validation/test splitting, and others.
+
 A critical theoretical method we applied was Multivariate Imputation by Chained Equations (MICE) combined with KMeans clustering. Because we had to merge some datasets (KETI and HomeCoach) that were missing full column of either noise or light, applying clustering before imputation was essential to accurately synthesize missing columns without destroying the natural variance of the environmental data.
 
 ### 4.5.3 Frontend
@@ -708,6 +710,8 @@ project. These should be grounded in your actual experience — not generic advi
 - Vroom, V. H. (1964).  *Work and motivation* .
 - Darley, J. M., & Latane, B. (1968). Bystander intervention in emergencies: Diffusion of responsibility.  *Journal of Personality and Social Psychology* ,  *8* (4, Pt.1), 377–383. **https://doi.org/10.1037/h0025589**
 - Schwaber, K., & Sutherland, J. (2020). *The Scrum Guide: The definitive guide to Scrum: The rules of the game*. Scrum.org.
+
+- Atlassian. (n.d.). *Sprint planning meeting template*. Jira/Confluence.**https://www.atlassian.com/software/confluence/templates/sprint-planning-meeting**
 
 ::: {#refs}
 :::
