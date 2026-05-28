@@ -1,0 +1,9 @@
+@startuml
+title System Sequence Diagram: ConnectDeviceToAccount
+!include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
+actor "Student" as Actor
+participant "system" as System
+
+Actor -> System : enterDeviceId(deviceId)
+System -> Actor : confirmDeviceConnected
+@enduml

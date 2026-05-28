@@ -35,6 +35,10 @@ VALID_PAYLOAD = {
     "maxLight": 350.0,
     "minLight": 300.0,
     "meanLight": 320.0,
+    "currentNoise": 5.39,
+    "maxNoise": 5.39,
+    "minNoise": 5.39,
+    "meanNoise": 5.39,
 }
 
 INSTANT_VALID_PAYLOAD = {

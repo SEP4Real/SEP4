@@ -49,22 +49,11 @@ Organizationally, the process was managed by following Scrum-like sprints and ut
 
 ## 2.1 Group Composition and Profiles
 
-[Introduce each group member briefly — background, relevant skills, and prior
-experience. If the group is multicultural or interdisciplinary, highlight this
-and reflect on how it influenced the collaboration.]
+The group consisted of ten students with different technical strengths, but with a broadly shared regional background. Most members came from Central and Eastern Europe, including Poland, Romania, Moldova, Latvia, Croatia, Slovakia, and neighbouring cultural contexts. This gave the group a relatively similar communication style and attitude toward practical problem solving, while still leaving enough variation in personality and work habits to make the collaboration interdisciplinary.
 
-| Member                         | Main Area                       | Main Contributions                                                                                           |
-| :----------------------------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------- |
-| Karina Rubahova                | Frontend / Scrum                | Localization, dashboard styling, theme system, testing, sprint documentation                                 |
-| Cristina Matei                 | Frontend / Backend Integration  | Authentication integration, responsive improvements, profile functionality, backend/frontend synchronization |
-| Marta Zrno                     | Backend                         | JWT authentication, API endpoints, database-related functionality                                            |
-| Eduard Fekete                  |                                 |                                                                                                              |
-| Damian Michal Choina           | IoT                             | Arduino firmware, arduino - server communication, unit testing, instant-measure feature                      |
-| Piotr Junosz                   | MAL / Scrum Master              | Data search, Data imputation with clustering, Instant models                                                 |
-| Jakub Maciej Baczek            | Scrum Master / Devops / Backend | IOT Testing, IOT-facing API with unit tests, CI/CD for API and IOT                                           |
-| Mara-Ioana Statie              |                                 |                                                                                                              |
-| Alexandru Savin                |                                 |                                                                                                              |
-| Tymoteusz Krzysztof Zydkiewicz |                                 |                                                                                                              |
+The shared cultural background made some potential collaboration issues easier to manage. Direct feedback was generally accepted well, and the group could discuss technical disagreements without needing a very formal hierarchy. At the same time, the project was large enough that some structure was necessary. Scrum Masters and sub-team leads helped coordinate deadlines and dependencies, but most day-to-day decisions were still made inside the relevant technical subteams. This made the hierarchy manageable rather than restrictive.
+
+Time coordination was also helped by the fact that the group lived and studied in the same environment, even if individual schedules differed. Meetings, Discord discussions, and sprint planning made it possible to coordinate across frontend, backend, MAL, and IoT work. Different personalities also shaped the collaboration: some members were more structured and documentation-oriented, others were more experimental and implementation-focused, and others were strongest in debugging and integration. This mix was useful because the project required both planning and fast problem solving.
 
 ## 2.2 Roles and Contributions
 
@@ -73,6 +62,19 @@ The distribution of responsibilities was primarily based on technology areas: fr
 Frontend-related tasks included dashboard development, localization, theming, profile features, responsiveness, calendar support, testing, and deployment preparation. Backend tasks focused on developing the authentication system, API endpoints, JWTs, and database interactions. MAL tasks included model-based predictions, dataset generation, and fitness prediction experiments. Tasks performed by the IoT team focused on sensor integration and connectivity.
 
 Tasks were managed using tools chosen by each subteam. Some subteams used Jira to track sprint-related issues and their progress, while others used their own preferred tools for task management. GitHub branches and pull requests were used across all subteams for implementation-related work.
+
+| Member                         | Main Area                       | Main Contributions                                                                                           |
+| :----------------------------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------- |
+| Karina Rubahova                | Frontend / Scrum                | Localization, dashboard styling, theme system, testing, sprint documentation                                 |
+| Cristina Matei                 | Frontend / Backend Integration  | Authentication integration, responsive improvements, profile functionality, backend/frontend synchronization |
+| Marta Zrno                     | Backend                         | JWT authentication, API endpoints, database-related functionality                                            |
+| Eduard Fekete                  | MAL / DevOps / Documentation    | MAL structure, data pipeline, session linearization, documentation automation, deployment support            |
+| Damian Michal Choina           | IoT                             | Arduino firmware, Arduino-server communication, unit testing, instant-measure feature                        |
+| Piotr Junosz                   | MAL / Scrum Master              | Data search, data imputation with clustering, instant models                                                 |
+| Jakub Maciej Baczek            | Scrum Master / DevOps / Backend | IoT testing, IoT-facing API with unit tests, CI/CD for API and IoT                                           |
+| Mara-Ioana Statie              | MAL / Documentation             | Session model experiments, feature alignment, MAL tests, ML report sections                                  |
+| Alexandru Savin                | MAL                             | Mock data analysis and preprocessing, model training and evaluation, API endpoints                           |
+| Tymoteusz Krzysztof Zydkiewicz | IoT                             | Start/stop button feature, CO2 sensor integration, sound sensor investigation, database design               |
 
 ## 2.3 Team Dynamics and Collaboration
 
@@ -125,7 +127,7 @@ The shift from measuring focus to measuring suitability was the single most impo
 ## 3.3 Time Planning and Scheduling
 
 **Initial Planning**
-We based our project timeline on Agile Scrum. Before writing any code, we used Figma to map out our structure visually, which helped us turn abstract requirements into actual technical tasks. We started out with standard two-week sprints, planning to switch to one-week sprints later on.
+We based our project timeline on Agile Scrum. Before writing any code, we used digital boards to map out our structure visually, which helped us turn abstract requirements into actual technical tasks. We started out with standard two-week sprints, planning to switch to one-week sprints later on.
 
 **Cross-Team Alignment in a Large Group**
 To save time, we tried to keep full-team meetings to a minimum. Instead, the Product Owner and sub-team Scrum Masters just met as needed to handle cross-team scheduling and dependencies, rather than sticking to a rigid calendar. This made it easier to agree on interface contracts, sort out API issues, and manage integration, letting the rest of the developers just focus on their sprint tasks. We did still hold occasional full-group meetings to share feedback and make sure everyone knew what was going on with the system as a whole.
@@ -145,9 +147,9 @@ Furthermore, we originally required at least four people to approve merge reques
 
 <!-- Required: consider ethical dimensions relevant to your problem area. -->
 
-[What ethical questions arise from the problem your project addresses?
+<!-- [What ethical questions arise from the problem your project addresses?
 Consider: data privacy, environmental impact, fairness, accessibility, or societal effects.
-Were these considerations built into the project from the start, or addressed reactively?]
+Were these considerations built into the project from the start, or addressed reactively?] -->
 
 ### Data Privacy and User Consent
 
@@ -157,7 +159,7 @@ The StudyHelper system collects sensitive data about when, and for how long stud
 
 **User Consent and Transparency**: No user concent is needed currently and the data is retained indefinitely, in production, a retention policy would be needed.
 
-**Database Security**: TO DO
+**Database Security**: The database was secured by isolating it inside the private virtual Docker network created by Docker Compose. The `postgres` container does not publish any ports to the host machine, making it inaccessible from the host environment or the public internet. Communication is restricted to local containers (the core `api` and the machine learning `mal-api` services) on the virtual network. Database credentials and the JWT signature key are managed through external environment variables validated at startup.
 
 **Future Consideration**: If StudyHelper was deployed in a real school or university, GDPR compliance would be necessary and formal data processing agreements. The current system does not meet production-level privacy standards but demonstrates the team's awareness of these concerns.
 
@@ -165,7 +167,7 @@ The StudyHelper system collects sensitive data about when, and for how long stud
 
 The team considered whether the system would serve all students equitably:
 
-**Physical Accessibility**: The IoT device has a physical button for session start/stop and an onboard buzzer for alerts. Alternative input methods (e.g., voice commands, touch-less activation) were not implemented but could be added. The frontend is responsive and works on (phones, tablets TOBECHECKED), and laptops, addressing screen-size diversity.
+**Physical Accessibility**: The IoT device has a physical button for session start/stop and an onboard buzzer for alerts. Alternative input methods (e.g., voice commands, touch-less activation) were not implemented but could be added. The frontend is responsive and works on phones, tablets, and laptops, addressing screen-size diversity.
 
 **Cognitive and Language Accessibility**: The frontend supports English and Danish language selection. The rating scale (1–5) is simple and culturally neutral. However, no accessibility audit (e.g., screen reader testing, color contrast, keyboard navigation) was conducted. Future versions should undergo formal accessibility review.
 
@@ -205,9 +207,8 @@ This section describes the development process, divided into our collective effo
 
 This section describes the development process, divided into our collective efforts and team-specific contributions.
 
-## 4.1 Together Process
-
 As our project plan progressed, our system began to evolve into an integrated system requiring a high degree of interdependence across all components. Initially, at the beginning of the semester, subgroups were able to work more independently, as many components were implemented as mockupsor were in a work-in-progress state. However, as the development process progressed, the need for coordination increased significantly.
+
 First, the frontend depended on several aspects of the backend, including authentication, API design, sessions, and sensor endpoints. Second, both the backend and MAL implementations relied on certain common conventions, such as JSON structures and predictive models. Thus, API contracts and data structures became integral to cross-team collaboration. To avoid collisions and conflicting implementations, the project relied heavily on branches and pull requests on GitHub. We used feature branches to allow teams to implement their solutions in parallel and then merge them into shared branches. However, the synchronization process sometimes became problematic due to changes in the backend and work on the frontend. Communication took place through Discord chats,sprint sessions, Jira tickets, and personal contacts with those responsible. The more complex the integration task, the clearer it became that even minor changes could simultaneously impact multiple aspects of the system.Among other interesting process observations, it's worth noting that the integration proved quite labor-intensive. Although everything worked individually, integrating all components, including the frontend, MAL, and IoT, proved to be a more complex task.
 
 ## 4.2 IOT Team Process
@@ -336,29 +337,94 @@ Overall, the frontend development phase demonstrated how frontend implementation
 
 ## 4.5 Application of Methods and Theories
 
-[Reflect on the engineering and analytical methods you applied (requirements analysis,
+<!-- [Reflect on the engineering and analytical methods you applied (requirements analysis,
 architecture design, testing frameworks, etc.). Were the methods well-suited to the
 problem? Did you feel confident using them, or were there learning curves?
-What worked well and what fell short?]
+What worked well and what fell short?] -->
+
+### 4.5.1 IoT
+
+For the IoT team, the main engineering method was turning general project requirements into concrete device behavior. The Arduino was not just a standalone prototype, but part of the full StudyHelper system. It had to read temperature, humidity, CO2, and light, start and stop sessions with a button, send data to the backend, and trigger the buzzer based on prediction results.
+
+The modular firmware structure worked well for this. Separating areas such as server communication, Wi-Fi handling, sensors, buttons, timers, display status, and buzzer logic made the code easier to understand and test. This was especially useful because embedded C can become messy quickly if too much logic is placed directly in the main loop.
+
+Testing was also a valuable method. Since running every test on the physical Arduino would be slow and unreliable, we used Unity and FFF fakes to verify firmware logic on the host machine. This allowed us to test session handling, response parsing, and server communication without constantly depending on the hardware. The CI/CD pipeline further supported this by compiling the firmware and running tests automatically on every pull request.
+
+There was a learning curve early on. PlatformIO, AVR tooling, embedded C, timers, and hardware communication were all new to the team, which made the first sprint slower than expected. Once the setup and project structure were in place, development became much smoother.
+
+Overall, the methods fit the problem well. Modular design and automated testing made the firmware more maintainable and testable, while requirements analysis helped clarify how the IoT device should interact with the backend and frontend. One area that fell short was API stability: endpoint names, response fields, and session behavior changed during development, causing rework. This showed that API contracts need to be treated as living documentation and kept updated throughout the project, not just agreed upon at the start.
+
+### 4.5.2 MAL
+
+For the MAL team, the primary method involved following a complete data science lifecycle rather than traditional software engineering. This meant starting with data acquisition, moving through exploratory data analysis, data cleaning, feature engineering, and finally model training and evaluation.
+
+This included using tools and concepts from the `Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow` such as consistent feature scaling (StandardScaler), careful train/validation/test splitting, and others.
+
+A critical theoretical method we applied was Multivariate Imputation by Chained Equations (MICE) combined with KMeans clustering. Because we had to merge some datasets (KETI and HomeCoach) that were missing full column of either noise or light, applying clustering before imputation was essential to accurately synthesize missing columns without destroying the natural variance of the environmental data.
+
+### 4.5.3 Frontend
+
+For the frontend team, the main method was to turn the user stories and UI ideas into working React pages. We used the requirements to decide which pages were needed, such as login, register, dashboard, profile, and calendar. The dashboard was the most important part because it had to show sensor values, study suitability, history, recommendations, and session-related actions in one place.
+
+Using React components worked well for this project. Splitting the interface into pages, reusable components, service files, and context providers made the code easier to manage. Components such as SensorCard, SensorChart, SessionRating, EmptyState, and LoadingSpinner could be reused instead of writing the same UI logic several times. Service files also helped keep API calls separate from the visual parts of the pages.
+
+We also used React Context for language and theme state. This was useful because language and dark mode affect many parts of the application. At first, some text was hardcoded directly in components, so we had to refactor parts of the UI to make translation work properly. This showed that localization is easier if it is considered from the beginning.
+
+Testing with Vitest and React Testing Library was useful for checking important frontend flows. We tested login behavior, routing, dashboard states, active session handling, stop-session rating behavior, profile device connection, language switching, theme switching, and rating submission. These tests did not replace manual testing, but they helped catch mistakes in state handling and user interactions.
+
+The biggest learning curve was integration. Some problems looked like frontend bugs, but were actually caused by backend responses, cookies, Docker setup, missing IoT sessions, or changing API behavior. This made debugging harder, but it also helped us understand the full system better. Overall, React, service layers, context, and component-based design fit the frontend well, but the project would have benefited from clearer API contracts earlier in the process.
 
 ## 4.6 Challenges During Execution
 
-[Describe the most significant technical or organisational challenges encountered.
-How did the team respond? What was the outcome?
-Examples: "The I2C sensor driver took much longer than expected," or
-"The API contract changes caused significant rework in the frontend."]
+### 4.6.1 IoT
 
-### 4.6.1 Frontend
+One of the main technical challenges for the IoT team was the sound sensor. Noise level was originally considered an important environmental factor for study conditions, but the available sensor did not work well for this purpose. It reacted mostly to sudden or close loud sounds, but it did not reliably measure background noise in a room. Because of this limitation, using it in the final system would have produced misleading data, so the team decided not to include sound measurement in the active firmware.
+
+Another challenge was the development and testing setup around PlatformIO. While PlatformIO was useful for flashing and building the Arduino firmware, it was difficult to control exactly which files should be included in specific test builds. This became a problem when trying to test isolated modules, because PlatformIO tended to force its own build structure instead of giving us full control over compilation. To solve this, the team created Makefile-based test builds and compiled the unit tests with GCC. This made the testing process more predictable and allowed us to use Unity and FFF fakes without depending on the full embedded build every time.
+
+The most difficult technical area overall was networking between the Arduino, the Wi-Fi module, and the backend API. Some of the Wi-Fi-related drivers and communication layers were harder to work with than expected, especially because errors could come from several places: UART communication, Wi-Fi module responses, HTTP formatting, backend availability, or timing issues in the firmware. The team responded by separating the networking logic into smaller modules and testing server communication as much as possible outside the physical device. In the end, the device was able to register, start sessions, send keep alive pulses, transmit sensor data, and receive prediction responses, but this part of the system required more debugging than most other IoT features.
+
+### 4.6.2 MAL
+
+The MAL team’s challenge was the building and aligning the data and model pipelines. The codebase that included both session-based and instant prediction workflows and it wan't easy to do feature engineering, imputation, and noise handling, especially since the instant prediction logic was introduced very late in the development timeline.
+
+Real Data Scarcity and Testing: We were not able to find trustworthy datasets which would contain all of our features and target variables in one place. We also never received a sufficient volume of real IoT data to construct a reliable test set. To circumvent this, the team had to rely on splits generated from our mock data to thoroughly test and validate the models.
+
+Overfitting Possibilities: Initially, during the implementation of overlapping rated sessions team became aware that it would cause the models to overfit. This issues was solved to transitioning into a dynamic session duration, allowing sessions to flexibly adapt (being either short or long) based exactly on when the user provided their rating.
+
+Pipeline Alignment and Data Handling: A high number of fixes had to be performed for real data loading, model training, prediction logic, and packaging to ensure the parallel workflows remained stable.
+
+### 4.6.3 Frontend
 
 A challenge that the frontend team encountered was with a teammate who was not contributing equally, was missing meetings, did not want to participate in a group presentation and refused to read and reply to messages. Unfortunately, the situation escalated and they left the group.
 
-Additionally, poor coordination with the other subteams presented obstacles. For example, during the creation of the session and preferences functionalities, it was unclear how data travels, and if frontend should trigger the device. Also, we did not plan the development of backend properly, so there were some issues with deciding on which language it would use. These isses were resolved by holding a meeting with the whole group and coming to a decision and mutual understanding.
+Additionally, poor coordination with the other subteams presented obstacles. For example, during the creation of the session and preferences functionalities, it was unclear how data travels, and if frontend should trigger the device. Also, we did not plan the development of backend properly, so there were some issues with deciding on which language it would use. These issues were resolved by holding a meeting with the whole group and coming to a decision and mutual understanding.
 
 ## 4.7 Deviations from the Plan
 
-[Compare what was planned versus what was actually executed.
-What changed and why? Were changes proactive (intentional pivots) or reactive
-(forced by circumstances)? How did the team adapt?]
+Several parts of the project changed compared to the original plan. Some changes were intentional decisions after the team understood the problem better, while others were caused by technical limitations or integration issues. Overall, the project moved from a more simple frontend prototype with mock data toward an integrated system connected to backend, IoT, ML, and deployment. The changes made the project more complex, but they also made the final solution more realistic.
+
+### 4.7.1 IoT
+
+The IoT part changed in several ways compared to the original plan. The biggest removed feature was sound measurement. Noise level was originally considered relevant for study conditions, but the available sound sensor only reacted reliably to sudden close sounds, not normal background noise. Because of this, including it would have produced misleading data, so it was removed from the active firmware.
+
+The device interaction also changed. At first, the plan did not include both a start/stop session button and an instant measurement button, but these were added because they made the prototype more practical. The start/stop button gave the device clear control over the session lifecycle, while the instant measurement button allowed a quick reading and prediction without waiting for a full session.
+
+Some technical choices also changed during implementation. The backend moved from an earlier C# idea to Python FastAPI because it fit the final architecture and MAL integration better. The buzzer logic was adjusted from activating only at study quality `1` to warning for generally poor conditions. The IoT tests were also moved from the PlatformIO test runner to Makefile-based GCC builds because PlatformIO did not give enough control over isolated test compilation.
+
+Finally, HTTPS was considered for device-to-backend communication, but the final prototype used HTTP. Based on research, HTTPS was judged difficult to implement reliably on the available Arduino and Wi-Fi setup within the project scope. Since the transmitted data was mainly environmental sensor readings, HTTP was accepted for the prototype, although HTTPS would be necessary in a production version.
+
+### 4.7.2 MAL
+
+For MAL team, several deviations from the plan took place during the process of work. Initial plan was to mock the data while developing the models pipelines so that we can start experiments before getting real data from the sensors. After the meeting with supervisor and strict feedback we knew that we cannot generate the data in order to mock it, but we have to search for available datasets on the internet. Another deviation from the plan was that we wanted and thought that the only data we are going to use is going to be the real one collected from iot/frontend (the mock one only for experiments before real data coming in). Unfortunately, we had to change the plan again because the amount and variety of data was not sufficient. So plan changed to search for even more available, related datasets on the internet, which was a real challenge since the datasets never had all required features. Than we had to glue those sets which also was not existing in the initial plan. The last significant change of plans was regarding the ml model. Initially we were developing the model which were learning based on sessions but another type of model was needed as well - for instant predictions where the prediction is just based on the current sensor values and user rating.
+
+### 4.7.3 Frontend
+
+The session flow also changed during the project. Earlier frontend ideas assumed that the user could start and stop a study session directly from the web application. During integration, the team clarified that the real session lifecycle should be handled by the IoT device and backend. Because of this, the frontend Start Session button was changed to attach the dashboard to an already active IoT session instead of creating a new session.
+
+The frontend also changed more than expected. At first, many pages used mock data and simple local state. Later, these had to be adapted to real backend responses, authentication cookies, protected requests, device connection, active session checks, and rating submission. This caused extra rework, especially on the dashboard and profile page, but it made the application closer to the final system.
+
+Deployment also required adjustments. The team originally worked mostly with local development, but later the application had to work through Docker, Nginx, and Coolify. This created some issues with API routing between local and deployed environments. The team adapted by using `/api` routes and environment-based configuration so the frontend could work in different environments.
 
 ## 4.8 Use of Tools and Technologies
 
@@ -369,6 +435,28 @@ Jira was used to delegate tasks, split them up into sprints, keep track of deadl
 Figma was used mostly for design. For example, for diagrams and wireframes. But it also served as a note taking site for ideas, goals, group availability, etc.
 
 Overall, the selected tools and technologies that were used throughout the project were effective and useful. They simplified collaboration, which at times was hard.
+
+### 4.8.1 IoT
+
+For communication, the IoT team mainly used Discord for quick discussions, progress updates, and solving problems between meetings. Trello was used for task management, which worked well for a small three-person subteam.
+
+The firmware was developed in C for the ATmega2560 Arduino setup, using Visual Studio Code and PlatformIO for development, building, and flashing. YAT was used to inspect serial communication, especially when debugging UART messages and Wi-Fi module responses.
+
+For testing, we used Unity with FFF fakes to test firmware logic without always depending on the physical Arduino. Since PlatformIO was not flexible enough for some isolated test builds, Makefile-based GCC compilation was also used. GitHub and GitHub Actions supported version control, pull requests, automatic firmware compilation, and test execution.
+
+### 4.8.2 MAL
+
+The MAL team primarily used Python as the core programming language for both data analysis and backend development. Jupyter Notebooks were extensively used during the experimental phases for data cleaning, MICE imputation, and testing various machine learning algorithms. Libraries such as Pandas and NumPy were essential for data manipulation and clustering, while Scikit-Learn was the primary framework used for training and evaluating both the instant and session-based models (including Random Forest Classifiers and Neural Networks). Matplotlib and Seaborn were utilized to visualize data distributions and generate confusion matrices for evaluating model performance.
+
+For integration and deployment, the team utilized FastAPI to expose the trained models through a robust, asynchronous REST API. The API and data pipeline were containerized using Docker to ensure a consistent environment from development to production. For quality assurance, `pytest` was used to write and execute unit and integration tests covering the machine learning pipeline and API endpoints, which were automatically run through GitHub Actions CI/CD workflows.
+
+### 4.8.3 Frontend
+
+The frontend was built with React and Vite. React was used to create reusable components and pages, while Vite made local development and production builds faster. JavaScript, HTML, and CSS were used for the main interface, with custom CSS for responsive layout, dark mode, and page styling.
+
+Several frontend libraries were used to support the interface. React Router handled page navigation and protected routes. Recharts was used for the dashboard graph, FullCalendar for the calendar page, and Lucide React / React Icons for UI icons. Fetch API was used for communication with the backend services.
+
+For testing, the frontend used Vitest together with React Testing Library. These tools were used to test routing, login behavior, theme and language switching, dashboard states, session rating, and profile device connection. Chrome DevTools was also used a lot during manual testing, especially for checking API requests, cookies, localStorage, responsive layout, and frontend errors.
 
 # 5. Personal Reflections
 
@@ -394,49 +482,21 @@ I think one of my stronger contributions during the project was helping keep fro
 
 Even though the project was stressful at times, I still think it was a valuable experience. I learned much more about communication, integration, coordination, and realistic software development than in previous semester projects. The project also showed me that large systems are not only about writing code — a lot of the work is connected to communication, synchronization between teams and adapting to changes during development.
 
-<!-- INDIVIDUAL section — each group member writes their own subsection.
-     Focus on YOUR OWN contribution, learning, and growth.
-     Key requirements:
-       - Refer to valid and reliable sources to support your reflections
-       - "Reflect forward": define concrete future actions
-       - Address: What did I learn? How did I learn it? What will I do differently?
-     This section demonstrates your ability to identify and organise your own learning.
+## Alexandru Savin
 
+Data vs. models: what drives better outcomes? During this semester project, I kept returning to that question and learned that a larger model does not make up for weak or limited data. In our case, a relatively simple model often performed just as well as more complex alternatives, while more complex architectures only added risk when the data available for training was scarce.
 
-## 5.1 [Your Name]
+I learned how to build a complete ML pipeline for an end to end service. I worked on defining the session and instance prediction feature sets, developing model training logic, and integrating the ML service into the API. I gained experience with FastAPI, deploying to a VPS-style environment, and working with Python at a larger team scale. This project taught me to establish the target label and data collection strategy before selecting model architecture, and it showed me why building a minimal end to end service early is important so the deployment path and API contract are validated before most of the work is done.
 
-### Learning Outcomes
+This is the first out of the four semester projects where we sought and engaged in supervisor meetings beyond the mandatory ones, and I was surprised how much of a positive impact it had. Not only did we get feedback on the technical aspects of our project, but we were again reminded of how clear, well-structured, and documented the system has to be, which we were still having trouble with in the beginning.
 
-[What new knowledge or skills did you gain during this project?
-Were the learning goals from the course description met?
-Be specific — "I learned X by doing Y, which resulted in Z."]
+The biggest technical challenge was the subjective and limited nature of the data. In addition, as expected, working in an 11-person group made coordination harder. I did not have a coordination or Scrum Master role in this project, but nevertheless felt the will and need to attend all inter-team meetings as it was difficult to stay aligned with the other subteams, keep track, and also communicate to others about updated system requirements. We did not have inter-team milestones to make progress visible across the whole project, which made it harder to bring all parts together smoothly.
 
-### Contribution and Role
-
-[Honestly assess your own contribution to the group. Were you satisfied with
-your level of involvement? Were there areas where you could have contributed more?
-Were there areas where you exceeded your own expectations?]
-
-### Challenges and Growth
-
-[What was personally most challenging — technically, socially, or organisationally?
-How did you respond to these challenges? What does this tell you about how you work?]
-
-### Reflection Forward
-
-[Based on this project, what will you deliberately do differently in future projects?
-Identify 2–3 concrete actions. Reference learning theory or professional frameworks
-if relevant (e.g. Kolb's learning cycle, growth mindset research).]
-
--->
+Going forward, I would communicate more with other teams. When a use case changes in one subteam, it may still affect the rest of the project more than it appears at first. In a large team like ours, accountability and agreement on shared decisions are essential to avoid unnecessary rework and ensure the whole system integrates successfully.
 
 ## Damian Michal Choina
 
-This project was my first time writing embedded systems code in C, and the learning curve at the start was real. Getting used to manual memory management, configuring hardware registers by hand, and thinking about timing and interrupts in a way I never had to before took some adjustment. However, once the initial unfamiliarity wore off the work became genuinely enjoyable. I also had no previous experience setting up CI/CD at this scale. Building a GitHub Actions pipeline that automatically compiles the firmware, runs the full test suite, and uploads coverage reports on every pull request was something entirely new to me, and seeing it catch issues before they reached the hardware made the investment feel immediately worthwhile.
-
-What made the technical challenges manageable was the sub-team dynamic. Because we already knew each other from previous SEP projects, we skipped the awkward early phase of figuring out how to work together and moved straight into productive collaboration. There was an existing level of trust that made it easy to ask for help, split work naturally, and review each other's code without it feeling like criticism. Communication with the ML and Frontend teams was also smooth throughout. We agreed on API contracts early and checked in regularly enough that integration never became a crisis.
-
-Looking back, the things I would do differently are straightforward. I would get a minimal end-to-end path working in the first week rather than building depth in one area before the pieces connect. I would write tests as the code is written rather than treating them as something to catch up on later. And I would set up the CI pipeline at the very start of the project, not once the codebase is already growing. The automation overhead feels expensive early on but pays back quickly once the project reaches any real complexity.
+This project was my first time writing embedded systems code in C, and adapting to manual memory management, hardware registers, and interrupt-driven thinking took real adjustment, though once past that initial curve the work became genuinely enjoyable. Setting up the CI/CD pipeline at the scale was also entirely new to me, and seeing it catch issues automatically made the investment feel worthwhile. What made the technical challenges manageable was the sub-team dynamic — having worked together in previous SEP projects meant skipping the usual early friction and moving straight into productive collaboration. Looking back, the main things to do differently would be establishing a minimal end-to-end path in the first week, writing tests alongside the code rather than deferring them, and setting up the CI pipeline from day one.
 
 ## Eduard Fekete
 
@@ -486,7 +546,7 @@ One thing I think worked well was that we stayed consistent with Scrum meetings 
 
 For future projects, I would like to be more active in asking for cross-team updates earlier, not only when it becomes urgent. Overall, this project made me more confident in applying machine learning theory in practice, and it also showed me that technical progress depends heavily on communication, especially in large teams.
 
-## Marta:
+## Marta Zrno
 
 I thoroughly enjoyed working on this project, specifically the division into subgroups. These subgroups allowed us to have clear roles and responsibilities during the development process. It helped emulate a semi-professional working environment, which I consider to be valuable preparation for future projects in the software industry. On the other hand, organization was chaotic at times, and it was hard to get on the same page, especially among the subgroups. I personally didn't have an easy time adjusting to the amount of people in the group, because I usually prefer working individually, or as a leader, which was not possible in this setup. But I managed to take a step back and allow the group to make some decisions, even when I didn't agree.
 
@@ -506,7 +566,7 @@ Communication and shared understanding were also a recurring issue at the full-g
 
 On the technical side, my work covered the CI/CD pipeline for both the IoT firmware and the backend API, the IoT-facing backend endpoints, and the associated test suites. None of this was particularly difficult in isolation, but it required a solid understanding of how all components connected, which I came to appreciate more over time. The most valuable technical outcome for me personally was developing a strong understanding of DevOps and testing practices. I also had no prior experience with FastAPI or Python in a backend context, and getting to work with both gave me a new set of tools I am likely to use again. These are the takeaways I will carry into future projects regardless of how I felt about the project itself.
 
-## Tymoteusz
+## Tymoteusz Krzysztof Zydkiewicz
 
 During this semester project I worked in the IoT team. Compared to previous projects, this one felt more complex because the IoT part was not just a separate technical component, but something that had to connect properly with the backend, MAL, and frontend. I worked on several IoT-related tasks, but the one I remember the most was trying to make the sound detector work. Unfortunately, because of the sensor limitations, we did not use it in the final project. The main problem was that it could not properly measure background sound, which was important for our idea, since noise level was one of the environmental factors connected to study conditions.
 
@@ -536,9 +596,9 @@ If I worked on a similar project again, I would try to clarify important decisio
 
 ### Reflection Forward
 
-[Based on this project, what will you deliberately do differently in future projects?
+<!-- [Based on this project, what will you deliberately do differently in future projects?
 Identify 2–3 concrete actions. Reference learning theory or professional frameworks
-if relevant (e.g. Kolb's learning cycle, growth mindset research).]
+if relevant (e.g. Kolb's learning cycle, growth mindset research).] -->
 
 # 6. Reflection on Supervision
 
@@ -549,8 +609,8 @@ if relevant (e.g. Kolb's learning cycle, growth mindset research).]
 
 ## 6.1 The Supervision Process
 
-[Describe how supervision was conducted. How often did you meet?
-How did you prepare for meetings? What format did sessions typically take?]
+<!-- [Describe how supervision was conducted. How often did you meet?
+How did you prepare for meetings? What format did sessions typically take?] -->
 
 ### 6.1.1 MAL
 
@@ -560,11 +620,15 @@ Although we found brief moments of asking for advice in the beginning, around th
 
 During the inception and elaboration phase we had a couple mandatory meetings with the supervisors. They gave us insights into our architecture and design, and asked questions to motivate us to optimize our system. Besides that, the frontend group had another meeting to get some feedback from the teacher regarding UI features and functionalities. All in all, the meetings were valuable, and we couldve benefited from a larger frequency.
 
+### 6.1.3 IoT
+
+The IoT subteam had very limited supervisor interaction throughout the project. The only meeting held was to clarify whether Wi-Fi credentials needed a more user-friendly solution than the existing secrets.ini approach, which was confirmed to be acceptable. In hindsight, more regular check-ins could have helped validate technical decisions earlier and kept the subteam better aligned with overall project expectations.
+
 ## 6.2 Impact on the Project
 
-[In what specific ways did supervision change or improve the project?
+<!-- [In what specific ways did supervision change or improve the project?
 Were there suggestions or challenges from the supervisor that redirected your work?
-Were there times you disagreed with feedback — how did you handle that?]
+Were there times you disagreed with feedback — how did you handle that?] -->
 
 ### 6.2.1 MAL
 
@@ -574,12 +638,16 @@ The feedback radically changed and shaped the final approaches in the project. N
 
 The meetings regarding the whole group greatly influenced some decisions. However, the individual frontend meeting did not carry much relevance, since the teacher would not give much positive or negative feedback. I believe we could have gotten more insight if we came prepared with more concrete questions.
 
+### 6.2.3 IoT
+
+The single supervisor interaction the IoT subteam had confirmed that the existing credential configuration was sufficient, which saved time that might otherwise have been spent on a more complex solution. Beyond this, supervision had little direct impact on the subteam's work or technical direction.
+
 ## 6.3 Lessons for Future Projects
 
-[What will you do differently in your next supervised project?
+<!-- [What will you do differently in your next supervised project?
 Examples: prepare more structured agendas, present partial results earlier,
 ask more targeted questions, be more proactive about seeking feedback.
-Be concrete and actionable.]
+Be concrete and actionable.] -->
 
 As often, the main lesson is to be more proactive about seeking feedback and perhaps searching for efficient middle ground in many aspects. We correctly identified meetings of all to be inefficient and pointless, however, we suffered from alignment throughout the whole project. We sought supervision towards the end and missed it a lot in the middle. Overall, having a more structured start could have been of most advantage, it must, however, be noted that the semester project required utilizing the knowledge from other subjects which in the beginning made it difficult to have an accurate overview of the tasks to be accomplished and the approaches to be taken. We also had a lot of "silence and pointing fingers", which is expected of large groups, where everyone expects someone else to bear the responsibility. Better defined roles and responsibilities as well as more structure and alignment could have fixed this problem and made the project more efficient and enjoyable.
 
@@ -591,15 +659,24 @@ As often, the main lesson is to be more proactive about seeking feedback and per
 
 ## 7.1 Group Summary
 
-[Summarise the group's overall experience. What defined this project's process?
-What are the most important things you collectively learned — about software
-engineering practice, teamwork, or the PBL learning model?
-How has this project prepared you for professional work?]
+The StudyHelper project became much bigger and more complicated during the semester than we first expected. In the beginning, the idea looked relatively simple — create a system that helps students understand if their study environment is good for studying. Later, the project slowly developed into a system with frontend, backend, MAL, IoT devices, databases, APIs, deployment, testing, and synchronization between multiple parts of the system.
+
+One of the main things that defined the whole project process was teamwork between subgroups. The frontend depended on backend APIs, backend depended on IoT data, and MAL depended on sensor data and user interaction. Because of this, many tasks could not be completed independently and required constant communication between teams.
+
+During the project, we learned that software engineering is not only about writing code. Communication, integration, version control, sprint planning, testing, debugging, and synchronization between systems became a very important part of the process. Sometimes requirements changed during development, backend structures changed, or integrations stopped working after updates, which created additional work for other teams.
+
+The project also gave us practical experience with technologies and workflows that are used in real software development. We worked with React, APIs, authentication systems, GitHub branches, pull requests, Jira, deployment pipelines, databases, IoT communication, machine learning models, and automated testing.
+
+Another important thing we learned was that planning something and actually implementing it are very different things. Some ideas looked simple in theory, but became much more difficult once all parts of the system needed to work together. This forced the group to constantly adapt the system structure and rethink some earlier decisions.
+
+Working in a large group was also both useful and difficult. Different teams sometimes worked in different ways, used different priorities, or focused on different technical problems. This sometimes caused confusion or integration issues, especially during later sprints. At the same time, it gave us experience similar to real software development environments where many people work on different parts of the same system.
+
+Overall, the project gave us valuable experience not only in programming, but also in communication, teamwork, problem solving, adaptation, and long-term project coordination. The project helped us better understand how large software systems are developed in practice and how important teamwork becomes once project complexity increases.
 
 ## 7.2 Recommendations
 
-[Produce a practical list of do's and don'ts for future groups undertaking a similar
-project. These should be grounded in your actual experience — not generic advice.
+<!-- [Produce a practical list of do's and don'ts for future groups undertaking a similar
+project. These should be grounded in your actual experience — not generic advice. -->
 
 **Do:**
 
@@ -633,6 +710,8 @@ project. These should be grounded in your actual experience — not generic advi
 - Vroom, V. H. (1964).  *Work and motivation* .
 - Darley, J. M., & Latane, B. (1968). Bystander intervention in emergencies: Diffusion of responsibility.  *Journal of Personality and Social Psychology* ,  *8* (4, Pt.1), 377–383. **https://doi.org/10.1037/h0025589**
 - Schwaber, K., & Sutherland, J. (2020). *The Scrum Guide: The definitive guide to Scrum: The rules of the game*. Scrum.org.
+
+- Atlassian. (n.d.). *Sprint planning meeting template*. Jira/Confluence.**https://www.atlassian.com/software/confluence/templates/sprint-planning-meeting**
 
 ::: {#refs}
 :::

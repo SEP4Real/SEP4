@@ -1,0 +1,95 @@
+@startuml
+skinparam MessageAlign center
+title Activity Diagram: StudyHelper Detailed Workflow (Device-Backend Integration)
+!include https://raw.githubusercontent.com/fredoslav2004/MinimalThemePUML/refs/heads/main/minimal-theme.puml
+
+|User / Student|
+start
+:submitCredentials;
+|Cloud Backend|
+:confirmAuthentication;
+
+|User / Student|
+if (Device connected?) then (no)
+  :enterDeviceId;
+  |Cloud Backend|
+  :confirmDeviceConnected;
+else (yes)
+endif
+
+|User / Student|
+:pressButtonToStartSession;
+|IoT Device|
+:Transmit start session request;
+|Cloud Backend|
+:Initialize active session;
+:confirmSessionActive;
+
+|IoT Device|
+:Session marked active on device;
+
+fork
+  |IoT Device|
+  repeat
+    :monitorActiveSessionConditions;
+    note right
+      Poll sensors: temperature,
+      humidity, CO2, light levels
+    end note
+    :Transmit telemetry data;
+    |Cloud Backend|
+    :Store DataPoint;
+    :Invoke ML pipeline prediction;
+    :Calculate predictedStudyQuality;
+    :Return predictedStudyQuality;
+    |IoT Device|
+    :Receive predictedStudyQuality;
+    if (predictedStudyQuality == 1) then (yes)
+      :notifyCriticalStudyConditions;
+    else (no)
+    endif
+    :Wait 30 seconds;
+  backward:Telemetry loop;
+  repeat while (Session is active?) is (yes)
+  ->no;
+fork again
+  |User / Student|
+  repeat
+    :requestStudyConditionOverview;
+    |Cloud Backend|
+    :Fetch current readings and prediction;
+    :sendStudyConditionOverview;
+    |User / Student|
+    :View dashboard;
+    if (Provide feedback?) then (yes)
+      :submitStudySessionRating;
+      |Cloud Backend|
+      :Store rating;
+      :confirmRatingReceipt;
+    else (no)
+    endif
+  backward:Dashboard interaction;
+  repeat while (Session is active?) is (yes)
+  ->no;
+end fork
+
+|User / Student|
+:pressButtonToEndSession;
+|IoT Device|
+:Transmit end session request;
+|Cloud Backend|
+:Set Session.isEnded to true;
+:confirmSessionEnded;
+
+|User / Student|
+if (Submit final rating?) then (yes)
+  :submitStudySessionRating;
+  |Cloud Backend|
+  :Store final rating;
+  :confirmRatingReceipt;
+else (no)
+endif
+
+|User / Student|
+stop
+@enduml

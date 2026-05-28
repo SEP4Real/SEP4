@@ -1,0 +1,25 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", margin=0.1, nodesep=0.65, ranksep=0.9];
+  node [shape=box, style="filled", fillcolor="#eeeeff", color="#9370db", fontname="DejaVu Sans", fontsize=15, margin="0.18,0.12"];
+  edge [color="#333333", arrowsize=0.7];
+  DHT [label="DHT11\nTemperature and humidity"];
+  CO2 [label="CO2 sensor"];
+  LIGHT [label="Light sensor\nADC"];
+  BTN1 [label="Button 1\nStart/Stop session"];
+  BTN2 [label="Button 2\nInstant measurement"];
+  MCU [label="ATmega2560"];
+  DISPLAY [label="Four-digit display"];
+  BUZZER [label="Buzzer"];
+  WIFI [label="Wi-Fi module"];
+  API [label="Backend API"];
+  {rank=same; DHT; CO2; LIGHT; BTN1; BTN2;}
+  DHT -> MCU;
+  CO2 -> MCU;
+  LIGHT -> MCU;
+  BTN1 -> MCU;
+  BTN2 -> MCU;
+  MCU -> DISPLAY;
+  MCU -> BUZZER;
+  MCU -> WIFI;
+  WIFI -> API;
+}

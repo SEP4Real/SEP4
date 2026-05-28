@@ -19,8 +19,6 @@ DATA_DIR = MAL_DIR / "data"
 
 DEFAULT_INPUT_PATH = DATA_DIR / "processed" / "linearized_sessions_with_missing_targets.csv"
 DEFAULT_OUTPUT_PATH = DATA_DIR / "processed" / "linearized_session_windows.csv"
-ARTIFACTS_DIR = Path("/home/edf/.gemini/antigravity/brain/2dbb4bdf-b3af-4b99-b041-3ade9608a4a5")
-
 RANDOM_STATE = 42
 DEFAULT_N_CLUSTERS = 5
 
@@ -116,15 +114,6 @@ def generate_visualizations(
     plt.savefig(pca_plot_path, dpi=150)
     plt.close()
     print(f"Saved PCA clusters plot to: {pca_plot_path}")
-
-    # Copy plots to the brain artifacts directory for visual display
-    if ARTIFACTS_DIR.exists():
-        try:
-            shutil.copy(rating_plot_path, ARTIFACTS_DIR / "rating_distribution.png")
-            shutil.copy(pca_plot_path, ARTIFACTS_DIR / "pca_clusters.png")
-            print(f"Successfully copied plots to brain artifacts directory: {ARTIFACTS_DIR}")
-        except Exception as e:
-            print(f"Note: Could not copy plots to brain artifacts directory: {e}")
 
 
 def fill_missing_targets_via_clustering(

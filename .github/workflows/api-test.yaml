@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - dev
+  push:
+    branches:
+      - dev
+      - 'fix/**'
+  workflow_dispatch:
 
 jobs:
   detect-changes:
@@ -16,19 +21,28 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for API changes
-        uses: dorny/paths-filter@v3
+      - name: Determine diff range
         id: filter
-        with:
-          token: ''
-          base: ${{ github.base_ref }}
-          filters: |
-            api:
-              - 'API/**'
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin "${{ github.base_ref }}"
+            diff_range="origin/${{ github.base_ref }}...HEAD"
+          elif [[ -n "${{ github.event.before }}" && "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
+            diff_range="${{ github.event.before }}...${{ github.sha }}"
+          else
+            git fetch origin main
+            diff_range="origin/main...HEAD"
+          fi
+
+          if git diff --name-only "$diff_range" | grep -q '^API/'; then
+            echo "api=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "api=false" >> "$GITHUB_OUTPUT"
+          fi
 
   api-test:
     needs: detect-changes
-    if: needs.detect-changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     env:
       DB_HOST: localhost
@@ -39,26 +53,35 @@ jobs:
       MAL_API_HOST_PORT: http://localhost:8000
 
     steps:
+      - name: Skip when API is unchanged
+        if: needs.detect-changes.outputs.api != 'true'
+        run: echo "No API changes detected. Marking api-test as passed."
+
       - name: Checkout code
+        if: needs.detect-changes.outputs.api == 'true'
         uses: actions/checkout@v4
 
       - name: Set up Python
+        if: needs.detect-changes.outputs.api == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install dependencies
+        if: needs.detect-changes.outputs.api == 'true'
         working-directory: API
         run: |
           pip install -r requirements.txt
           pip install pytest pytest-cov pytest-asyncio httpx passlib[bcrypt] python-jose
 
       - name: Run tests with coverage
+        if: needs.detect-changes.outputs.api == 'true'
         working-directory: API
         run: |
           pytest tests/ --cov=app --cov-report=term-missing --cov-report=html
 
       - name: Upload coverage report
+        if: needs.detect-changes.outputs.api == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report

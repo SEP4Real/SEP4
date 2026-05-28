@@ -22,7 +22,7 @@ jobs:
 
       - name: Install WeasyPrint dependencies
         run: |
-          sudo apt-get install -y python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
+          sudo apt-get install -y python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info poppler-utils zip
 
       - name: Install WeasyPrint
         run: |
