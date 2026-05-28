@@ -194,7 +194,7 @@ A comprehensive specification of these non-functional criteria under the FURPS+ 
 
 ## 2.4 System Sequence Diagrams {#24-system-sequence-diagrams}
 
-System Sequence Diagrams (SSDs) establish the boundaries of the StudyHelper system, mapping external actor triggers to synchronous and asynchronous system responses. In the system's architectural design, these SSDs serve as the contract between the embedded firmware (C/C++ on ATmega2560), the cloud backend (FastAPI/PostgreSQL), the machine learning service (MAL), and the client-side user interface (React).
+System Sequence Diagrams (SSDs) establish the boundaries of the StudyHelper system, mapping external actor triggers to synchronous and asynchronous system responses. In the system's architectural design, these SSDs serve as the contract between the embedded firmware (C on ATmega2560), the cloud backend (FastAPI/PostgreSQL), the machine learning service (MAL), and the client-side user interface (React).
 
 ### 2.4.1 IoT-Initiated Session Lifecycles
 
