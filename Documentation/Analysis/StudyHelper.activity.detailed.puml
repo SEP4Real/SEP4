@@ -45,7 +45,7 @@ fork
     |IoT Device|
     :Receive predictedStudyQuality;
     if (predictedStudyQuality == 1) then (yes)
-      :triggerBuzzerAlert;
+      :notifyCriticalStudyConditions;
     else (no)
     endif
     :Wait 30 seconds;

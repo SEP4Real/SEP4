@@ -28,7 +28,6 @@ class DataPoint {
   co2Level : float
   lightLevel : float
   sentAt : long
-  predictedStudyQuality : int
 }
 class Rating {
   ratingValue : int

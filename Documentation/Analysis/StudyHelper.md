@@ -10,6 +10,10 @@
 
 **Actor:** Student
 
+**Preconditions:**
+- `Student.hasConnectedDevice`
+- `Session.isActive`
+
 **Flow of Events:**
 1. @start requestStudyConditionOverview 
 2. sendStudyConditionOverview (Target: actor)
@@ -27,6 +31,9 @@
 
 **Actor:** Student
 
+**Preconditions:**
+- `Session.exists`
+
 **Flow of Events:**
 1. @start submitStudySessionRating 
     - ratingValue: int
@@ -39,6 +46,10 @@
 **Description:** "As a Student I want to see the history of environmental conditions, so that I can understand trends affecting my focus."
 
 **Actor:** Student
+
+**Preconditions:**
+- `Student.hasConnectedDevice`
+- `Session.hasDataPoints`
 
 **Flow of Events:**
 1. @start requestEnvironmentConditionHistory 
@@ -53,10 +64,14 @@
 
 **Actor:** Student
 
+**Preconditions:**
+- `Session.isActive`
+- `StudyConditions.areCriticallyPoor`
+
 **Flow of Events:**
 1. monitorActiveSessionConditions 
 2. Alt: predictedStudyQuality == 1  
-3. triggerBuzzerAlert (Target: actor)
+3. notifyCriticalStudyConditions (Target: actor)
 
 **Postconditions:**
 - `@sys.studentAlertSent`
@@ -96,6 +111,9 @@
 
 **Actor:** Teacher
 
+**Preconditions:**
+- `Teacher.hasAccessToRoomConditions`
+
 **Flow of Events:**
 1. @start requestTeachingConditionOverview 
 2. sendTeachingConditionOverview (Target: actor)
@@ -113,6 +131,9 @@
 
 **Actor:** User
 
+**Preconditions:**
+- `User.hasValidCredentials`
+
 **Flow of Events:**
 1. @start submitCredentials 
     - email: string
@@ -127,6 +148,10 @@
 
 **Actor:** Student
 
+**Preconditions:**
+- `Student.isAuthenticated`
+- `Device.exists`
+
 **Flow of Events:**
 1. @start enterDeviceId 
     - deviceId: string
@@ -139,6 +164,9 @@
 **Description:** "As a Student I want to manage my profile information, so that the application can be personalized to me."
 
 **Actor:** Student
+
+**Preconditions:**
+- `Student.isAuthenticated`
 
 **Flow of Events:**
 1. @start updateProfilePreferences 
@@ -153,6 +181,9 @@
 **Description:** "As a Student I want to manage calendar events, so that I can plan study sessions in the same application."
 
 **Actor:** Student
+
+**Preconditions:**
+- `Student.isAuthenticated`
 
 **Flow of Events:**
 1. @start createCalendarEvent 
@@ -221,7 +252,6 @@
 | co2Level | float | unspecified | - |
 | lightLevel | float | unspecified | - |
 | sentAt | long | unspecified | - |
-| predictedStudyQuality | int | unspecified | - |
 
 ### Class: Rating
 #### Attributes
@@ -252,4 +282,3 @@
 | Device "1" | -- | Session "0..*" | records |
 | Session "1" | -- | DataPoint "0..*" | stores |
 | Session "1" | -- | Rating "0..*" | receives |
-

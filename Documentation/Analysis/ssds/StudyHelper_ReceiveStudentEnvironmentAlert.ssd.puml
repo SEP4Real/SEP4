@@ -6,6 +6,6 @@ participant "system" as System
 
 Actor -> System : monitorActiveSessionConditions
 alt predictedStudyQuality == 1
-System -> Actor : triggerBuzzerAlert
+System -> Actor : notifyCriticalStudyConditions
 end
 @enduml

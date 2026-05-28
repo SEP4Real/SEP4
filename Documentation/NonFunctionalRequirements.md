@@ -25,4 +25,4 @@ This document defines the non-functional requirements (NFRs) for the StudyHelper
 - **Data Transmission Security**: All public API requests and user transactions must be encrypted using TLS version 1.2 or higher.
 
 ## 6. DevOps and Verification
-- **Automated Build Gates**: The automated CI/CD pipeline must execute unit tests and block the merge if test coverage falls below 80% or if any test fails, completing the entire run within 10 minutes.
+- **Automated Build Gates**: The automated CI/CD pipeline must execute the required build and test jobs and block the merge if any required job fails, completing the entire run within 10 minutes.
