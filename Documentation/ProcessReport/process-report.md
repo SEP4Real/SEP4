@@ -466,12 +466,17 @@ I think one of my stronger contributions during the project was helping keep fro
 
 Even though the project was stressful at times, I still think it was a valuable experience. I learned much more about communication, integration, coordination, and realistic software development than in previous semester projects. The project also showed me that large systems are not only about writing code — a lot of the work is connected to communication, synchronization between teams and adapting to changes during development.
 
-
 ## Alexandru Savin
 
-Data vs. Models, what drives better outcomes? Thoughout the project me, being part of MAL team enjoyed analysing this question and I came out to the conclusion that even a relatively simple model can achieve pretty high accuracy, while a more powerful model cannot compensate from a lack of data.
+Data vs. models: what drives better outcomes? During this semester project, I kept returning to that question and learned that a larger model does not make up for weak or limited data. In our case, a relatively simple model often performed just as well as more complex alternatives, while more complex architectures only added risk when the data available for training was scarce.
 
-[WIP]
+I learned how to build a complete ML pipeline for an end to end service. I worked on defining the session and instance prediction feature sets, developing model training logic, and integrating the ML service into the API. I gained experience with FastAPI, deploying to a VPS-style environment, and working with Python at a larger team scale. This project taught me to establish the target label and data collection strategy before selecting model architecture, and it showed me why building a minimal end to end service early is important so the deployment path and API contract are validated before most of the work is done.
+
+This is the first out of the four semester projects where we sought and engaged in supervisor meetings beyond the mandatory ones, and I was surprised how much of a positive impact it had. Not only did we get feedback on the technical aspects of our project, but we were again reminded of how clear, well-structured, and documented the system has to be, which we were still having trouble with in the beginning.
+
+The biggest technical challenge was the subjective and limited nature of the data. In addition, as expected, working in an 11-person group made coordination harder. I did not have a coordination or Scrum Master role in this project, but nevertheless felt the will and need to attend all inter-team meetings as it was difficult to stay aligned with the other subteams, keep track, and also communicate to others about updated system requirements. We did not have inter-team milestones to make progress visible across the whole project, which made it harder to bring all parts together smoothly.
+
+Going forward, I would communicate more with other teams. When a use case changes in one subteam, it may still affect the rest of the project more than it appears at first. In a large team like ours, accountability and agreement on shared decisions are essential to avoid unnecessary rework and ensure the whole system integrates successfully.
 
 ## Damian Michal Choina
 
