@@ -525,7 +525,7 @@ One thing I think worked well was that we stayed consistent with Scrum meetings 
 
 For future projects, I would like to be more active in asking for cross-team updates earlier, not only when it becomes urgent. Overall, this project made me more confident in applying machine learning theory in practice, and it also showed me that technical progress depends heavily on communication, especially in large teams.
 
-## Marta Zrno:
+## Marta Zrno
 
 I thoroughly enjoyed working on this project, specifically the division into subgroups. These subgroups allowed us to have clear roles and responsibilities during the development process. It helped emulate a semi-professional working environment, which I consider to be valuable preparation for future projects in the software industry. On the other hand, organization was chaotic at times, and it was hard to get on the same page, especially among the subgroups. I personally didn't have an easy time adjusting to the amount of people in the group, because I usually prefer working individually, or as a leader, which was not possible in this setup. But I managed to take a step back and allow the group to make some decisions, even when I didn't agree.
 
@@ -545,7 +545,7 @@ Communication and shared understanding were also a recurring issue at the full-g
 
 On the technical side, my work covered the CI/CD pipeline for both the IoT firmware and the backend API, the IoT-facing backend endpoints, and the associated test suites. None of this was particularly difficult in isolation, but it required a solid understanding of how all components connected, which I came to appreciate more over time. The most valuable technical outcome for me personally was developing a strong understanding of DevOps and testing practices. I also had no prior experience with FastAPI or Python in a backend context, and getting to work with both gave me a new set of tools I am likely to use again. These are the takeaways I will carry into future projects regardless of how I felt about the project itself.
 
-## Tymoteusz
+## Tymoteusz Krzysztof Zydkiewicz
 
 During this semester project I worked in the IoT team. Compared to previous projects, this one felt more complex because the IoT part was not just a separate technical component, but something that had to connect properly with the backend, MAL, and frontend. I worked on several IoT-related tasks, but the one I remember the most was trying to make the sound detector work. Unfortunately, because of the sensor limitations, we did not use it in the final project. The main problem was that it could not properly measure background sound, which was important for our idea, since noise level was one of the environmental factors connected to study conditions.
 
@@ -635,8 +635,6 @@ As often, the main lesson is to be more proactive about seeking feedback and per
 <!-- GROUP section — written collectively as a summary.
      Provide a concise synthesis of what you learned about working together.
      The key deliverable here is a list of concrete recommendations for future groups. -->
-
-## 7.1 Group Summary
 
 ## 7.1 Group Summary
 
