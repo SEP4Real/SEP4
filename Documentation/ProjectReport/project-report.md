@@ -74,6 +74,7 @@ To address the identified challenges, the project investigates the following pri
 **Problem Statement:** How can indoor environmental data be monitored and analyzed to evaluate the impact of ambient conditions on the quality of student study sessions?
 
 This problem is decomposed into five sub-questions:
+
 1. Which indoor environmental factors most significantly impact student study conditions?
 2. What metrics can represent study session and indoor environmental quality?
 3. How do students react to variations in indoor environmental quality?
@@ -85,6 +86,7 @@ The proposed solution involves continuous collection of real-world environmental
 ## 1.3 Project Objectives
 
 The core project objectives are defined across five areas:
+
 - **IoT Firmware**: Implement an ATmega2560-based device to measure temperature, humidity, CO₂ concentration, and light levels, transmitting JSON payloads to the backend over HTTP every 30 seconds.
 - **Cloud Backend**: Deploy a central FastAPI Core API to persist sensor data and session metadata in a PostgreSQL database and expose a RESTful API.
 - **Machine Learning**: Train a classifier predicting a 1–5 Study Suitability Rating from session-aggregated sensor windows, served via a FastAPI endpoint.
@@ -94,6 +96,7 @@ The core project objectives are defined across five areas:
 ## 1.4 Scope and Delimitations
 
 Project scope is constrained by several key delimitations:
+
 - **Geographical Scope**: Testing is limited to portable campus study spaces (classrooms, libraries, dormitories). Multi-building deployment tracking is out of scope.
 - **Sensor Coverage**: Telemetry is restricted to temperature, humidity, CO₂ concentration, and light. Ambient sound level measurement was excluded due to sensor malfunction and inaccuracies during testing.
 - **Actuation and Automation**: Actuation is confined to an onboard device buzzer warning for critically poor environments (Rating 1). HVAC and automated building controls are excluded.
@@ -271,6 +274,7 @@ Data flows from the IoT device pushing sensor telemetry to the Core API; the Cor
 The StudyHelper backend is hosted on a public VPS managed through Coolify, an open-source PaaS. Coolify coordinates container lifecycles and routes public traffic to the Core API and frontend containers.
 
 **Containerization:** The architecture is orchestrated using Docker Compose with four main containers:
+
 - `postgres`: PostgreSQL 16 database utilizing a named volume for persistent storage.
 - `api`: Python 3.12 container serving the Core API via Uvicorn on port 8080.
 - `mal-api`: Python container serving the MAL inference service on port 8000.
@@ -295,6 +299,7 @@ The StudyHelper backend is hosted on a public VPS managed through Coolify, an op
 The development workflow utilizes a trunk-based branching model with protected `main` (production) and `dev` (integration) branches. All changes are merged via pull requests after passing automated CI checks.
 
 **CI/CD Workflows:** Automated regression testing is split into three GitHub Actions pipelines:
+
 - **IoT CI** (`iot-ci.yaml`): Runs on PRs modifying the `IOT/` directory. Performs GCC unit testing and coverage reporting via lcov, followed by PlatformIO firmware compilation to publish a `firmware.hex` artifact.
 - **MLOps** (`mlops.yaml`): Executes the pytest suite for data transformation and serving API checks, verifies model artifact loadability, and pushes the built `mal-api` image to GHCR upon merging to `main`.
 - **Frontend CI/CD** (`frontend.yaml`): Installs dependencies, executes Vitest UI tests, and compiles the static Vite application to verify build integrity.
@@ -355,6 +360,7 @@ The firmware is written in C and follows a modular architecture where driver con
 The firmware runs in a cooperative superloop. Time-critical tasks are coordinated using non-blocking software timers that raise volatile flags (`pulse_due`, `data_due`) handled in the loop, avoiding the need for a real-time operating system.
 
 Three software timers govern the execution schedule:
+
 - **Pulse Timer** (5 seconds): Sends keepalive pulses during active sessions.
 - **Data Timer** (30 seconds): Triggers sensor readings and telemetry uploads.
 - **Button Cooldown Timer** (10 seconds): Enforces a lockout period to prevent duplicate inputs.
@@ -394,6 +400,7 @@ The machine learning task is formulated as a supervised classification problem a
 - **Inputs (X):** Features are derived from physical sensor data (Temperature, Humidity, CO₂, and Light):
   - *Session-Based:* For ongoing study sessions, raw readings are dynamically aggregated into structured vectors capturing current, minimum, maximum, and mean values to summarize environmental variance over time.
   - *Instantaneous:* For immediate environment checks before a session starts, models rely solely on real-time, point-in-time sensor readings without historical aggregation.
+
 - **Output (Y):** The target variable is the Study Suitability Rating, consisting of discrete integer classes from 1 (poor) to 5 (excellent). To minimize false positives, a conservative threshold is applied: ratings of 4 and 5 denote suitable conditions, while ratings 1 through 3 are classified as unsuitable.
 - **Objective:** The goal is to learn the non-linear relationships between physical room characteristics and subjective suitability ratings. Mapping environmental metrics to historical feedback allows the system to predict study environment quality both instantaneously and over a session.
 
@@ -426,6 +433,7 @@ The frontend interface is designed for students to evaluate study environments. 
 The application is built using React and Vite. Global state (localization, theme) is managed through Context providers in `src/main.jsx`, which wrap the routing configuration in `src/App.jsx`. The interface utilizes protected routes (`/dashboard`, `/profile`, `/calendar`) and public routes (`/login`, `/register`) to enforce authentication boundaries.
 
 The directory structure is organized by functional responsibility:
+
 - `components/`: Reusable UI elements (e.g., `SensorCard`, `SensorChart`, `SessionRating`, `ProtectedRoute`).
 - `pages/`: Page-level components corresponding to application routes (e.g., `Dashboard`, `Profile`, `CalendarPage`).
 - `services/`: Modules encapsulating HTTP request logic using the Fetch API (e.g., `DashboardService`, `DeviceService`).
@@ -437,6 +445,7 @@ The directory structure is organized by functional responsibility:
 ### 3.4.3 Frontend Design Patterns {#343-responsiveness-strategy}
 
 The frontend design adheres to the following software patterns:
+
 - **State Sharing (React Context):** Implemented for cross-component state management, specifically for localization and theme variables.
 - **Service Layer (API Separation):** Telemetry retrieval and authentication requests are decoupled from UI components, reducing code duplication.
 - **Component Reusability:** UI widgets (e.g., sensor cards, loading spinners, modals) are abstracted into reusable components.
@@ -511,6 +520,7 @@ The `request_in_progress` flag acts as a simple mutex preventing overlapping com
 A primary challenge involved merging disparate datasets, which introduced missing values for specific sensors (e.g., noise or light). To address missing data while preserving natural variance, an imputation strategy based on the **Multivariate Imputation by Chained Equations (MICE)** framework was implemented.
 
 Rather than employing simple mean substitution or linear regression, a cluster-based methodology was adopted:
+
 1. **Environment Type Clustering:** K-means clustering grouped data points into environmental categories based on complete features (Temperature, CO₂, and Humidity). This accounts for distinct physical settings (e.g., sun-exposed rooms vs. windowless laboratories) where sensor correlations differ.
 2. **ExtraTrees Estimator:** Within the MICE framework, an ExtraTrees estimator was utilized to model non-linear interactions.
 3. **Variance Preservation:** The imputation logic was configured to incorporate natural distribution variance based on the average standard deviation of the trees, avoiding artificial distribution flattening.
@@ -524,6 +534,7 @@ The MAL service implements two prediction pipelines with distinct input requirem
 #### Session-Based Prediction
 
 The session pipeline aggregates sequential readings within a temporal window to compute summary statistics. To ensure alignment between training and production inference, the model utilizes an explicit feature contract (20 features total) consisting of current, mean, minimum, and max values for each sensor:
+
 - `currentTemperature`, `meanTemp`, `minTemp`, `maxTemp`
 - `currentHumidity`, `meanHumidity`, `minHumidity`, `maxHumidity`
 - `currentCO2`, `meanCO2`, `minCO2`, `maxCO2`
@@ -558,6 +569,7 @@ Input validation is enforced at the API boundary via Pydantic models. The sessio
 ### 3.6.3 Data Split and Validation Strategy
 
 All machine-learning experiments utilized a locked hold-out test set (20%) kept separate from model selection to prevent data leakage. The validation strategies for the pipelines were:
+
 1. **Instant-measurement models:** Hyperparameters were selected via 5-fold cross-validation on an 80% training/development set. To assess generalisation to unseen spaces, Gradient Boosting and MLP models utilized a room-grouped split (`GroupShuffleSplit`), separating rooms into independent training and test subsets.
 2. **Session-based models:** The development set (80%) was split using `PredefinedSplit`, allocating 20% for validation during hyperparameter tuning, resulting in a 64/16/20 train/validation/test split.
 
@@ -643,6 +655,7 @@ export const API_URL = shouldUseDefaultApiUrl ? "/api" : configuredApiUrl.replac
 ### 3.7.3 Hosting and Deployment
 
 The React application is containerized using a multi-stage Docker build:
+
 1. **Build Stage:** A Node.js Alpine image installs dependencies and builds production assets (`npm run build`).
 2. **Runtime Stage:** An Nginx image serves the compiled static files and proxies API requests.
 
@@ -720,12 +733,14 @@ Overall, the pipeline added clear value to the development workflow by catching 
 *Authors: Piotr Junosz, Eduard Fekete, Alexandru Savin, Mara-Ioana Statie*
 
 Two modeling paradigms were developed to evaluate study space quality:
+
 1. **Session-based Models:** Classifiers evaluated on linearized time-series windows to capture environmental variations over time.
 2. **Instant Measurement Models:** Models utilizing point-in-time telemetry snapshot inputs to assess immediate conditions.
 
 ### 3.9.1 Model Selection {#391-model-selection}
 
 For the instant prediction pipeline, six architectures were evaluated against the ordinal 1–5 target variable:
+
 - **Linear Regression (LR):** Served as a baseline regressor to identify linear trends.
 - **Random Forest Regressor (RFR):** Ensembles trees to model non-linear interactions without intensive scaling.
 - **Random Forest Classifier (RFC):** Casts comfort values as five distinct target classes.
@@ -734,6 +749,7 @@ For the instant prediction pipeline, six architectures were evaluated against th
 - **Two-Stage Pipeline:** A hybrid approach using Stage 1 Random Forests to map sensors to intermediate "perception" labels (e.g., "Cold", "Hot"), and Stage 2 models to predict the final rating.
 
 For the session prediction pipeline, four classification architectures were evaluated on linearized windows:
+
 - **Logistic Regression:** Serves as a baseline linear classifier.
 - **K-Nearest Neighbors (KNN):** Groups sessions based on historical parameter proximity.
 - **Random Forest Classifier:** Captured feature importances and non-linear interactions.
@@ -744,6 +760,7 @@ For the session prediction pipeline, four classification architectures were eval
 For the instant pipeline, the dataset was split into training/development (80%) and hold-out test (20%) sets. Hyperparameters were tuned via `GridSearchCV` with 5-fold cross-validation on the development set. For the GBC and MLP instant models, a room-grouped split (`GroupShuffleSplit`) was implemented to assess generalisation to unseen locations.
 
 The parameter search grids were:
+
 - **LR:** `fit_intercept` (True, False).
 - **RFR/RFC:** `n_estimators` (100, 300), `max_depth` (None, 10, 20), `min_samples_split` (2, 5), `min_samples_leaf` (1, 3).
 - **GBC:** `n_estimators` (50, 100, 200), `learning_rate` (0.05, 0.1), `max_depth` (3, 5).
@@ -753,6 +770,7 @@ The parameter search grids were:
 For the session pipeline, development (80%) and final test (20%) sets were partitioned. Predictor columns including identifiers and timestamps were removed, and numerical features scaled with `StandardScaler`. Tuning was performed on the development set using `PredefinedSplit` (64/16 train/validation).
 
 The optimal hyperparameters identified were:
+
 - **Logistic Regression:** `C = 100`, no class weighting.
 - **KNN:** `n_neighbors = 17`, `weights = distance`, Manhattan metric (`p = 1`), `leaf_size = 20`.
 - **Random Forest:** `n_estimators = 200`, `max_depth = 20`, log2 max features, `min_samples_split = 10`, `min_samples_leaf = 2`.
@@ -967,6 +985,7 @@ The MAL component is verified through a multi-layered testing strategy targeting
 **Data Pipeline Testing**
 
 Unit and integration tests (e.g., `test_build_unified_environment_dataset.py`) verify:
+
 - **Merging Logic:** Correct joining of IoT sensor logs, ratings, and history on time-series keys.
 - **Preprocessing Correctness:** Valid MICE imputation and K-means clustering output without data leakage.
 - **Schema Validation:** Alignment of processed datasets with Random Forest feature contracts.
@@ -974,6 +993,7 @@ Unit and integration tests (e.g., `test_build_unified_environment_dataset.py`) v
 **API and Model Serving Testing**
 
 The `pytest` framework (e.g., `test_prediction_api.py`) runs integration checks verifying:
+
 - **Endpoint Availability:** Valid HTTP responses from `/predict` and health check paths.
 - **Model Loading:** Verification that serialized model files are loaded correctly for inference.
 - **Input Validation:** Validation of Pydantic models against malformed data.
@@ -990,6 +1010,7 @@ The MLOps pipeline manages the lifecycle of both source code and serialized mode
 ### 3.13.3 Tools and Pipeline {#3133-tools-and-pipeline}
 
 The pipeline is automated via GitHub Actions (`mlops.yaml`) on every pull request:
+
 1. **Environment Setup:** Python 3.10 and dependencies are configured with a PostgreSQL sidecar container.
 2. **Automated Verification:** The `pytest` suite is executed to verify data transformations and API integrity.
 3. **Model Artifact Integrity:** The job fails if the serialized model artifact is missing or corrupted.
@@ -1268,4 +1289,3 @@ The source repository is organized into the following component packages:
 - **`IOT/`**: Embedded C firmware designed for the ATmega2560 microcontroller to interface with sensors (DHT11, MH-Z19B, KY-018), buttons, display, and buzzer.
 - **`MAL/`**: Machine Learning and API (MAL) Python service, deploying Random Forest and MLP neural network models for comfort suitability inference.
 - **`initdb/`**: SQL schema initialization scripts for automatic PostgreSQL database container setup.
-
