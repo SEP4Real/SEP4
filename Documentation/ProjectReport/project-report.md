@@ -299,7 +299,7 @@ The design satisfies three core requirements: measuring temperature, humidity, C
 
 ### 3.2.1 Hardware Architecture {#321-hardware-architecture}
 
-![Hardware block diagram of the IoT device.](image/iot-design/iot-hardware-block-diagram.svg)
+![Hardware block diagram of the IoT device.](image/iot-design/exported/iot-hardware-block-diagram-graphviz.png)
 
 The hardware is built around an ATmega2560 microcontroller, selected for its abundant GPIO pins, ADC channels, timers, and PlatformIO compatibility.
 
@@ -323,7 +323,7 @@ User interaction is handled via Button 1 (session control) and Button 2 (instant
 
 ### 3.2.2 Embedded Software Architecture {#322-embedded-software-architecture}
 
-![Firmware module structure for the IoT component.](image/iot-design/iot-firmware-module-diagram.svg){width=80%}
+![Firmware module structure for the IoT component.](image/iot-design/exported/iot-firmware-module-diagram-graphviz.png){width=80%}
 
 The firmware is written in C and follows a modular architecture where driver concerns are separated from application logic:
 
@@ -425,7 +425,7 @@ The directory structure is organized by functional responsibility:
 - `context/`: State providers for theme and localization configuration.
 - `translations/`: Translation mappings for English and Danish languages.
 
-![Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.](../Design/Frontend/Component_diagram.svg){width=90%}
+![Frontend component structure showing the main providers, routes, pages, reusable components, and service layer.](image/frontend-design/frontend-component-structure-browser.png){width=90%}
 
 ### 3.4.3 Frontend Design Patterns {#343-frontend-design-patterns}
 
