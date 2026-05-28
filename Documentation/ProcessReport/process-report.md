@@ -382,6 +382,16 @@ Another challenge was the development and testing setup around PlatformIO. While
 
 The most difficult technical area overall was networking between the Arduino, the Wi-Fi module, and the backend API. Some of the Wi-Fi-related drivers and communication layers were harder to work with than expected, especially because errors could come from several places: UART communication, Wi-Fi module responses, HTTP formatting, backend availability, or timing issues in the firmware. The team responded by separating the networking logic into smaller modules and testing server communication as much as possible outside the physical device. In the end, the device was able to register, start sessions, send keep alive pulses, transmit sensor data, and receive prediction responses, but this part of the system required more debugging than most other IoT features.
 
+### 4.6.2 MAL
+
+The MAL team’s challenge was the building and aligning the data and model pipelines. The codebase that included both session-based and instant prediction workflows and it wan't easy to do feature engineering, imputation, and noise handling, especially since the instant prediction logic was introduced very late in the development timeline.
+
+Real Data Scarcity and Testing: We were not able to find trustworthy datasets which would contain all of our features and target variables in one place. We also never received a sufficient volume of real IoT data to construct a reliable test set. To circumvent this, the team had to rely on splits generated from our mock data to thoroughly test and validate the models.
+
+Overfitting Possibilities: Initially, during the implementation of overlapping rated sessions team became aware that it would cause the models to overfit. This issues was solved to transitioning into a dynamic session duration, allowing sessions to flexibly adapt (being either short or long) based exactly on when the user provided their rating.
+
+Pipeline Alignment and Data Handling: A high number of fixes had to be performed for real data loading, model training, prediction logic, and packaging to ensure the parallel workflows remained stable.
+
 ### 4.6.3 Frontend
 
 A challenge that the frontend team encountered was with a teammate who was not contributing equally, was missing meetings, did not want to participate in a group presentation and refused to read and reply to messages. Unfortunately, the situation escalated and they left the group.
@@ -404,7 +414,7 @@ Finally, HTTPS was considered for device-to-backend communication, but the final
 
 ### 4.7.2 MAL
 
-For MAL team, several deviations from the plan took place during the process of work. Initial plan was to mock the data while developing the models pipelines so that we can start experiments before getting real data from the sensors. After the meeting with supervisor and strict feedback we knew that we cannot generate the data in order to mock it, but we have to search for available datasets on the internet. Another deviation from the plan was that we wanted and thought that the only data we are going to use is going to be the real one collected from iot/frontend (the mock one only for experiments before real data coming in). Unfortunatelly, we had to change the plan again because the amount and variety of data was not sufficient. So plan changed to search for even more available, related datasets on the internet, which was a real challange since the datasets never had all required features. Than we had to glue those sets which also was not existing in the initial plan. The last significant change of plans was regarding the ml model. Initialy we were developing the model which were learning based on sessions but another type of model was needed as well - for instant predictions where the prediction is just based on the current sensor values and user raiting.
+For MAL team, several deviations from the plan took place during the process of work. Initial plan was to mock the data while developing the models pipelines so that we can start experiments before getting real data from the sensors. After the meeting with supervisor and strict feedback we knew that we cannot generate the data in order to mock it, but we have to search for available datasets on the internet. Another deviation from the plan was that we wanted and thought that the only data we are going to use is going to be the real one collected from iot/frontend (the mock one only for experiments before real data coming in). Unfortunately, we had to change the plan again because the amount and variety of data was not sufficient. So plan changed to search for even more available, related datasets on the internet, which was a real challenge since the datasets never had all required features. Than we had to glue those sets which also was not existing in the initial plan. The last significant change of plans was regarding the ml model. Initially we were developing the model which were learning based on sessions but another type of model was needed as well - for instant predictions where the prediction is just based on the current sensor values and user rating.
 
 ### 4.7.3 Frontend
 
