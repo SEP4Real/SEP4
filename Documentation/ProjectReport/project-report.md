@@ -316,7 +316,7 @@ The design satisfies three core requirements: measuring temperature, humidity, C
 
 ### 3.2.1 Hardware Architecture {#321-hardware-architecture}
 
-![Hardware block diagram of the IoT device.](image/iot-design/iot-hardware-block-diagram.png){width=50%}
+![Hardware block diagram of the IoT device.](image/iot-design/iot-hardware-block-diagram.png)
 
 The hardware is built around an ATmega2560 microcontroller, selected for its abundant GPIO pins, ADC channels, timers, and PlatformIO compatibility.
 
