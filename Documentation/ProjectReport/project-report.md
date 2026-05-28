@@ -336,7 +336,7 @@ The device includes the following components:
 
 The sensor suite matches the target environmental factors. The DHT11 captures temperature and humidity, the KY-018 provides light intensity (inverted so higher values represent brighter environments), and the MH-Z19B measures CO₂ concentration. The CO₂ driver validates UART data frames using a checksum to filter out corrupted readings.
 
-User interaction is handled via Button 1 (session control) and Button 2 (instant measurements). The display provides local status feedback, while the buzzer serves as an alarm mechanism when the backend returns a suitability rating of 1. Peripherals such as sound, proximity, or water sensors were excluded to minimize hardware complexity and focus design resources on ML integration and core telemetry quality.
+User interaction is handled via Button 1 (session control) and Button 2 (instant measurements). The display provides local status feedback, while the buzzer serves as an alarm mechanism when the backend returns a suitability rating between 1 and 3. Peripherals such as sound, proximity, or water sensors were excluded to minimize hardware complexity and focus design resources on ML integration and core telemetry quality.
 
 ### 3.2.2 Embedded Software Architecture {#322-embedded-software-architecture}
 
